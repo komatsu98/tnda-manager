@@ -40,6 +40,11 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 Route::prefix('api')->group(function () {
-    Route::get('/profile', 'UserController@profile')->name('api.profile');
-    Route::post('/login', 'UserController@login')->name('api.login');
+    Route::post('/login', 'AgentController@login')->name('api.login');
+    Route::get('/profile', 'AgentController@profile')->name('api.profile');
+    Route::get('/contracts', 'AgentController@getAgentContracts')->name('api.contracts');
+    Route::get('/comissions', 'AgentController@getAgentComissions')->name('api.comissions');
+    Route::get('/transactions', 'AgentController@getAgentTransactions')->name('api.transactions');
+    Route::get('/news', 'AgentController@getAppNews')->name('api.news');
+    Route::get('/potential-customers', 'AgentController@getPotentialCustomers')->name('api.potential_customers');
 });

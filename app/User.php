@@ -18,7 +18,7 @@ class User extends Authenticatable
     protected $table = 'users';
 
     protected $fillable = [
-        'name', 'email', 'password',
+        'username', 'email', 'password',
     ];
 
     /**
@@ -44,7 +44,26 @@ class User extends Authenticatable
      */
     public function sessions()
     {
-        return $this->hasMany('App\SessionLog', 'user_id');
+        return $this->hasMany('App\SessionLog', 'agent_id');
     }
-    
+
+    public function contracts()
+    {
+        return $this->hasMany('App\Contract', 'agent_code', 'agent_code');
+    }
+
+    public function comissions()
+    {
+        return $this->hasMany('App\Comission', 'agent_code', 'agent_code');
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany('App\Transaction', 'agent_code', 'agent_code');
+    }
+
+    public function supervisor() {
+        return $this->belongsTo('App\User', 'supervisor_code', 'agent_code');
+    }
+
 }
