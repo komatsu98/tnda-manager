@@ -50,6 +50,8 @@ class AgentController extends Controller
                 ['expired_at', '>', Carbon::now()]
             ])->first();
             $input = $request->input();
+            $data['latest_version'] = env('APP_VERSION', '0.0.0');
+            $data['user'] = User::find($id);
             if ($session && $session->device == $input['device']) {
                 $respStatus = 'success';
                 $respMsg = 'Already logged in';
@@ -66,6 +68,7 @@ class AgentController extends Controller
             $now->addSecond(900);
             $input['expired_at'] = $now;
             $new_session = SessionLog::create($input);
+            
             $respStatus = "success";
             $data['access_token'] = $hashed_token;
             return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
