@@ -47,4 +47,7 @@ Route::prefix('api')->group(function () {
     Route::get('/transactions', 'AgentController@getAgentTransactions')->name('api.transactions');
     Route::get('/news', 'AgentController@getAppNews')->name('api.news');
     Route::get('/potential-customers', 'AgentController@getPotentialCustomers')->name('api.potential_customers');
+    Route::get('/promotions', 'AgentController@getPromotionProgress')->name('api.promotions');
+    Route::get('/team', 'AgentController@getTeam')->name('api.team');
+    Route::get('/income', 'AgentController@getIncome')->name('api.income');
 });
