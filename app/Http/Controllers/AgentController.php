@@ -804,17 +804,17 @@ class AgentController extends Controller
             return ['status' => $respStatus, 'message' => $respMsg];
         }
 
-        $income_month = '';
-        if (request()->has('month')) {
-            $month = intval(request('month'));
-            try {
-                $income_month = strlen($month) ? Carbon::createFromFormat('m-Y', $month)->format('m-Y') : '';
-            } catch (Exception $e) {
-                $respStatus = 'error';
-                $respMsg = 'Invalid date range';
-                return ['status' => $respStatus, 'message' => $respMsg];
-            }
-        } else $income_month = Carbon::now()->format('m-Y');
+        $income_month = Carbon::now()->format('m-Y');
+        // if (request()->has('month')) {
+        //     $month = intval(request('month'));
+        //     try {
+        //         $income_month = strlen($month) ? Carbon::createFromFormat('m-Y', $month)->format('m-Y') : '';
+        //     } catch (Exception $e) {
+        //         $respStatus = 'error';
+        //         $respMsg = 'Invalid date range';
+        //         return ['status' => $respStatus, 'message' => $respMsg];
+        //     }
+        // } else $income_month = Carbon::now()->format('m-Y');
 
         $data = [];
 
