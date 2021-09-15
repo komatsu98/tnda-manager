@@ -808,13 +808,13 @@ class AgentController extends Controller
         if (request()->has('month')) {
             $month = intval(request('month'));
             try {
-                $income_month = strlen($month) ? Carbon::createFromFormat('m-d', $month)->format('m-d') : '';
+                $income_month = strlen($month) ? Carbon::createFromFormat('m-Y', $month)->format('m-Y') : '';
             } catch (Exception $e) {
                 $respStatus = 'error';
                 $respMsg = 'Invalid date range';
                 return ['status' => $respStatus, 'message' => $respMsg];
             }
-        }
+        } else $income_month = Carbon::now()->format('m-Y');
 
         $data = [];
 
@@ -827,20 +827,34 @@ class AgentController extends Controller
 
         $income = [
             'total' => 25600400,
+            'month' => $income_month,
             'detail' => [
-                [
-                    'title' => 'Hoa hồng bán hàng cá nhân',
-                    'amount' => 18000000
+                'metrics' => [
+                    'APE' => 20000000,
+                    'IP' => 20000000,
+                    'FYP' => 30000000,
+                    'CC' => 10,
+                    'FYC' => 10000000,
+                    'RYP' => 20000000,
+                    'RYC' => 10000000,
+                    'RYP_required' => 30000000
                 ],
-                [
-                    'title' => 'Thưởng doanh số cá nhân hàng quý',
-                    'amount' => 4000000
-                ],
-                [
-                    'title' => 'Thưởng năm (gắn bó dài lâu)',
-                    'amount' => 2600400
+                'comissions' => [
+                    [
+                        'title' => 'Hoa hồng bán hàng cá nhân',
+                        'amount' => 18000000
+                    ],
+                    [
+                        'title' => 'Thưởng doanh số cá nhân hàng quý',
+                        'amount' => 4000000
+                    ],
+                    [
+                        'title' => 'Thưởng năm (gắn bó dài lâu)',
+                        'amount' => 2600400
+                    ]
                 ]
             ],
+            'file' => '/files/Bảng kê thu nhập (2).pdf'
         ];
 
         $respStatus = 'success';
