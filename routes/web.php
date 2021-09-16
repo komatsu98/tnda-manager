@@ -50,4 +50,6 @@ Route::prefix('api')->group(function () {
     Route::get('/promotions', 'AgentController@getPromotionProgress')->name('api.promotions');
     Route::get('/team', 'AgentController@getTeam')->name('api.team');
     Route::get('/income', 'AgentController@getIncome')->name('api.income');
+    Route::get('/documents', 'AgentController@getDocuments')->name('api.documents');
+    Route::get('/instruction', 'AgentController@getInstruction')->name('api.instruction');
 });

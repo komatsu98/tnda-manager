@@ -726,36 +726,63 @@ class AgentController extends Controller
         $data = [];
         $respStatus = 'success';
         $team = [
-            '60006123' => [
+            [
+                'agent_code' => '60006123',
                 'name' => 'Nguyễn Văn A',
                 'designation_code' => 'SDM',
+                'designation_text' => 'Trưởng phòng kinh doanh cấp cao',
                 'team' => [
-                    '60006124' => [
-                        'name' => 'Nguyễn Văn C',
+                    [
+                        'agent_code' => '60006126',
+                        'name' => 'Nguyễn Văn D',
                         'designation_code' => 'DM',
+                        'designation_text' => 'Trưởng phòng kinh doanh',
                         'team' => [
-                            '60006125' => [
-                                'name' => 'Nguyễn Văn D',
+                            [
+                                'agent_code' => '60006129',
+                                'name' => 'Nguyễn Văn G',
                                 'designation_code' => 'AG',
-                                'team' => []
-                            ],
-                            '60006126' => [
-                                'name' => 'Nguyễn Văn E',
-                                'designation_code' => 'AG',
+                                'designation_text' => 'Đại lý',
                                 'team' => []
                             ]
                         ]
                     ],
-                    '60006127' => [
-                        'name' => 'Nguyễn Văn C',
+                    [
+                        'agent_code' => '60006127',
+                        'name' => 'Nguyễn Văn E',
                         'designation_code' => 'AG',
+                        'designation_text' => 'Đại lý',
+                        'team' => []
+                    ],
+                    [
+                        'agent_code' => '60006128',
+                        'name' => 'Nguyễn Văn F',
+                        'designation_code' => 'AG',
+                        'designation_text' => 'Đại lý',
                         'team' => []
                     ]
                 ]
             ],
-            '60006128' => [
+            [
+                'agent_code' => '60006124',
                 'name' => 'Nguyễn Văn B',
+                'designation_code' => 'DM',
+                'designation_text' => 'Trưởng phòng kinh doanh',
+                'team' => [
+                    [
+                        'agent_code' => '60006126',
+                        'name' => 'Nguyễn Văn D',
+                        'designation_code' => 'AG',
+                        'designation_text' => 'Đại lý',
+                        'team' => []
+                    ]
+                ]
+            ],
+            [
+                'agent_code' => '60006125',
+                'name' => 'Nguyễn Văn C',
                 'designation_code' => 'AG',
+                'designation_text' => 'Đại lý',
                 'team' => []
             ]
         ];
@@ -820,7 +847,6 @@ class AgentController extends Controller
 
         // specific month
         if ($income_month !== '') {
-            
         } else {
             // predict this month
         }
@@ -854,7 +880,7 @@ class AgentController extends Controller
                     ]
                 ]
             ],
-            'file' => '/files/Bảng kê thu nhập (2).pdf'
+            'file' => 'http://103.226.249.106/files/Bảng kê thu nhập (2).pdf'
         ];
 
         $respStatus = 'success';
@@ -872,6 +898,120 @@ class AgentController extends Controller
         //     $respMsg = $check['message'];
         //     return ['status' => $respStatus, 'message' => $respMsg];
         // }
+
+        // $page = 1;
+        // $limit = 25;
+        // if (request()->has('page')) {
+        //     $page = intval(request('page'));
+        //     if (!is_int($page)) {
+        //         $respStatus = 'error';
+        //         $respMsg = 'Invalid page';
+        //         return ['status' => $respStatus, 'message' => $respMsg];
+        //     }
+        // }
+        // if (request()->has('limit')) {
+        //     $limit = intval(request('limit'));
+        //     if (!is_int($limit)) {
+        //         $respStatus = 'error';
+        //         $respMsg = 'Invalid limit';
+        //         return ['status' => $respStatus, 'message' => $respMsg];
+        //     }
+        // }
+        // $offset = ($page - 1) * $limit;
+
+        // $customers = Customer::offset($offset)->take($limit)->get();
+        // $data = [];
+        // $respStatus = 'success';
+        // $data['customers'] = $customers;
+        // return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getDocuments(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+
+        $data = [];
+        $respStatus = 'success';
+        $documents = [
+            [
+                'name' => 'Tài liệu bán hàng 01',
+                'url' => 'http://103.226.249.106/files/Huong_dan_thi_Online-1 (1).pdf',
+                'image' => 'http://103.226.249.106/images/11-Tài liệu.png'
+            ],
+            [
+                'name' => 'Giá trị của niềm tin',
+                'url' => 'https://www.youtube.com/watch?v=VGTNUVlFK8k',
+                'image' => 'http://103.226.249.106/images/logo.jpg'
+            ],
+            [
+                'name' => 'Hướng dẫn bán hàng 02',
+                'url' => 'https://fb.watch/82V53xTyRC/',
+                'image' => 'http://103.226.249.106/images/logo.jpg'
+            ]
+        ];
+
+        $data['documents'] = $documents;
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+
+        // $page = 1;
+        // $limit = 25;
+        // if (request()->has('page')) {
+        //     $page = intval(request('page'));
+        //     if (!is_int($page)) {
+        //         $respStatus = 'error';
+        //         $respMsg = 'Invalid page';
+        //         return ['status' => $respStatus, 'message' => $respMsg];
+        //     }
+        // }
+        // if (request()->has('limit')) {
+        //     $limit = intval(request('limit'));
+        //     if (!is_int($limit)) {
+        //         $respStatus = 'error';
+        //         $respMsg = 'Invalid limit';
+        //         return ['status' => $respStatus, 'message' => $respMsg];
+        //     }
+        // }
+        // $offset = ($page - 1) * $limit;
+
+        // $customers = Customer::offset($offset)->take($limit)->get();
+        // $data = [];
+        // $respStatus = 'success';
+        // $data['customers'] = $customers;
+        // return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getInstruction(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+
+        $data = [];
+        $respStatus = 'success';
+        $instruction = '<!DOCTYPE html><html><head><title></title><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><div style="width: 100%;margin: auto;padding: 10px"><div style="padding: 10px"><p style="font-weight: bold;font-size: 18px">Hướng dẫn đăng nhập</p></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div><div style="text-align: center;padding: 10px"><img src="http://103.226.249.106/images/i_login.png" style="width: 75%;"></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div></div><div style="width: 100%;margin: auto;padding: 10px"><div style="padding: 10px"><p style="font-weight: bold;font-size: 18px">Hướng dẫn đăng nhập</p></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div><div style="text-align: center;padding: 10px"><img src="http://103.226.249.106/images/i_login.png" style="width: 75%;"></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div></div></body></html>';
+
+        $data['instruction'] = $instruction;
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
 
         // $page = 1;
         // $limit = 25;
