@@ -41,6 +41,8 @@ Route::group(['middleware' => 'auth'], function () {
 
 Route::prefix('api')->group(function () {
     Route::post('/login', 'AgentController@login')->name('api.login');
+    Route::post('/require-update-contract', 'AgentController@requireUpdateContract')->name('api.require_update_contract');
+
     Route::get('/profile', 'AgentController@profile')->name('api.profile');
     Route::get('/contracts', 'AgentController@getAgentContracts')->name('api.contracts');
     Route::get('/comissions', 'AgentController@getAgentComissions')->name('api.comissions');
@@ -50,6 +52,10 @@ Route::prefix('api')->group(function () {
     Route::get('/promotions', 'AgentController@getPromotionProgress')->name('api.promotions');
     Route::get('/team', 'AgentController@getTeam')->name('api.team');
     Route::get('/income', 'AgentController@getIncome')->name('api.income');
+    Route::get('/metrics', 'AgentController@getMetrics')->name('api.metrics');
     Route::get('/documents', 'AgentController@getDocuments')->name('api.documents');
     Route::get('/instructions', 'AgentController@getInstructions')->name('api.instructions');
+    Route::get('/contract-status-codes', 'AgentController@getContractStatusCodes')->name('api.contract_status_codes');
+    Route::get('/designation-codes', 'AgentController@getDesignationCodes')->name('api.designation_codes');
+    Route::get('/product-codes', 'AgentController@getProductCodes')->name('api.product_codes');
 });

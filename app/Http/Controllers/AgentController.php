@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Middleware;
 use App\User;
 use App\AppNews;
+use App\Contract;
 use App\Customer;
 use App\Customers;
 use App\SessionLog;
@@ -34,6 +35,137 @@ class AgentController extends Controller
         // $this->middleware('subscribed')->except('store');
     }
 
+    public $contract_status_code = [
+        "AP" => "Hiệu lực",
+        "CF" => "Vô hiệu hợp đồng",
+        "CP" => "CP",
+        "DC" => "Từ chối",
+        "DH" => "Giải quyết quyền lợi bảo hiểm tử vong",
+        "EX" => "Đáo hạn",
+        "FL" => "Hủy hợp đồng trong thời gian cân nhắc",
+        "HP" => "PH RestPnd",
+        "IF" => "Hiệu lực",
+        "LA" => "Mất hiệu lực",
+        "LS" => "Mất hiệu lực/Hủy hợp đồng",
+        "MA" => "Đáo hạn",
+        "MP" => "Hiệu lực",
+        "NT" => "Hủy do quá hạn hoàn tất yêu cầu",
+        "P" => "Đang xư lý",
+        "PO" => "Tạm hoãn",
+        "PS" => "Hồ sơ yêu cầu bảo hiểm",
+        "PU" => "Duy trì hợp đồng vs số tiền BH giảm",
+        "RD" => "Đăng ký giải quyết quyền lợi bảo hiểm tử vong",
+        "SU" => "Hủy hợp đồng nhận GTHL",
+        "TR" => "Chấm dứt hợp đồng",
+        "UW" => "Thẩm định",
+        "VR" => "Reg Vested",
+        "WD" => "Hủy hồ sơ theo yêu cầu của khách hàng",
+        "DR" => "Từ chối bồi thường tử vong",
+        "NP" => "Đang thẩm định",
+        "VO" => "Yêu cầu mất hiệu lực",
+        "UA" => "PENDING",
+        "NR" => "NB Revert"
+    ];
+
+    public $desination_code = [
+        'AG' => 'Đại lý',
+        'DM' => 'Trưởng phòng kinh doanh',
+        'SDM' => 'Trưởng phòng kinh doanh cấp cao',
+        'AM' => 'Trưởng khu vực kinh doanh',
+        'RD' => 'Giám đốc phát triển kinh doanh vùng ',
+        'SRD' => 'Giám đốc phát triển kinh doanh vùng cấp cao',
+        'TD' => 'Giám đốc phát triển kinh doanh miền',
+    ];
+
+    public $product_code = [
+        "WP02" => "Bảo Hiểm Miễn Thu Phí Bệnh Hiểm Nghèo",
+        "UX01" => "Phí đóng thêm",
+        "AC01" => "Bảo Hiểm Tai Nạn Cá Nhân Toàn Diện",
+        "HS04" => "FWD CARE Bảo hiểm trợ cấp nằm viện",
+        "WP05" => "Bảo Hiểm Miễn Thu Phí Bệnh Hiểm Nghèo",
+        "MR01" => "FWD CARE Bảo hiểm sức khỏe",
+        "WP06" => "Bảo Hiểm Miễn Thu Phí Mở Rộng",
+        "WP08" => "FWD CARE Bảo hiểm miễn đóng nâng cao",
+        "QEF1" => "Family MCCI - Embedded Benefit for Child",
+        "JC01" => "Bảo Hiểm Bệnh Hiểm Nghèo Dành Cho Trẻ Em - Phí Thông Thường",
+        "UX02" => "Khoản Đầu Tư Thêm Dự Kiến",
+        "QWP1" => "Embedded Waiver",
+        "UL04" => "FWD Đón đầu thay đổi 2.0",
+        "AC03" => "FWD CARE Bảo hiểm tai nạn",
+        "HS03" => "Bảo Hiểm Hỗ Trợ Viện Phí do tai nạn",
+        "UL01" => "Linh Hoạt 3 Trong 1 - Quyền lợi cơ bản",
+        "AC02" => "Bảo Hiểm Tai Nạn Cá Nhân Toàn Diện",
+        "CI04" => "FWD CARE Bảo hiểm bệnh hiểm nghèo 2.0",
+        "HS01" => "Bảo hiểm trợ cấp viện phí và chi phí phẫu thuật",
+        "CI02" => "Bảo Hiểm Bổ Trợ Trợ Cấp Thu Nhập Khi Mắc Bệnh Hiểm Nghèo",
+        "HS02" => "Bảo Hiểm Trợ Cấp Viện Phí Và Phẫu Thuật",
+        "WP07" => "FWD CARE Bảo hiểm miễn đóng phí bệnh hiểm nghèo",
+        "CI01" => "Bảo Hiểm Bổ Trợ Trợ Cấp Thu Nhập Khi Mắc Bệnh Hiểm Nghèo",
+        "CI03" => "FWD CARE Bảo hiểm bệnh hiểm nghèo",
+        "MR02" => "FWD CARE Bảo hiểm sức khỏe 2.0",
+        "MC01" => "FWD Bảo hiểm hỗ trợ viện phí",
+        "TR01" => "Bảo Hiểm Tử Kỳ",
+        "WP10" => "FWD CARE Bảo hiểm miễn đóng phí nâng cao 2.0",
+        "UX03" => "Khoản Đầu Tư Thêm Dự Kiến",
+        "CC01" => "FWD Sống khỏe - Bảo hiểm bệnh ung thư",
+        "UL03" => "FWD Đón Đầu Thay Đổi",
+        "WP09" => "FWD CARE Bảo hiểm miễn đóng phí bệnh hiểm nghèo 2.0",
+        "TR02" => "FWD CARE Bảo hiểm tử vong và thương tật",
+        "BP01" => "FWD Bộ 3 bảo vệ",
+        "IX01" => "Khoản Đầu Tư Thêm",
+        "IL01" => "FWD Bộ đôi tài sản",
+        "EF02" => "FWD Cả nhà vui khỏe - Kế hoạch B"
+    ];
+
+    public $income_code = [
+        "ag_rwd_hldlth" => "Thưởng huấn luyện đại lý Tinh Hoa",
+        "ag_hh_bhcn" => "Hoa hồng bán hàng cá nhân",
+        "ag_rwd_dscnhq" => "Thưởng doanh số cá nhân hàng quý",
+        "ag_rwd_tndl" => "Thưởng năm (gắn bó dài lâu) dành cho đại lý",
+        "ag_rwd_tcldt_dm" => "Thưởng thăng cấp lần đầu tiên lên DM",
+        "ag_rwd_tthd" => "Thưởng tái tục hợp đồng",
+        "dm_rwd_hldlm" => "Thưởng huấn luyện đại lí mới",
+        "dm_rwd_dscnht" => "Thưởng doanh số CÁ NHÂN hàng tháng",
+        "dm_rwd_qlhtthhptt" => "Thưởng quản lý hàng THÁNG trên hoa hồng phòng trực tiếp",
+        "dm_rwd_qlhqthhptt" => "Thưởng quản lý hàng QUÝ trên hoa hồng phòng trực tiếp",
+        "dm_rwd_tnql" => "Thưởng năm (gắn bó lâu dài) dành cho quản lý",
+        "dm_rwd_ptptt" => "Thưởng phát triển phòng (DM) trực tiếp",
+        "dm_rwd_gt" => "Thưởng gián tiếp",
+        "dm_rwd_tcldt_sdm" => "Thưởng thăng cấp lần đầu tiên lên SDM",
+        "dm_rwd_tcldt_am" => "Thưởng thăng cấp lần đầu tiên lên AM",
+        "dm_rwd_tcldt_rd" => "Thưởng thăng cấp lần đầu tiên lên RD",
+        "dm_rwd_dthdtptt" => "Thưởng Duy Trì hợp đồng trên Phòng trực tiếp",
+        "rd_rwd_dscnht" => "Thưởng doanh số CÁ NHÂN hàng tháng",
+        "rd_hh_nsht" => "Hoa hồng năng suất hàng tháng ",
+        "rd_rwd_dctkdq" => "Thưởng ĐẠT chỉ tiêu kinh doanh hàng QUÝ ",
+        "rd_rwd_tndhkd" => "Thưởng năm (gắn bó lâu dài) dành cho cấp điều hành kinh doanh",
+        "rd_rwd_dbgdmht" => "Thưởng đặc biệt hàng tháng dành cho giám đốc miền (TD) ",
+        "rd_rwd_tcldt_srd" => "Thưởng thăng cấp lần đầu tiên lên SRD",
+        "rd_rwd_tcldt_td" => "Thưởng thăng cấp lần đầu tiên lên TD",
+        "rd_rwd_dthdvtt" => "Thưởng Duy Trì Hợp Đồng trên Vùng trực tiếp"
+    ];
+
+    public $rwd_things = [
+        "ag_rwd_hldlth" => "Tham dự chương trình huấn luyện kỹ năng và du lịch dã ngoại",
+        "ag_rwd_tcldt_dm" => "Tham dự tiệc vinh danh thăng cấp tại chương trình huấn luyện, du lịch.",
+        "dm_rwd_hldlm" => "Nhận thư mời ĐẶC BIỆT tham dự chương trình huấn luyện kỹ năng và du lịch dã cùng đại lí Tinh Hoa.",
+        "ag_rwd_tcldt_sdm" => "1 điện thoại di động (trị giá 10 triệu đồng).",
+        "ag_rwd_tcldt_am" => "1 laptop (trị giá 15 triệu đồng).",
+        "ag_rwd_tcldt_rd" => "1 xe máy (trị giá 30 triệu đồng).",
+        "ag_rwd_tcldt_srd" => "1 xe máy tay ga (trị giá 45 triệu đồng).",
+        "ag_rwd_tcldt_td" => "1 xe máy SH (trị giá 100 triệu đồng).",
+    ];
+
+    public $metric_code = [
+        'FYC' => 'FYC',
+        'FYP' => 'FYP',
+        'IP' => 'IP',
+        'APE' => 'APE',
+        'RYP' => 'RYP',
+        'CC' => 'Số hợp đồng thực cấp',
+        'K2' => 'Tỷ lệ duy trì hợp đồng',
+        'AA' => 'Trạng thái lý hoạt động',
+    ];
 
     public function login(Request $request)
     {
@@ -53,12 +185,14 @@ class AgentController extends Controller
             $input = $request->input();
             $data['latest_version'] = env('APP_VERSION', '0.0.0');
             $data['user'] = User::find($id);
+            $data['user']->designation_text = $this->desination_code[$data['user']->designation_code];
             if ($session && $session->device == $input['device']) {
                 $respStatus = 'success';
                 $respMsg = 'Already logged in';
                 $data['access_token'] = $session->access_token;
                 return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
             }
+
             $token = Str::random(60);
             $hashed_token = hash('sha256', $token);
             $input['agent_id'] = $id;
@@ -76,6 +210,47 @@ class AgentController extends Controller
         }
         $respStatus = 'error';
         $respMsg = 'Invalid username or password';
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function requireUpdateContract(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if (!request()->has('contract_code')) {
+            $respStatus = 'error';
+            $respMsg = 'Missing contract code';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $contract_code = request('contract_code');
+        $agent = $check['session']->agent;
+        $contract = $agent->contracts()->where(['contract_code' => $contract_code])->first();
+        $data = [];
+        if (!$contract) {
+            $respStatus = 'error';
+            $respMsg = 'Contract not found';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if ($contract->active_require_update_time !== null) {
+            $respStatus = 'success';
+            $respMsg = 'Already in queue';
+            $data['active_require_update_time'] = $contract->active_require_update_time;
+            return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+        }
+        $contract->active_require_update_time = Carbon::now();
+        $contract->save();
+        $respStatus = 'success';
+        $data['active_require_update_time'] = $contract->active_require_update_time->format('Y-m-d H:i:s');
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
@@ -98,8 +273,75 @@ class AgentController extends Controller
         $agent = $session->agent;
         $data = [];
         $data['agent'] = $agent;
+        $data['agent']->designation_text = $this->desination_code[$data['agent']->designation_code];
         // $data['session'] = $session;
         // ()->only(['id', 'name', 'email', 'email']);
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getContractStatusCodes(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $contract_status_codes = $this->contract_status_code;
+        $respStatus = 'success';
+        $data = [];
+        $data['contract_status_codes'] = $contract_status_codes;
+
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getDesignationCodes(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $desination_codes = $this->desination_code;
+        $respStatus = 'success';
+        $data = [];
+        $data['desination_codes'] = $desination_codes;
+
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getProductCodes(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $product_codes = $this->product_code;
+        $respStatus = 'success';
+        $data = [];
+        $data['product_codes'] = $product_codes;
+
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
@@ -217,6 +459,7 @@ class AgentController extends Controller
         if (request()->has('customer_name')) {
             $customer_name = request('customer_name');
         }
+
         $customer_birthday_from = '';
         $customer_birthday_to = '';
         if (request()->has('customer_birthday')) {
@@ -285,7 +528,12 @@ class AgentController extends Controller
             });
         }
 
-        $contracts = $contracts->orderBy('created_at', 'desc')->offset($offset)->take($limit)->get();
+        $contracts = $contracts->orderBy('created_at', 'desc')->offset($offset)->take($limit)->with('customer')->get();
+        foreach ($contracts as $contract) {
+            $contract->status_text = $this->contract_status_code[$contract->status_code];
+            $contract->product_text = $this->product_code[$contract->product_code];
+            $contract->sub_product_text = $this->product_code[$contract->sub_product_code];
+        }
         $data = [];
         $respStatus = 'success';
         $data['contracts'] = $contracts;
@@ -537,6 +785,7 @@ class AgentController extends Controller
         $promotions = [
             [
                 'code' => 'PRO_AM_DM',
+                'title' => 'Thăng cấp Trưởng phòng kinh doanh',
                 'requiment_count' => 8,
                 'gained_count' => 8,
                 'evaluation_date' => '2021-09-30',
@@ -601,8 +850,9 @@ class AgentController extends Controller
             ],
             [
                 'code' => 'PRO_DM_SDM',
-                'requiment_count' => 7,
-                'gained_count' => 8,
+                'requiment_count' => 8,
+                'title' => 'Thăng cấp Trưởng phòng kinh doanh cấp cao',
+                'gained_count' => 7,
                 'evaluation_date' => '2021-09-30',
                 'requirements' => [
                     [
@@ -831,100 +1081,138 @@ class AgentController extends Controller
             return ['status' => $respStatus, 'message' => $respMsg];
         }
 
-        $income_month = Carbon::now()->format('m-Y');
-        // if (request()->has('month')) {
-        //     $month = intval(request('month'));
-        //     try {
-        //         $income_month = strlen($month) ? Carbon::createFromFormat('m-Y', $month)->format('m-Y') : '';
-        //     } catch (Exception $e) {
-        //         $respStatus = 'error';
-        //         $respMsg = 'Invalid date range';
-        //         return ['status' => $respStatus, 'message' => $respMsg];
-        //     }
-        // } else $income_month = Carbon::now()->format('m-Y');
-
-        $data = [];
-
-        // specific month
-        if ($income_month !== '') {
-        } else {
-            // predict this month
+        $month_from = Carbon::now()->format('Y-m');
+        $month_to = Carbon::now()->format('Y-m');
+        if (request()->has('month')) {
+            $date_range = explode("_", request('month'));
+            if (count($date_range) == 2) {
+                try {
+                    $month_from = strlen($date_range[0]) ? Carbon::createFromFormat('Y-m', $date_range[0])->format('Y-m') : '';
+                    $month_to = strlen($date_range[1]) ? Carbon::createFromFormat('Y-m', $date_range[1])->format('Y-m') : '';
+                } catch (Exception $e) {
+                    $respStatus = 'error';
+                    $respMsg = 'Invalid month range';
+                    return ['status' => $respStatus, 'message' => $respMsg];
+                }
+            }
         }
 
-        $income = [
-            'total' => 25600400,
-            'month' => $income_month,
-            'detail' => [
-                'metrics' => [
-                    'APE' => 20000000,
-                    'IP' => 20000000,
-                    'FYP' => 30000000,
-                    'CC' => 10,
-                    'FYC' => 10000000,
-                    'RYP' => 20000000,
-                    'RYC' => 10000000,
-                    'RYP_required' => 30000000
-                ],
-                'comissions' => [
-                    [
-                        'title' => 'Hoa hồng bán hàng cá nhân',
-                        'amount' => 18000000
-                    ],
-                    [
-                        'title' => 'Thưởng doanh số cá nhân hàng quý',
-                        'amount' => 4000000
-                    ],
-                    [
-                        'title' => 'Thưởng năm (gắn bó dài lâu)',
-                        'amount' => 2600400
-                    ]
-                ]
-            ],
-            'file' => 'http://103.226.249.106/files/Bảng kê thu nhập (2).pdf'
-        ];
+        $agent = $check['session']->agent;
+        $income = $agent->monthlyIncomes();
+
+        if ($month_from !== '') {
+            $month_from = $month_from . '-01';
+            $income = $income->where('month', '>=', $month_from);
+        }
+        if ($month_to !== '') {
+            $month_to = $month_to . '-01';
+            $income = $income->where('month', '<=', $month_to);
+        }
+        $income = $income->orderBy('month', 'desc')->get();
+        $explained_income = array();
+        foreach ($income as $in) {
+            $income_tmp = [
+                'month' => substr($in->month, 0, 7),
+                'file' => 'http://103.226.249.106/files/Bảng kê thu nhập (2).pdf',
+                'detail' => [],
+            ];
+            foreach ($in->toArray() as $key => $value) {
+                if (!isset($this->income_code[$key]) || $value  === 0)
+                    continue;
+                $rwd_thing = isset($this->rwd_things[$key]) ? $this->rwd_things[$key] : null;
+                $tmp = [
+                    'name' => $this->income_code[$key],
+                    'amount' => $value,
+                    'unit' => $rwd_thing === null ? 'vnd' : 'other',
+                    'reward_other' => $rwd_thing
+                ];
+                $income_tmp['detail'][] = $tmp;
+            }
+            $explained_income[] = $income_tmp;
+        }
+
+        $data = [];
+        $respStatus = 'success';
+        $data['income'] = $explained_income;
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getMetrics(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+
+        $month_from = Carbon::now()->format('Y-m');
+        $month_to = Carbon::now()->format('Y-m');
+        if (request()->has('month')) {
+            $date_range = explode("_", request('month'));
+            if (count($date_range) == 2) {
+                try {
+                    $month_from = strlen($date_range[0]) ? Carbon::createFromFormat('Y-m', $date_range[0])->format('Y-m') : '';
+                    $month_to = strlen($date_range[1]) ? Carbon::createFromFormat('Y-m', $date_range[1])->format('Y-m') : '';
+                } catch (Exception $e) {
+                    $respStatus = 'error';
+                    $respMsg = 'Invalid month range';
+                    return ['status' => $respStatus, 'message' => $respMsg];
+                }
+            }
+        }
+
+        $agent = $check['session']->agent;
+        $metrics = $agent->monthlyMetrics();
+
+        if ($month_from !== '') {
+            $month_from = $month_from . '-01';
+            $metrics = $metrics->where('month', '>=', $month_from);
+        }
+        if ($month_to !== '') {
+            $month_to = $month_to . '-01';
+            $metrics = $metrics->where('month', '<=', $month_to);
+        }
+        $metrics = $metrics->orderBy('month', 'desc')->get();
+
+        $explained_metrics = array();
+        foreach ($metrics as $m) {
+            $m_tmp = [
+                'month' => substr($m->month, 0, 7),
+                'detail' => [],
+            ];
+            $other_unit = [
+                'CC' => 'Hợp đồng',
+                'AA' => 'Hoạt động',
+                'K2' => '%'
+            ];
+            foreach ($m->toArray() as $key => $value) {
+                if (!isset($this->metric_code[$key]))
+                    continue;
+
+                $tmp = [
+                    'name' => $this->metric_code[$key],
+                    'amount' => $value,
+                    'unit' => isset($other_unit[$key]) ? $other_unit[$key] : 'vnd'
+                ];
+                $m_tmp['detail'][] = $tmp;
+            }
+            $explained_metrics[] = $m_tmp;
+        }
+        $data = [];
+
 
         $respStatus = 'success';
-        $data['income'] = $income;
+        $data['metric'] = $explained_metrics;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
-
-        // if (!request()->has('access_token')) {
-        //     $respStatus = 'error';
-        //     $respMsg = 'Invalid token';
-        //     return ['status' => $respStatus, 'message' => $respMsg];
-        // }
-        // $check = $this->checkSession(request('access_token'));
-        // if ($check['status'] == 'error') {
-        //     $respStatus = 'error';
-        //     $respMsg = $check['message'];
-        //     return ['status' => $respStatus, 'message' => $respMsg];
-        // }
-
-        // $page = 1;
-        // $limit = 25;
-        // if (request()->has('page')) {
-        //     $page = intval(request('page'));
-        //     if (!is_int($page)) {
-        //         $respStatus = 'error';
-        //         $respMsg = 'Invalid page';
-        //         return ['status' => $respStatus, 'message' => $respMsg];
-        //     }
-        // }
-        // if (request()->has('limit')) {
-        //     $limit = intval(request('limit'));
-        //     if (!is_int($limit)) {
-        //         $respStatus = 'error';
-        //         $respMsg = 'Invalid limit';
-        //         return ['status' => $respStatus, 'message' => $respMsg];
-        //     }
-        // }
-        // $offset = ($page - 1) * $limit;
-
-        // $customers = Customer::offset($offset)->take($limit)->get();
-        // $data = [];
-        // $respStatus = 'success';
-        // $data['customers'] = $customers;
-        // return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
+
 
     public function getDocuments(Request $request)
     {
@@ -1008,7 +1296,118 @@ class AgentController extends Controller
 
         $data = [];
         $respStatus = 'success';
-        $instructions = '<!DOCTYPE html><html><head><title></title><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><div style="width: 100%;margin: auto;padding: 10px"><div style="padding: 10px"><p style="font-weight: bold;font-size: 18px">Hướng dẫn đăng nhập</p></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div><div style="text-align: center;padding: 10px"><img src="http://103.226.249.106/images/i_login.png" style="width: 75%;"></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div></div><div style="width: 100%;margin: auto;padding: 10px"><div style="padding: 10px"><p style="font-weight: bold;font-size: 18px">Hướng dẫn đăng nhập</p></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div><div style="text-align: center;padding: 10px"><img src="http://103.226.249.106/images/i_login.png" style="width: 75%;"></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div></div></body></html>';
+        $instructions = [
+            [
+                'title' => 'Phần mềm này là gì?',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'value' => 'Phần mềm này là gì?
+                        Phần mềm này là gì?'
+                    ],
+                    [
+                        'type' => 'image',
+                        'value' => 'http://103.226.249.106/images/i_login.png'
+                    ],
+                    [
+                        'type' => 'text',
+                        'value' => 'Phần mềm này là gì?
+                        Phần mềm này là gì?'
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Cấp lại mật khẩu',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'value' => 'Cấp lại mật khẩu
+                        Cấp lại mật khẩu'
+                    ],
+                    [
+                        'type' => 'image',
+                        'value' => 'http://103.226.249.106/images/i_login.png'
+                    ],
+                    [
+                        'type' => 'text',
+                        'value' => 'Cấp lại mật khẩu
+                        Cấp lại mật khẩu'
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Số tiền lương tháng này xem ở đâu?',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'value' => 'Số tiền lương tháng này xem ở đâu?'
+                    ],
+                    [
+                        'type' => 'image',
+                        'value' => 'http://103.226.249.106/images/i_login.png'
+                    ],
+                    [
+                        'type' => 'text',
+                        'value' => 'Số tiền lương tháng này xem ở đâu?'
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Hướng dẫn tải xuống tài liệu',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'value' => 'Hướng dẫn tải xuống tài liệu
+                        Hướng dẫn tải xuống tài liệu'
+                    ],
+                    [
+                        'type' => 'image',
+                        'value' => 'http://103.226.249.106/images/i_login.png'
+                    ],
+                    [
+                        'type' => 'text',
+                        'value' => 'Hướng dẫn tải xuống tài liệu'
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Xem thông tin chi tiết hợp đồng ở đâu?',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'value' => 'Xem thông tin chi tiết hợp đồng ở đâu?'
+                    ],
+                    [
+                        'type' => 'image',
+                        'value' => 'http://103.226.249.106/images/i_login.png'
+                    ],
+                    [
+                        'type' => 'text',
+                        'value' => 'Xem thông tin chi tiết hợp đồng ở đâu?'
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Cách sử dụng tra cứu khách hàng tiềm năng',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'value' => 'Cách sử dụng tra cứu khách hàng tiềm năng'
+                    ],
+                    [
+                        'type' => 'image',
+                        'value' => 'http://103.226.249.106/images/i_login.png'
+                    ],
+                    [
+                        'type' => 'text',
+                        'value' => 'Cách sử dụng tra cứu khách hàng tiềm năng'
+                    ]
+                ]
+            ],
+            
+        ];
+
+        // '<!DOCTYPE html><html><head><title></title><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><div style="width: 100%;margin: auto;padding: 10px"><div style="padding: 10px"><p style="font-weight: bold;font-size: 18px">Hướng dẫn đăng nhập</p></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div><div style="text-align: center;padding: 10px"><img src="http://103.226.249.106/images/i_login.png" style="width: 75%;"></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div></div><div style="width: 100%;margin: auto;padding: 10px"><div style="padding: 10px"><p style="font-weight: bold;font-size: 18px">Hướng dẫn đăng nhập</p></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div><div style="text-align: center;padding: 10px"><img src="http://103.226.249.106/images/i_login.png" style="width: 75%;"></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div></div></body></html>';
 
         $data['instructions'] = $instructions;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
