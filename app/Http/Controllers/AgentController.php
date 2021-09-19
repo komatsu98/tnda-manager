@@ -1187,34 +1187,54 @@ class AgentController extends Controller
             return ['status' => $respStatus, 'message' => $respMsg];
         }
 
-        $month_from = Carbon::now()->format('Y-m');
-        $month_to = Carbon::now()->format('Y-m');
-        if (request()->has('month')) {
-            $date_range = explode("_", request('month'));
-            if (count($date_range) == 2) {
-                try {
-                    $month_from = strlen($date_range[0]) ? Carbon::createFromFormat('Y-m', $date_range[0])->format('Y-m') : '';
-                    $month_to = strlen($date_range[1]) ? Carbon::createFromFormat('Y-m', $date_range[1])->format('Y-m') : '';
-                } catch (Exception $e) {
-                    $respStatus = 'error';
-                    $respMsg = 'Invalid month range';
-                    return ['status' => $respStatus, 'message' => $respMsg];
-                }
+        // $month_from = Carbon::now()->format('Y-m');
+        // $month_to = Carbon::now()->format('Y-m');
+        // if (request()->has('month')) {
+        //     $date_range = explode("_", request('month'));
+        //     if (count($date_range) == 2) {
+        //         try {
+        //             $month_from = strlen($date_range[0]) ? Carbon::createFromFormat('Y-m', $date_range[0])->format('Y-m') : '';
+        //             $month_to = strlen($date_range[1]) ? Carbon::createFromFormat('Y-m', $date_range[1])->format('Y-m') : '';
+        //         } catch (Exception $e) {
+        //             $respStatus = 'error';
+        //             $respMsg = 'Invalid month range';
+        //             return ['status' => $respStatus, 'message' => $respMsg];
+        //         }
+        //     }
+        // }
+
+        $page = 1;
+        $limit = 25;
+        if (request()->has('page')) {
+            $page = intval(request('page'));
+            if (!is_int($page)) {
+                $respStatus = 'error';
+                $respMsg = 'Invalid page';
+                return ['status' => $respStatus, 'message' => $respMsg];
             }
         }
+        if (request()->has('limit')) {
+            $limit = intval(request('limit'));
+            if (!is_int($limit)) {
+                $respStatus = 'error';
+                $respMsg = 'Invalid limit';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+        }
+        $offset = ($page - 1) * $limit;
 
         $agent = $check['session']->agent;
         $metrics = $agent->monthlyMetrics();
 
-        if ($month_from !== '') {
-            $month_from = $month_from . '-01';
-            $metrics = $metrics->where('month', '>=', $month_from);
-        }
-        if ($month_to !== '') {
-            $month_to = $month_to . '-01';
-            $metrics = $metrics->where('month', '<=', $month_to);
-        }
-        $metrics = $metrics->orderBy('month', 'desc')->get();
+        // if ($month_from !== '') {
+        //     $month_from = $month_from . '-01';
+        //     $metrics = $metrics->where('month', '>=', $month_from);
+        // }
+        // if ($month_to !== '') {
+        //     $month_to = $month_to . '-01';
+        //     $metrics = $metrics->where('month', '<=', $month_to);
+        // }
+        $metrics = $metrics->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
 
         $explained_metrics = array();
         foreach ($metrics as $m) {
@@ -1247,7 +1267,6 @@ class AgentController extends Controller
         $data['metric'] = $explained_metrics;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
-
 
     public function getDocuments(Request $request)
     {
