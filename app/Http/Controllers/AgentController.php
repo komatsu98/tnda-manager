@@ -978,21 +978,24 @@ class AgentController extends Controller
         $team = [
             [
                 'agent_code' => '60006123',
-                'name' => 'Nguyễn Văn A',
+                'name' => 'Nguyễn Văn X',
                 'designation_code' => 'SDM',
                 'designation_text' => 'Trưởng phòng kinh doanh cấp cao',
+                'image' => 'http://103.226.249.106/images/avatar_1.png',
                 'team' => [
                     [
                         'agent_code' => '60006126',
                         'name' => 'Nguyễn Văn D',
                         'designation_code' => 'DM',
                         'designation_text' => 'Trưởng phòng kinh doanh',
+                        'image' => 'http://103.226.249.106/images/avatar_1.png',
                         'team' => [
                             [
                                 'agent_code' => '60006129',
                                 'name' => 'Nguyễn Văn G',
                                 'designation_code' => 'AG',
                                 'designation_text' => 'Đại lý',
+                                'image' => 'http://103.226.249.106/images/avatar_1.png',
                                 'team' => []
                             ]
                         ]
@@ -1002,6 +1005,7 @@ class AgentController extends Controller
                         'name' => 'Nguyễn Văn E',
                         'designation_code' => 'AG',
                         'designation_text' => 'Đại lý',
+                        'image' => 'http://103.226.249.106/images/avatar_1.png',
                         'team' => []
                     ],
                     [
@@ -1009,6 +1013,7 @@ class AgentController extends Controller
                         'name' => 'Nguyễn Văn F',
                         'designation_code' => 'AG',
                         'designation_text' => 'Đại lý',
+                        'image' => 'http://103.226.249.106/images/avatar_1.png',
                         'team' => []
                     ]
                 ]
@@ -1018,12 +1023,14 @@ class AgentController extends Controller
                 'name' => 'Nguyễn Văn B',
                 'designation_code' => 'DM',
                 'designation_text' => 'Trưởng phòng kinh doanh',
+                'image' => 'http://103.226.249.106/images/avatar_1.png',
                 'team' => [
                     [
                         'agent_code' => '60006126',
                         'name' => 'Nguyễn Văn D',
                         'designation_code' => 'AG',
                         'designation_text' => 'Đại lý',
+                        'image' => 'http://103.226.249.106/images/avatar_1.png',
                         'team' => []
                     ]
                 ]
@@ -1033,6 +1040,7 @@ class AgentController extends Controller
                 'name' => 'Nguyễn Văn C',
                 'designation_code' => 'AG',
                 'designation_text' => 'Đại lý',
+                'image' => 'http://103.226.249.106/images/avatar_1.png',
                 'team' => []
             ]
         ];
