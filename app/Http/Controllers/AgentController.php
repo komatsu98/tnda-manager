@@ -35,6 +35,12 @@ class AgentController extends Controller
         // $this->middleware('subscribed')->except('store');
     }
 
+    public $contract_search_type_code = [
+        "1" => "HSYCBH nộp trong tháng",
+        "2" => "Hợp đồng phát hành trong tháng",
+        "3" => "Hồ sơ nộp trong tháng bị từ chối"
+    ];
+
     public $contract_status_code = [
         "AP" => "Hiệu lực",
         "CF" => "Vô hiệu hợp đồng",
@@ -64,7 +70,15 @@ class AgentController extends Controller
         "NP" => "Đang thẩm định",
         "VO" => "Yêu cầu mất hiệu lực",
         "UA" => "PENDING",
-        "NR" => "NB Revert"
+        "NR" => "NB Revert",
+        "SUBMIT" => "Nộp vào",
+        "21D" => "21 ngày",
+        "RELEASE" => "Phát hành"
+    ];
+
+    public $contract_info_await_code = [
+        "1" => "Thiếu giấy khám sức khỏe",
+        "2" => "Thiếu xác nhận ABC"
     ];
 
     public $desination_code = [
@@ -166,6 +180,24 @@ class AgentController extends Controller
         'K2' => 'Tỷ lệ duy trì hợp đồng',
         'AA' => 'Trạng thái lý hoạt động',
     ];
+
+    public $partners = [
+        [
+            'code' => 'VBI',
+            'name' => 'Bảo hiểm VietinBank' ,
+            'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
+        ],
+        [
+            'code' => 'BIDV_METLIFE',
+            'name' => 'Bảo hiểm phi nhân thọ - BIDV' ,
+            'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
+        ],
+        [
+            'code' => 'FWD',
+            'name' => 'Bảo hiểm Nhân thọ FWD' ,
+            'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
+        ]
+    ];   
 
     public function login(Request $request)
     {
@@ -297,6 +329,28 @@ class AgentController extends Controller
         $respStatus = 'success';
         $data = [];
         $data['contract_status_codes'] = $contract_status_codes;
+
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getContractSearchTypeCodes(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $contract_search_type_codes = $this->contract_search_type_code;
+        $respStatus = 'success';
+        $data = [];
+        $data['contract_search_type_codes'] = $contract_search_type_codes;
 
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
@@ -451,6 +505,10 @@ class AgentController extends Controller
         if (request()->has('status_code')) {
             $status_code = request('status_code');
         }
+        $search_type = '';
+        if (request()->has('search_type')) {
+            $search_type = request('search_type');
+        }
         $customer_id = '';
         if (request()->has('customer_id')) {
             $customer_id = request('customer_id');
@@ -458,6 +516,10 @@ class AgentController extends Controller
         $customer_name = '';
         if (request()->has('customer_name')) {
             $customer_name = request('customer_name');
+        }
+        $search = '';
+        if (request()->has('search')) {
+            $search = request('search');
         }
 
         $customer_birthday_from = '';
@@ -509,12 +571,27 @@ class AgentController extends Controller
         if ($status_code !== '') {
             $contracts = $contracts->where('status_code', '=', $status_code);
         }
+        ////////////////////////////////////
+        if ($search_type !== '') {
+            $search_type_codes = explode(",", $search_type);
+            foreach($search_type_codes as $stc) {
+                switch($stc) {
+                    case "1":
+                        break;
+                }
+            }
+        }
         if ($customer_id !== '') {
             $contracts = $contracts->where('customer_id', '=', $customer_id);
         }
         if ($customer_name !== '') {
             $contracts = $contracts->whereHas('customer', function ($query) use ($customer_name) {
                 $query->where('fullname', 'like', '%' . $customer_name . '%');
+            });
+        }
+        if ($search !== '') {
+            $contracts = $contracts->where('contract_code', 'like', '%' . $search. '%')->orWhereHas('customer', function ($query) use ($search) {
+                $query->where('fullname', 'like', '%' . $search . '%');
             });
         }
         if ($customer_birthday_from !== '') {
@@ -533,6 +610,16 @@ class AgentController extends Controller
             $contract->status_text = $this->contract_status_code[$contract->status_code];
             $contract->product_text = $this->product_code[$contract->product_code];
             $contract->sub_product_text = $this->product_code[$contract->sub_product_code];
+            $info_awaiting_text = [];
+            if($contract->info_awaiting && strlen($contract->info_awaiting)) {
+                $await_codes = explode(",", $contract->info_awaiting);
+                if(count($await_codes)) {
+                    foreach($await_codes as $ac) {
+                        $info_awaiting_text[] = $this->contract_info_await_code[trim($ac)];
+                    }
+                }
+            }
+            $contract->info_awaiting_text = $info_awaiting_text;            
         }
         $data = [];
         $respStatus = 'success';
@@ -760,7 +847,52 @@ class AgentController extends Controller
         }
         $offset = ($page - 1) * $limit;
 
-        $customers = Customer::offset($offset)->take($limit)->get();
+        $customers = Customer::where(['status' => 1])->offset($offset)->take($limit)->get();
+        $data = [];
+        $respStatus = 'success';
+        $data['customers'] = $customers;
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getCustomers(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+
+        $page = 1;
+        $limit = 25;
+        if (request()->has('page')) {
+            $page = intval(request('page'));
+            if (!is_int($page)) {
+                $respStatus = 'error';
+                $respMsg = 'Invalid page';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+        }
+        if (request()->has('limit')) {
+            $limit = intval(request('limit'));
+            if (!is_int($limit)) {
+                $respStatus = 'error';
+                $respMsg = 'Invalid limit';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+        }
+        $offset = ($page - 1) * $limit;
+
+        $agent = $check['session']->agent;
+        $customers = Customer::whereHas('contracts.agent', function ($query) use ($agent) {
+            $query->where('agent_code', '=', $agent->agent_code);
+        })->get();
         $data = [];
         $respStatus = 'success';
         $data['customers'] = $customers;
@@ -1491,6 +1623,28 @@ class AgentController extends Controller
         // $respStatus = 'success';
         // $data['customers'] = $customers;
         // return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function getPartners(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $partners = $this->partners;
+        $respStatus = 'success';
+        $data = [];
+        $data['partners'] = $partners;
+
+        return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
     private function checkSession($access_token)
