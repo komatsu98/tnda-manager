@@ -36,9 +36,9 @@ class AgentController extends Controller
     }
 
     public $contract_search_type_code = [
-        "1" => "HSYCBH nộp trong tháng",
-        "2" => "Hợp đồng phát hành trong tháng",
-        "3" => "Hồ sơ nộp trong tháng bị từ chối"
+        "S1C" => "HSYCBH nộp trong tháng",
+        "S2C" => "Hợp đồng phát hành trong tháng",
+        "S3C" => "Hồ sơ nộp trong tháng bị từ chối"
     ];
 
     public $contract_status_code = [
@@ -77,8 +77,8 @@ class AgentController extends Controller
     ];
 
     public $contract_info_await_code = [
-        "1" => "Thiếu giấy khám sức khỏe",
-        "2" => "Thiếu xác nhận ABC"
+        "I1A" => "Thiếu giấy khám sức khỏe",
+        "I2A" => "Thiếu xác nhận ABC"
     ];
 
     public $desination_code = [
@@ -185,16 +185,19 @@ class AgentController extends Controller
         [
             'code' => 'VBI',
             'name' => 'Bảo hiểm VietinBank' ,
+            'icon' => 'http://103.226.249.106/images/logo_vbi.png',
             'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
         ],
         [
             'code' => 'BIDV_METLIFE',
-            'name' => 'Bảo hiểm phi nhân thọ - BIDV' ,
+            'name' => 'Bảo hiểm phi nhân thọ - BIDV',
+            'icon' => 'http://103.226.249.106/images/logo_bidv_metlife.png',
             'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
         ],
         [
             'code' => 'FWD',
             'name' => 'Bảo hiểm Nhân thọ FWD' ,
+            'icon' => 'http://103.226.249.106/images/logo_fwd.png',
             'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
         ]
     ];   
