@@ -49,6 +49,7 @@ Route::prefix('api')->group(function () {
     Route::get('/transactions', 'AgentController@getAgentTransactions')->name('api.transactions');
     Route::get('/news', 'AgentController@getAppNews')->name('api.news');
     Route::get('/potential-customers', 'AgentController@getPotentialCustomers')->name('api.potential_customers');
+    Route::get('/customers', 'AgentController@getCustomers')->name('api.customers');
     Route::get('/promotions', 'AgentController@getPromotionProgress')->name('api.promotions');
     Route::get('/team', 'AgentController@getTeam')->name('api.team');
     Route::get('/income', 'AgentController@getIncome')->name('api.income');
@@ -56,6 +57,8 @@ Route::prefix('api')->group(function () {
     Route::get('/documents', 'AgentController@getDocuments')->name('api.documents');
     Route::get('/instructions', 'AgentController@getInstructions')->name('api.instructions');
     Route::get('/contract-status-codes', 'AgentController@getContractStatusCodes')->name('api.contract_status_codes');
+    Route::get('/contract-search-type-codes', 'AgentController@getContractSearchTypeCodes')->name('api.contract_search_type_codes');
     Route::get('/designation-codes', 'AgentController@getDesignationCodes')->name('api.designation_codes');
     Route::get('/product-codes', 'AgentController@getProductCodes')->name('api.product_codes');
+    Route::get('/partners', 'AgentController@getPartners')->name('api.partners');
 });
