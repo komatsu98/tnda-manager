@@ -16,12 +16,12 @@ class Contract extends Model
      */
     public function agent()
     {
-        return $this->belongsTo('App\User');
+        return $this->belongsTo('App\User', 'agent_code', 'agent_code');
     }
 
     public function customer()
     {
-        return $this->belongsTo('App\Customer');
+        return $this->belongsTo('App\Customer', 'customer_id', 'id');
     }
 
 }
