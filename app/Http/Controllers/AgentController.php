@@ -1650,6 +1650,21 @@ class AgentController extends Controller
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
+    private function checkSupervisor($supervisor, $agent_code) {
+        $agent = User::where(['agent_code' => $agent_code])->first();
+        if(!$agent) return false;
+        $result = false;
+        $direct_supervisor = $agent->supervisor;
+        while($direct_supervisor && !$result) {
+            if($direct_supervisor->agent_code == $supervisor->agent_code) {
+                $result = true;
+                break;
+            }
+            $direct_supervisor = $direct_supervisor->supervisor;
+        }
+        return $result;
+    }
+
     private function checkSession($access_token)
     {
         $checkStatus = $checkMsg = '';
