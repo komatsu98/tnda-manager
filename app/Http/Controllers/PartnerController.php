@@ -21,11 +21,16 @@ class PartnerController extends Controller
     public function VBIReturn(Request $request)
     {
         $respStatus = $respMsg = '';
-        $auth_str = '1234';
+        $auth_str = 'tndaauthexample';
         $auth_header = $request->header('Authorization');
         if($auth_header != $auth_str) {
             $respStatus = 'error';
             $respMsg = 'Unauthenticated';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if (!request()->has('agent_code')) {
+            $respStatus = 'error';
+            $respMsg = 'Missing agent_code';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
         $input = $request->input();
