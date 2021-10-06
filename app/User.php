@@ -66,6 +66,11 @@ class User extends Authenticatable
         return $this->belongsTo('App\User', 'supervisor_code', 'agent_code');
     }
 
+    public function directAgents()
+    {
+        return $this->hasMany('App\User', 'supervisor_code', 'agent_code');
+    }
+
     public function monthlyIncomes()
     {
         return $this->hasMany('App\MonthlyIncome', 'agent_code', 'agent_code');

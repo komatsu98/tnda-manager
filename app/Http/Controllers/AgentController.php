@@ -1190,103 +1190,82 @@ class AgentController extends Controller
 
         $data = [];
         $respStatus = 'success';
-        $team = [
-            [
-                'agent_code' => '60006123',
-                'name' => 'Nguyễn Văn X',
-                'designation_code' => 'SDM',
-                'designation_text' => 'Trưởng phòng kinh doanh cấp cao',
-                'image' => 'http://103.226.249.106/images/avatar_1.png',
-                'team' => [
-                    [
-                        'agent_code' => '60006126',
-                        'name' => 'Nguyễn Văn D',
-                        'designation_code' => 'DM',
-                        'designation_text' => 'Trưởng phòng kinh doanh',
-                        'image' => 'http://103.226.249.106/images/avatar_1.png',
-                        'team' => [
-                            [
-                                'agent_code' => '60006129',
-                                'name' => 'Nguyễn Văn G',
-                                'designation_code' => 'AG',
-                                'designation_text' => 'Đại lý',
-                                'image' => 'http://103.226.249.106/images/avatar_1.png',
-                                'team' => []
-                            ]
-                        ]
-                    ],
-                    [
-                        'agent_code' => '60006127',
-                        'name' => 'Nguyễn Văn E',
-                        'designation_code' => 'AG',
-                        'designation_text' => 'Đại lý',
-                        'image' => 'http://103.226.249.106/images/avatar_1.png',
-                        'team' => []
-                    ],
-                    [
-                        'agent_code' => '60006128',
-                        'name' => 'Nguyễn Văn F',
-                        'designation_code' => 'AG',
-                        'designation_text' => 'Đại lý',
-                        'image' => 'http://103.226.249.106/images/avatar_1.png',
-                        'team' => []
-                    ]
-                ]
-            ],
-            [
-                'agent_code' => '60006124',
-                'name' => 'Nguyễn Văn B',
-                'designation_code' => 'DM',
-                'designation_text' => 'Trưởng phòng kinh doanh',
-                'image' => 'http://103.226.249.106/images/avatar_1.png',
-                'team' => [
-                    [
-                        'agent_code' => '60006126',
-                        'name' => 'Nguyễn Văn D',
-                        'designation_code' => 'AG',
-                        'designation_text' => 'Đại lý',
-                        'image' => 'http://103.226.249.106/images/avatar_1.png',
-                        'team' => []
-                    ]
-                ]
-            ],
-            [
-                'agent_code' => '60006125',
-                'name' => 'Nguyễn Văn C',
-                'designation_code' => 'AG',
-                'designation_text' => 'Đại lý',
-                'image' => 'http://103.226.249.106/images/avatar_1.png',
-                'team' => []
-            ]
-        ];
+        $team = $agent->directAgents;
+        foreach($team as $dr_agent) {
+            $dr_agent['team'] = $dr_agent->directAgents;
+        }
+
+        // $team = [
+        //     [
+        //         'agent_code' => '60006123',
+        //         'name' => 'Nguyễn Văn X',
+        //         'designation_code' => 'SDM',
+        //         'designation_text' => 'Trưởng phòng kinh doanh cấp cao',
+        //         'image' => 'http://103.226.249.106/images/avatar_1.png',
+        //         'team' => [
+        //             [
+        //                 'agent_code' => '60006126',
+        //                 'name' => 'Nguyễn Văn D',
+        //                 'designation_code' => 'DM',
+        //                 'designation_text' => 'Trưởng phòng kinh doanh',
+        //                 'image' => 'http://103.226.249.106/images/avatar_1.png',
+        //                 'team' => [
+        //                     [
+        //                         'agent_code' => '60006129',
+        //                         'name' => 'Nguyễn Văn G',
+        //                         'designation_code' => 'AG',
+        //                         'designation_text' => 'Đại lý',
+        //                         'image' => 'http://103.226.249.106/images/avatar_1.png',
+        //                         'team' => []
+        //                     ]
+        //                 ]
+        //             ],
+        //             [
+        //                 'agent_code' => '60006127',
+        //                 'name' => 'Nguyễn Văn E',
+        //                 'designation_code' => 'AG',
+        //                 'designation_text' => 'Đại lý',
+        //                 'image' => 'http://103.226.249.106/images/avatar_1.png',
+        //                 'team' => []
+        //             ],
+        //             [
+        //                 'agent_code' => '60006128',
+        //                 'name' => 'Nguyễn Văn F',
+        //                 'designation_code' => 'AG',
+        //                 'designation_text' => 'Đại lý',
+        //                 'image' => 'http://103.226.249.106/images/avatar_1.png',
+        //                 'team' => []
+        //             ]
+        //         ]
+        //     ],
+        //     [
+        //         'agent_code' => '60006124',
+        //         'name' => 'Nguyễn Văn B',
+        //         'designation_code' => 'DM',
+        //         'designation_text' => 'Trưởng phòng kinh doanh',
+        //         'image' => 'http://103.226.249.106/images/avatar_1.png',
+        //         'team' => [
+        //             [
+        //                 'agent_code' => '60006126',
+        //                 'name' => 'Nguyễn Văn D',
+        //                 'designation_code' => 'AG',
+        //                 'designation_text' => 'Đại lý',
+        //                 'image' => 'http://103.226.249.106/images/avatar_1.png',
+        //                 'team' => []
+        //             ]
+        //         ]
+        //     ],
+        //     [
+        //         'agent_code' => '60006125',
+        //         'name' => 'Nguyễn Văn C',
+        //         'designation_code' => 'AG',
+        //         'designation_text' => 'Đại lý',
+        //         'image' => 'http://103.226.249.106/images/avatar_1.png',
+        //         'team' => []
+        //     ]
+        // ];
         $data['team'] = $team;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
-
-        // $page = 1;
-        // $limit = 25;
-        // if (request()->has('page')) {
-        //     $page = intval(request('page'));
-        //     if (!is_int($page)) {
-        //         $respStatus = 'error';
-        //         $respMsg = 'Invalid page';
-        //         return ['status' => $respStatus, 'message' => $respMsg];
-        //     }
-        // }
-        // if (request()->has('limit')) {
-        //     $limit = intval(request('limit'));
-        //     if (!is_int($limit)) {
-        //         $respStatus = 'error';
-        //         $respMsg = 'Invalid limit';
-        //         return ['status' => $respStatus, 'message' => $respMsg];
-        //     }
-        // }
-        // $offset = ($page - 1) * $limit;
-
-        // $customers = Customer::offset($offset)->take($limit)->get();
-        // $data = [];
-        // $respStatus = 'success';
-        // $data['customers'] = $customers;
-        // return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
     public function getIncome(Request $request)
