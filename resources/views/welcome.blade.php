@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Copy Trader Manager</title>
+    <title>TNDA App Manager</title>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
@@ -70,15 +70,13 @@
     <div class="flex-center position-ref full-height">
         <div class="content">
             <div class="title m-b-md">
-                Copy Trader Manager
+                TNDA App Manager
             </div>
 
             <div class="links">
                 @if (Route::has('login'))
                 @auth
-                <!-- <a href="{{ url('/todo') }}">Home</a> -->
-                <a href="{{ url('/admin/users') }}">Quản lý thành viên</a>
-                <a href="{{ url('/admin/groups') }}">Quản lý nhóm</a>
+                <a href="{{ url('/admin/code') }}">Cấp code</a>
                 @else
                 <a href="{{ route('login') }}">Login</a>
 

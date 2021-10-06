@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\FGroup;
-use App\FUser;
+use App\User;
+use App\Admin;
 use Auth;
 
 use function PHPSTORM_META\exitPoint;
@@ -26,23 +26,23 @@ class AdminController extends Controller
     //  *
     //  * @return \Illuminate\Http\Response
     //  */
-    // public function listFUsers()
-    // {
-    //     // $userId = Auth::user()->id;
-    //     $fUsers = FUser::orderBy('created_at', 'desc');
-        // if (request()->has('id')) {
-        //     $id = request('id');
-        //     $fUsers = $fUsers->where('id', '=', $id);
-        // }
-    //     if (request()->has('search')) {
-    //         $str = trim(strtolower(request('search')), ' ');
-    //         $fUsers = $fUsers->where('name', 'LIKE', '%' . $str . '%')
-    //             ->orWhere('email', 'LIKE', '%' . $str . '%')
-    //             ->orWhere('id', 'LIKE', '%' . $str . '%');
-    //     }
-    //     $fUsers = $fUsers->paginate(15);
-    //     return view('admin.user.list', ['fUsers' => $fUsers]);
-    // }
+    public function listCode()
+    {
+        // $userId = Auth::user()->id;
+        $agents = User::orderBy('created_at', 'desc');
+        if (request()->has('id')) {
+            $id = request('id');
+            $agents = $agents->where('id', '=', $id);
+        }
+        if (request()->has('search')) {
+            $str = trim(strtolower(request('search')), ' ');
+            $agents = $agents->where('name', 'LIKE', '%' . $str . '%')
+                ->orWhere('email', 'LIKE', '%' . $str . '%')
+                ->orWhere('id', 'LIKE', '%' . $str . '%');
+        }
+        $agents = $agents->paginate(15);
+        return view('agent.list', ['agents' => $agents]);
+    }
 
     // /**
     //  * Update the specified resource in storage.

@@ -18,7 +18,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::group(['middleware' => 'auth'], function () {
-    // Route::get('/admin/users', 'AdminController@listFUsers')->name('admin.users');
+    Route::get('/admin/code', 'AdminController@listCode')->name('admin.code.list');
     // Route::get('/admin/user/{user}/group', 'AdminController@listUserGroups')->name('admin.user.group.list');
     // Route::get('/admin/user/{user}/group/create', 'AdminController@createUserGroup')->name('admin.user.group.create');
     // Route::post('/admin/user/{user}/group', 'AdminController@storeUserGroup')->name('admin.user.group.store');
@@ -66,4 +66,6 @@ Route::prefix('api')->group(function () {
     //     Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
     // });
     Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
+
+    Route::get('/test/{id}', 'ComissionCalculatorController@getTwork')->name('api.test');
 });
