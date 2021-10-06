@@ -21,12 +21,13 @@ class PartnerController extends Controller
     public function VBIReturn(Request $request)
     {
         $respStatus = $respMsg = '';
-        $data = [];
-        // if (!request()->has('agent_code')) {
-        //     $respStatus = 'error';
-        //     $respMsg = 'Invalid input';
-        //     return ['status' => $respStatus, 'message' => $respMsg];
-        // }
+        $auth_str = '1234';
+        $auth_header = $request->header('Authorization');
+        if($auth_header != $auth_str) {
+            $respStatus = 'error';
+            $respMsg = 'Unauthenticated';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
         $input = $request->input();
         try {
             Storage::append('vbi_return.log', time() . "---" . json_encode($input)) . "\r\n";

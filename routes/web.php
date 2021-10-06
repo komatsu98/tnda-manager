@@ -62,7 +62,8 @@ Route::prefix('api')->group(function () {
     Route::get('/product-codes', 'AgentController@getProductCodes')->name('api.product_codes');
     Route::get('/partners', 'AgentController@getPartners')->name('api.partners');
 
-    Route::middleware(['checkIp'])->group(function () {
-        Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
-    });
+    // Route::middleware(['checkIp'])->group(function () {
+    //     Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
+    // });
+    Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
 });
