@@ -1193,77 +1193,13 @@ class AgentController extends Controller
         $team = $agent->directAgents;
         foreach($team as $dr_agent) {
             $dr_agent['team'] = $dr_agent->directAgents;
+            $dr_agent->designation_text = $this->desination_code[$dr_agent->designation_code];
+            $dr_agent->marital_status_text = $this->marital_status_code[$dr_agent->marital_status_code];
+            foreach($dr_agent['team'] as $dr_2_agent) {
+                $dr_2_agent->designation_text = $this->desination_code[$dr_2_agent->designation_code];
+                $dr_2_agent->marital_status_text = $this->marital_status_code[$dr_2_agent->marital_status_code];
+            }
         }
-
-        // $team = [
-        //     [
-        //         'agent_code' => '60006123',
-        //         'name' => 'Nguyễn Văn X',
-        //         'designation_code' => 'SDM',
-        //         'designation_text' => 'Trưởng phòng kinh doanh cấp cao',
-        //         'image' => 'http://103.226.249.106/images/avatar_1.png',
-        //         'team' => [
-        //             [
-        //                 'agent_code' => '60006126',
-        //                 'name' => 'Nguyễn Văn D',
-        //                 'designation_code' => 'DM',
-        //                 'designation_text' => 'Trưởng phòng kinh doanh',
-        //                 'image' => 'http://103.226.249.106/images/avatar_1.png',
-        //                 'team' => [
-        //                     [
-        //                         'agent_code' => '60006129',
-        //                         'name' => 'Nguyễn Văn G',
-        //                         'designation_code' => 'AG',
-        //                         'designation_text' => 'Đại lý',
-        //                         'image' => 'http://103.226.249.106/images/avatar_1.png',
-        //                         'team' => []
-        //                     ]
-        //                 ]
-        //             ],
-        //             [
-        //                 'agent_code' => '60006127',
-        //                 'name' => 'Nguyễn Văn E',
-        //                 'designation_code' => 'AG',
-        //                 'designation_text' => 'Đại lý',
-        //                 'image' => 'http://103.226.249.106/images/avatar_1.png',
-        //                 'team' => []
-        //             ],
-        //             [
-        //                 'agent_code' => '60006128',
-        //                 'name' => 'Nguyễn Văn F',
-        //                 'designation_code' => 'AG',
-        //                 'designation_text' => 'Đại lý',
-        //                 'image' => 'http://103.226.249.106/images/avatar_1.png',
-        //                 'team' => []
-        //             ]
-        //         ]
-        //     ],
-        //     [
-        //         'agent_code' => '60006124',
-        //         'name' => 'Nguyễn Văn B',
-        //         'designation_code' => 'DM',
-        //         'designation_text' => 'Trưởng phòng kinh doanh',
-        //         'image' => 'http://103.226.249.106/images/avatar_1.png',
-        //         'team' => [
-        //             [
-        //                 'agent_code' => '60006126',
-        //                 'name' => 'Nguyễn Văn D',
-        //                 'designation_code' => 'AG',
-        //                 'designation_text' => 'Đại lý',
-        //                 'image' => 'http://103.226.249.106/images/avatar_1.png',
-        //                 'team' => []
-        //             ]
-        //         ]
-        //     ],
-        //     [
-        //         'agent_code' => '60006125',
-        //         'name' => 'Nguyễn Văn C',
-        //         'designation_code' => 'AG',
-        //         'designation_text' => 'Đại lý',
-        //         'image' => 'http://103.226.249.106/images/avatar_1.png',
-        //         'team' => []
-        //     ]
-        // ];
         $data['team'] = $team;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
