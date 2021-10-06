@@ -200,7 +200,13 @@ class AgentController extends Controller
             'icon' => 'http://103.226.249.106/images/logo_fwd.png',
             'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
         ]
-    ];   
+    ];  
+    
+    public $marital_status_code = [
+        'M' => 'Đã kết hôn',
+        'S' => 'Độc thân',
+        'D' => 'Đã ly hôn'
+    ];
 
     public function login(Request $request)
     {
@@ -221,6 +227,7 @@ class AgentController extends Controller
             $data['latest_version'] = env('APP_VERSION', '0.0.0');
             $data['user'] = User::find($id);
             $data['user']->designation_text = $this->desination_code[$data['user']->designation_code];
+            $data['user']->marital_status_text = $this->marital_status_code[$data['user']->marital_status_code];
             if ($session && $session->device == $input['device']) {
                 $respStatus = 'success';
                 $respMsg = 'Already logged in';
@@ -306,9 +313,21 @@ class AgentController extends Controller
         $session = $check['session'];
         $respStatus = 'success';
         $agent = $session->agent;
+
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
+
         $data = [];
         $data['agent'] = $agent;
         $data['agent']->designation_text = $this->desination_code[$data['agent']->designation_code];
+        $data['agent']->marital_status_text = $this->marital_status_code[$data['agent']->marital_status_code];
         // $data['session'] = $session;
         // ()->only(['id', 'name', 'email', 'email']);
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
@@ -542,6 +561,16 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
+
         $contracts = $agent->contracts();
 
         if ($submit_from !== '') {
@@ -682,6 +711,15 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
 
         $comissions = $agent->comissions();
         if ($received_from !== '') {
@@ -755,6 +793,16 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
+
         $transactions = $agent->transactions();
         if ($trans_from !== '') {
             $transactions = $transactions->where('trans_date', '>=', $trans_from);
@@ -893,9 +941,19 @@ class AgentController extends Controller
         $offset = ($page - 1) * $limit;
 
         $agent = $check['session']->agent;
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
+
         $customers = Customer::whereHas('contracts.agent', function ($query) use ($agent) {
             $query->where('agent_code', '=', $agent->agent_code);
-        })->get();
+        })->offset($offset)->take($limit)->get();
         $data = [];
         $respStatus = 'success';
         $data['customers'] = $customers;
@@ -915,6 +973,17 @@ class AgentController extends Controller
             $respStatus = 'error';
             $respMsg = $check['message'];
             return ['status' => $respStatus, 'message' => $respMsg];
+        }
+
+        $agent = $check['session']->agent;
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
         }
 
         $promotions = [
@@ -1108,6 +1177,17 @@ class AgentController extends Controller
             return ['status' => $respStatus, 'message' => $respMsg];
         }
 
+        $agent = $check['session']->agent;
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
+
         $data = [];
         $respStatus = 'success';
         $team = [
@@ -1260,6 +1340,16 @@ class AgentController extends Controller
         $offset = ($page - 1) * $limit;
 
         $agent = $check['session']->agent;
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
+
         $income = $agent->monthlyIncomes();
 
         // if ($month_from !== '') {
@@ -1359,6 +1449,16 @@ class AgentController extends Controller
         $offset = ($page - 1) * $limit;
 
         $agent = $check['session']->agent;
+        if (request()->has('view_as')) {
+            $view_as_code = request('view_as');
+            if(!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
+
         $metrics = $agent->monthlyMetrics();
 
         // if ($month_from !== '') {
