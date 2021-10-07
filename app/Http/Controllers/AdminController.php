@@ -26,9 +26,8 @@ class AdminController extends Controller
     //  *
     //  * @return \Illuminate\Http\Response
     //  */
-    public function listCode()
+    public function listUsers()
     {
-        // $userId = Auth::user()->id;
         $agents = User::orderBy('created_at', 'desc');
         if (request()->has('id')) {
             $id = request('id');
@@ -36,12 +35,39 @@ class AdminController extends Controller
         }
         if (request()->has('search')) {
             $str = trim(strtolower(request('search')), ' ');
-            $agents = $agents->where('name', 'LIKE', '%' . $str . '%')
+            $agents = $agents->where('username', 'LIKE', '%' . $str . '%')
+                ->orwhere('fullname', 'LIKE', '%' . $str . '%')
                 ->orWhere('email', 'LIKE', '%' . $str . '%')
+                ->orWhere('agent_code', 'LIKE', '%' . $str . '%')
                 ->orWhere('id', 'LIKE', '%' . $str . '%');
         }
         $agents = $agents->paginate(15);
         return view('agent.list', ['agents' => $agents]);
+    }
+
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'fullname' => 'required',
+            'username' => 'required',
+        ]);
+        $input = $request->input();
+        $input['is_master'] = $request->has('is_master');
+
+        $user = FUser::find($id);
+        if (!$user) {
+            return redirect('admin/users')->with('error', 'User not found.');
+        }
+        $gid = $input['group_id'];
+        if ($user->groups()->find($gid)) {
+            return redirect('admin/user/' . $id . '/group')->with('error', 'Group already joined');
+        }
+        $group = FGroup::find($gid);
+        if (!$group) {
+            return back()->with('error', 'Group not found.');
+        }
+        $user->groups()->attach($gid, ['group_id' => $input['group_id'], 'is_master' => $input['is_master']]);
+        return redirect('admin/user/' . $id . '/group')->with('success', 'Group successfully joined.');
     }
 
     // /**

@@ -18,7 +18,10 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::group(['middleware' => 'auth'], function () {
-    Route::get('/admin/code', 'AdminController@listCode')->name('admin.code.list');
+    Route::get('/admin', 'AdminController@index')->name('admin.index');
+    Route::get('/admin/users', 'AdminController@listUsers')->name('admin.users');
+    Route::get('/admin/users/create', 'AdminController@createUsers')->name('admin.user.create');
+    Route::post('/admin/users', 'AdminController@importUsers')->name('admin.user.import');
     // Route::get('/admin/user/{user}/group', 'AdminController@listUserGroups')->name('admin.user.group.list');
     // Route::get('/admin/user/{user}/group/create', 'AdminController@createUserGroup')->name('admin.user.group.create');
     // Route::post('/admin/user/{user}/group', 'AdminController@storeUserGroup')->name('admin.user.group.store');

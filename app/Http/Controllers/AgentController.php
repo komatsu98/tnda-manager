@@ -322,6 +322,8 @@ class AgentController extends Controller
 
     public function login(Request $request)
     {
+        // print_r(Hash::make('Tnda123456'));
+        // print_r(Hash::check('12345678', '$2y$10$u/g3raLlg5JxgVTOoMZtF.X5rgsOCkQLql9TmCTnw0TGZPgj8eAUe'));
         $respStatus = $respMsg = '';
         $data = [];
         if (!request()->has('username') || !request()->has('password') || !request()->has('device') || !request()->has('location') || !request()->has('app_version')) {

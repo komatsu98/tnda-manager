@@ -76,13 +76,15 @@
             <div class="links">
                 @if (Route::has('login'))
                 @auth
-                <a href="{{ url('/admin/code') }}">Cấp code</a>
+                @if (Auth::user()->is_admin)
+                <a href="{{ url('/admin') }}">Admin</a>
+                @endif
                 @else
                 <a href="{{ route('login') }}">Login</a>
 
-                @if (Route::has('register'))
+                <!-- @if (Route::has('register'))
                 <a href="{{ route('register') }}">Register</a>
-                @endif
+                @endif -->
                 @endauth
                 @endif
             </div>
