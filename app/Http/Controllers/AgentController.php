@@ -9,6 +9,7 @@ use App\AppNews;
 use App\Contract;
 use App\Customer;
 use App\Customers;
+use App\MonthlyMetric;
 use App\SessionLog;
 use Auth;
 use Illuminate\Support\Facades\Hash;
@@ -42,38 +43,38 @@ class AgentController extends Controller
     ];
 
     public $contract_status_code = [
-        "AP" => "Hiệu lực",
-        "CF" => "Vô hiệu hợp đồng",
-        "CP" => "CP",
-        "DC" => "Từ chối",
-        "DH" => "Giải quyết quyền lợi bảo hiểm tử vong",
-        "EX" => "Đáo hạn",
-        "FL" => "Hủy hợp đồng trong thời gian cân nhắc",
-        "HP" => "PH RestPnd",
-        "IF" => "Hiệu lực",
-        "LA" => "Mất hiệu lực",
-        "LS" => "Mất hiệu lực/Hủy hợp đồng",
-        "MA" => "Đáo hạn",
-        "MP" => "Hiệu lực",
-        "NT" => "Hủy do quá hạn hoàn tất yêu cầu",
-        "P" => "Đang xư lý",
-        "PO" => "Tạm hoãn",
-        "PS" => "Hồ sơ yêu cầu bảo hiểm",
-        "PU" => "Duy trì hợp đồng vs số tiền BH giảm",
-        "RD" => "Đăng ký giải quyết quyền lợi bảo hiểm tử vong",
-        "SU" => "Hủy hợp đồng nhận GTHL",
-        "TR" => "Chấm dứt hợp đồng",
-        "UW" => "Thẩm định",
-        "VR" => "Reg Vested",
-        "WD" => "Hủy hồ sơ theo yêu cầu của khách hàng",
-        "DR" => "Từ chối bồi thường tử vong",
-        "NP" => "Đang thẩm định",
-        "VO" => "Yêu cầu mất hiệu lực",
-        "UA" => "PENDING",
-        "NR" => "NB Revert",
-        "SUBMIT" => "Nộp vào",
-        "21D" => "21 ngày",
-        "RELEASE" => "Phát hành"
+        // "AP" => "Hiệu lực",
+        // "CF" => "Vô hiệu hợp đồng",
+        // "CP" => "CP",
+        // "DC" => "Từ chối",
+        // "DH" => "Giải quyết quyền lợi bảo hiểm tử vong",
+        // "EX" => "Đáo hạn",
+        // "FL" => "Hủy hợp đồng trong thời gian cân nhắc",
+        // "HP" => "PH RestPnd",
+        // "IF" => "Hiệu lực",
+        // "LA" => "Mất hiệu lực",
+        // "LS" => "Mất hiệu lực/Hủy hợp đồng",
+        // "MA" => "Đáo hạn",
+        // "MP" => "Hiệu lực",
+        // "NT" => "Hủy do quá hạn hoàn tất yêu cầu",
+        // "P" => "Đang xư lý",
+        // "PO" => "Tạm hoãn",
+        // "PS" => "Hồ sơ yêu cầu bảo hiểm",
+        // "PU" => "Duy trì hợp đồng vs số tiền BH giảm",
+        // "RD" => "Đăng ký giải quyết quyền lợi bảo hiểm tử vong",
+        // "SU" => "Hủy hợp đồng nhận GTHL",
+        // "TR" => "Chấm dứt hợp đồng",
+        // "UW" => "Thẩm định",
+        // "VR" => "Reg Vested",
+        // "WD" => "Hủy hồ sơ theo yêu cầu của khách hàng",
+        // "DR" => "Từ chối bồi thường tử vong",
+        // "NP" => "Đang thẩm định",
+        // "VO" => "Yêu cầu mất hiệu lực",
+        // "UA" => "PENDING",
+        // "NR" => "NB Revert",
+        "SM" => "Nộp vào",
+        "21" => "21 ngày",
+        "RL" => "Phát hành"
     ];
 
     public $contract_info_await_code = [
@@ -184,7 +185,7 @@ class AgentController extends Controller
     public $partners = [
         [
             'code' => 'VBI',
-            'name' => 'Bảo hiểm VietinBank' ,
+            'name' => 'Bảo hiểm VietinBank',
             'icon' => 'http://103.226.249.106/images/logo_vbi.png',
             'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
         ],
@@ -196,16 +197,127 @@ class AgentController extends Controller
         ],
         [
             'code' => 'FWD',
-            'name' => 'Bảo hiểm Nhân thọ FWD' ,
+            'name' => 'Bảo hiểm Nhân thọ FWD',
             'icon' => 'http://103.226.249.106/images/logo_fwd.png',
             'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
         ]
-    ];  
-    
+    ];
+
     public $marital_status_code = [
         'M' => 'Đã kết hôn',
         'S' => 'Độc thân',
         'D' => 'Đã ly hôn'
+    ];
+
+    public $instructions = [
+        [
+            'title' => 'Phần mềm này là gì?',
+            'content' => [
+                [
+                    'type' => 'text',
+                    'value' => 'Phần mềm này là gì?
+                    Phần mềm này là gì?'
+                ],
+                [
+                    'type' => 'image',
+                    'value' => 'http://103.226.249.106/images/i_login.png'
+                ],
+                [
+                    'type' => 'text',
+                    'value' => 'Phần mềm này là gì?
+                    Phần mềm này là gì?'
+                ]
+            ]
+        ],
+        [
+            'title' => 'Cấp lại mật khẩu',
+            'content' => [
+                [
+                    'type' => 'text',
+                    'value' => 'Cấp lại mật khẩu
+                    Cấp lại mật khẩu'
+                ],
+                [
+                    'type' => 'image',
+                    'value' => 'http://103.226.249.106/images/i_login.png'
+                ],
+                [
+                    'type' => 'text',
+                    'value' => 'Cấp lại mật khẩu
+                    Cấp lại mật khẩu'
+                ]
+            ]
+        ],
+        [
+            'title' => 'Số tiền lương tháng này xem ở đâu?',
+            'content' => [
+                [
+                    'type' => 'text',
+                    'value' => 'Số tiền lương tháng này xem ở đâu?'
+                ],
+                [
+                    'type' => 'image',
+                    'value' => 'http://103.226.249.106/images/i_login.png'
+                ],
+                [
+                    'type' => 'text',
+                    'value' => 'Số tiền lương tháng này xem ở đâu?'
+                ]
+            ]
+        ],
+        [
+            'title' => 'Hướng dẫn tải xuống tài liệu',
+            'content' => [
+                [
+                    'type' => 'text',
+                    'value' => 'Hướng dẫn tải xuống tài liệu
+                    Hướng dẫn tải xuống tài liệu'
+                ],
+                [
+                    'type' => 'image',
+                    'value' => 'http://103.226.249.106/images/i_login.png'
+                ],
+                [
+                    'type' => 'text',
+                    'value' => 'Hướng dẫn tải xuống tài liệu'
+                ]
+            ]
+        ],
+        [
+            'title' => 'Xem thông tin chi tiết hợp đồng ở đâu?',
+            'content' => [
+                [
+                    'type' => 'text',
+                    'value' => 'Xem thông tin chi tiết hợp đồng ở đâu?'
+                ],
+                [
+                    'type' => 'image',
+                    'value' => 'http://103.226.249.106/images/i_login.png'
+                ],
+                [
+                    'type' => 'text',
+                    'value' => 'Xem thông tin chi tiết hợp đồng ở đâu?'
+                ]
+            ]
+        ],
+        [
+            'title' => 'Cách sử dụng tra cứu khách hàng tiềm năng',
+            'content' => [
+                [
+                    'type' => 'text',
+                    'value' => 'Cách sử dụng tra cứu khách hàng tiềm năng'
+                ],
+                [
+                    'type' => 'image',
+                    'value' => 'http://103.226.249.106/images/i_login.png'
+                ],
+                [
+                    'type' => 'text',
+                    'value' => 'Cách sử dụng tra cứu khách hàng tiềm năng'
+                ]
+            ]
+        ],
+
     ];
 
     public function login(Request $request)
@@ -316,7 +428,7 @@ class AgentController extends Controller
 
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -563,7 +675,7 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -571,7 +683,20 @@ class AgentController extends Controller
             $agent = User::where(['agent_code' => $view_as_code])->first();
         }
 
-        $contracts = $agent->contracts();
+        $view_by = null;
+        if (request()->has('view_by')) {
+            $view_by = request('view_by');
+        }
+        if ($view_by == "direct") {
+            $teamCodes = $agent->directAgents()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
+            $contracts = Contract::whereIn('agent_code', $teamCodes);
+        } else if ($view_by == "team") {
+            $teamCodes = $this->getWholeTeamCodes($agent);
+            $teamCodes[] = $agent->agent_code;
+            $contracts = Contract::whereIn('agent_code', $teamCodes);
+        } else {
+            $contracts = $agent->contracts();
+        }
 
         if ($submit_from !== '') {
             $contracts = $contracts->where('submit_date', '>=', $submit_from);
@@ -606,8 +731,8 @@ class AgentController extends Controller
         ////////////////////////////////////
         if ($search_type !== '') {
             $search_type_codes = explode(",", $search_type);
-            foreach($search_type_codes as $stc) {
-                switch($stc) {
+            foreach ($search_type_codes as $stc) {
+                switch ($stc) {
                     case "1":
                         break;
                 }
@@ -622,7 +747,7 @@ class AgentController extends Controller
             });
         }
         if ($search !== '') {
-            $contracts = $contracts->where('contract_code', 'like', '%' . $search. '%')->orWhereHas('customer', function ($query) use ($search) {
+            $contracts = $contracts->where('contract_code', 'like', '%' . $search . '%')->orWhereHas('customer', function ($query) use ($search) {
                 $query->where('fullname', 'like', '%' . $search . '%');
             });
         }
@@ -643,15 +768,15 @@ class AgentController extends Controller
             $contract->product_text = $this->product_code[$contract->product_code];
             $contract->sub_product_text = $this->product_code[$contract->sub_product_code];
             $info_awaiting_text = [];
-            if($contract->info_awaiting && strlen($contract->info_awaiting)) {
+            if ($contract->info_awaiting && strlen($contract->info_awaiting)) {
                 $await_codes = explode(",", $contract->info_awaiting);
-                if(count($await_codes)) {
-                    foreach($await_codes as $ac) {
+                if (count($await_codes)) {
+                    foreach ($await_codes as $ac) {
                         $info_awaiting_text[] = $this->contract_info_await_code[trim($ac)];
                     }
                 }
             }
-            $contract->info_awaiting_text = $info_awaiting_text;            
+            $contract->info_awaiting_text = $info_awaiting_text;
         }
         $data = [];
         $respStatus = 'success';
@@ -713,7 +838,7 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -795,7 +920,7 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -943,7 +1068,7 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -951,9 +1076,27 @@ class AgentController extends Controller
             $agent = User::where(['agent_code' => $view_as_code])->first();
         }
 
-        $customers = Customer::whereHas('contracts.agent', function ($query) use ($agent) {
-            $query->where('agent_code', '=', $agent->agent_code);
-        })->offset($offset)->take($limit)->get();
+        $view_by = null;
+        if (request()->has('view_by')) {
+            $view_by = request('view_by');
+        }
+        if ($view_by == "direct") {
+            $teamCodes = $agent->directAgents()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
+            $customers = Customer::whereHas('contracts.agent', function ($query) use ($teamCodes) {
+                $query->whereIn('agent_code', $teamCodes);
+            })->offset($offset)->take($limit)->get();
+        } else if ($view_by == "team") {
+            $teamCodes = $this->getWholeTeamCodes($agent);
+            $teamCodes[] = $agent->agent_code;
+            $customers = Customer::whereHas('contracts.agent', function ($query) use ($teamCodes) {
+                $query->whereIn('agent_code', $teamCodes);
+            })->offset($offset)->take($limit)->get();
+        } else {
+            $customers = Customer::whereHas('contracts.agent', function ($query) use ($agent) {
+                $query->where('agent_code', '=', $agent->agent_code);
+            })->offset($offset)->take($limit)->get();
+        }
+
         $data = [];
         $respStatus = 'success';
         $data['customers'] = $customers;
@@ -978,7 +1121,7 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -1180,7 +1323,7 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -1191,11 +1334,11 @@ class AgentController extends Controller
         $data = [];
         $respStatus = 'success';
         $team = $agent->directAgents;
-        foreach($team as $dr_agent) {
+        foreach ($team as $dr_agent) {
             $dr_agent['team'] = $dr_agent->directAgents;
             $dr_agent->designation_text = $this->desination_code[$dr_agent->designation_code];
             $dr_agent->marital_status_text = $this->marital_status_code[$dr_agent->marital_status_code];
-            foreach($dr_agent['team'] as $dr_2_agent) {
+            foreach ($dr_agent['team'] as $dr_2_agent) {
                 $dr_2_agent->designation_text = $this->desination_code[$dr_2_agent->designation_code];
                 $dr_2_agent->marital_status_text = $this->marital_status_code[$dr_2_agent->marital_status_code];
             }
@@ -1257,7 +1400,7 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -1289,7 +1432,7 @@ class AgentController extends Controller
                     continue;
                 $rwd_thing = isset($this->rwd_things[$key]) ? $this->rwd_things[$key] : null;
                 $unit = 'vnd';
-                if($rwd_thing !== null) {
+                if ($rwd_thing !== null) {
                     $unit = 'other';
                 } else {
                     $income_tmp['total'] += $value;
@@ -1366,7 +1509,7 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         if (request()->has('view_as')) {
             $view_as_code = request('view_as');
-            if(!$this->checkSupervisor($agent, $view_as_code)) {
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
                 $respMsg = 'View as not allowed!';
                 return ['status' => $respStatus, 'message' => $respMsg];
@@ -1374,7 +1517,20 @@ class AgentController extends Controller
             $agent = User::where(['agent_code' => $view_as_code])->first();
         }
 
-        $metrics = $agent->monthlyMetrics();
+        $view_by = null;
+        if (request()->has('view_by')) {
+            $view_by = request('view_by');
+        }
+        if ($view_by == "direct") {
+            $teamCodes = $agent->directAgents()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
+            $metrics = MonthlyMetric::whereIn('agent_code', $teamCodes);
+        } else if ($view_by == "team") {
+            $teamCodes = $this->getWholeTeamCodes($agent);
+            $teamCodes[] = $agent->agent_code;
+            $metrics = MonthlyMetric::whereIn('agent_code', $teamCodes);
+        } else {
+            $metrics = $agent->monthlyMetrics();
+        }
 
         // if ($month_from !== '') {
         //     $month_from = $month_from . '-01';
@@ -1384,8 +1540,10 @@ class AgentController extends Controller
         //     $month_to = $month_to . '-01';
         //     $metrics = $metrics->where('month', '<=', $month_to);
         // }
-        $metrics = $metrics->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
-
+        $metrics = $metrics->groupBy('month')
+        ->selectRaw('month, sum(FYC) as FYC, sum(FYP) as FYP, sum(IP) as IP, sum(APE) as APE, sum(CC) as CC, sum(K2) as K2, sum(AA) as AA')
+        ->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
+        
         $explained_metrics = array();
         foreach ($metrics as $m) {
             $m_tmp = [
@@ -1500,116 +1658,7 @@ class AgentController extends Controller
 
         $data = [];
         $respStatus = 'success';
-        $instructions = [
-            [
-                'title' => 'Phần mềm này là gì?',
-                'content' => [
-                    [
-                        'type' => 'text',
-                        'value' => 'Phần mềm này là gì?
-                        Phần mềm này là gì?'
-                    ],
-                    [
-                        'type' => 'image',
-                        'value' => 'http://103.226.249.106/images/i_login.png'
-                    ],
-                    [
-                        'type' => 'text',
-                        'value' => 'Phần mềm này là gì?
-                        Phần mềm này là gì?'
-                    ]
-                ]
-            ],
-            [
-                'title' => 'Cấp lại mật khẩu',
-                'content' => [
-                    [
-                        'type' => 'text',
-                        'value' => 'Cấp lại mật khẩu
-                        Cấp lại mật khẩu'
-                    ],
-                    [
-                        'type' => 'image',
-                        'value' => 'http://103.226.249.106/images/i_login.png'
-                    ],
-                    [
-                        'type' => 'text',
-                        'value' => 'Cấp lại mật khẩu
-                        Cấp lại mật khẩu'
-                    ]
-                ]
-            ],
-            [
-                'title' => 'Số tiền lương tháng này xem ở đâu?',
-                'content' => [
-                    [
-                        'type' => 'text',
-                        'value' => 'Số tiền lương tháng này xem ở đâu?'
-                    ],
-                    [
-                        'type' => 'image',
-                        'value' => 'http://103.226.249.106/images/i_login.png'
-                    ],
-                    [
-                        'type' => 'text',
-                        'value' => 'Số tiền lương tháng này xem ở đâu?'
-                    ]
-                ]
-            ],
-            [
-                'title' => 'Hướng dẫn tải xuống tài liệu',
-                'content' => [
-                    [
-                        'type' => 'text',
-                        'value' => 'Hướng dẫn tải xuống tài liệu
-                        Hướng dẫn tải xuống tài liệu'
-                    ],
-                    [
-                        'type' => 'image',
-                        'value' => 'http://103.226.249.106/images/i_login.png'
-                    ],
-                    [
-                        'type' => 'text',
-                        'value' => 'Hướng dẫn tải xuống tài liệu'
-                    ]
-                ]
-            ],
-            [
-                'title' => 'Xem thông tin chi tiết hợp đồng ở đâu?',
-                'content' => [
-                    [
-                        'type' => 'text',
-                        'value' => 'Xem thông tin chi tiết hợp đồng ở đâu?'
-                    ],
-                    [
-                        'type' => 'image',
-                        'value' => 'http://103.226.249.106/images/i_login.png'
-                    ],
-                    [
-                        'type' => 'text',
-                        'value' => 'Xem thông tin chi tiết hợp đồng ở đâu?'
-                    ]
-                ]
-            ],
-            [
-                'title' => 'Cách sử dụng tra cứu khách hàng tiềm năng',
-                'content' => [
-                    [
-                        'type' => 'text',
-                        'value' => 'Cách sử dụng tra cứu khách hàng tiềm năng'
-                    ],
-                    [
-                        'type' => 'image',
-                        'value' => 'http://103.226.249.106/images/i_login.png'
-                    ],
-                    [
-                        'type' => 'text',
-                        'value' => 'Cách sử dụng tra cứu khách hàng tiềm năng'
-                    ]
-                ]
-            ],
-            
-        ];
+        $instructions = $this->instructions;
 
         // '<!DOCTYPE html><html><head><title></title><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><div style="width: 100%;margin: auto;padding: 10px"><div style="padding: 10px"><p style="font-weight: bold;font-size: 18px">Hướng dẫn đăng nhập</p></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div><div style="text-align: center;padding: 10px"><img src="http://103.226.249.106/images/i_login.png" style="width: 75%;"></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div></div><div style="width: 100%;margin: auto;padding: 10px"><div style="padding: 10px"><p style="font-weight: bold;font-size: 18px">Hướng dẫn đăng nhập</p></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div><div style="text-align: center;padding: 10px"><img src="http://103.226.249.106/images/i_login.png" style="width: 75%;"></div><div style="padding: 10px"><p>Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập HướngHướng dẫn đăng nhập Hướng dẫn đăng nhập Hướng dẫn đăng nhập</p></div></div></body></html>';
 
@@ -1665,19 +1714,34 @@ class AgentController extends Controller
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
-    private function checkSupervisor($supervisor, $agent_code) {
+    private function checkSupervisor($supervisor, $agent_code)
+    {
         $agent = User::where(['agent_code' => $agent_code])->first();
-        if(!$agent) return false;
+        if (!$agent) return false;
         $result = false;
         $direct_supervisor = $agent->supervisor;
-        while($direct_supervisor && !$result) {
-            if($direct_supervisor->agent_code == $supervisor->agent_code) {
+        while ($direct_supervisor && !$result) {
+            if ($direct_supervisor->agent_code == $supervisor->agent_code) {
                 $result = true;
                 break;
             }
             $direct_supervisor = $direct_supervisor->supervisor;
         }
         return $result;
+    }
+
+    private function getWholeTeamCodes($supervisor) {
+        $codes = [];
+        $direct_agents = $supervisor->directAgents;
+        if(!count($direct_agents)) {
+            return [];
+        } else {
+            foreach($direct_agents as $dr_agent) {
+                array_push($codes, $dr_agent->agent_code);
+                $codes = array_merge($codes, $this->getWholeTeamCodes($dr_agent));
+            }
+            return $codes;
+        }
     }
 
     private function checkSession($access_token)
