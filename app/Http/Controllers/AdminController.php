@@ -7,8 +7,6 @@ use App\User;
 use App\Admin;
 use Auth;
 
-use function PHPSTORM_META\exitPoint;
-
 class AdminController extends Controller
 {
     /**
@@ -47,27 +45,27 @@ class AdminController extends Controller
 
     public function storeUser(Request $request)
     {
-        $request->validate([
-            'fullname' => 'required',
-            'username' => 'required',
-        ]);
-        $input = $request->input();
-        $input['is_master'] = $request->has('is_master');
+        // $request->validate([
+        //     'fullname' => 'required',
+        //     'username' => 'required',
+        // ]);
+        // $input = $request->input();
+        // $input['is_master'] = $request->has('is_master');
 
-        $user = FUser::find($id);
-        if (!$user) {
-            return redirect('admin/users')->with('error', 'User not found.');
-        }
-        $gid = $input['group_id'];
-        if ($user->groups()->find($gid)) {
-            return redirect('admin/user/' . $id . '/group')->with('error', 'Group already joined');
-        }
-        $group = FGroup::find($gid);
-        if (!$group) {
-            return back()->with('error', 'Group not found.');
-        }
-        $user->groups()->attach($gid, ['group_id' => $input['group_id'], 'is_master' => $input['is_master']]);
-        return redirect('admin/user/' . $id . '/group')->with('success', 'Group successfully joined.');
+        // $user = FUser::find($id);
+        // if (!$user) {
+        //     return redirect('admin/users')->with('error', 'User not found.');
+        // }
+        // $gid = $input['group_id'];
+        // if ($user->groups()->find($gid)) {
+        //     return redirect('admin/user/' . $id . '/group')->with('error', 'Group already joined');
+        // }
+        // $group = FGroup::find($gid);
+        // if (!$group) {
+        //     return back()->with('error', 'Group not found.');
+        // }
+        // $user->groups()->attach($gid, ['group_id' => $input['group_id'], 'is_master' => $input['is_master']]);
+        // return redirect('admin/user/' . $id . '/group')->with('success', 'Group successfully joined.');
     }
 
     // /**

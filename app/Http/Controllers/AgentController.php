@@ -11,7 +11,7 @@ use App\Customer;
 use App\Customers;
 use App\MonthlyMetric;
 use App\SessionLog;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -157,7 +157,7 @@ class AgentController extends Controller
         "rd_rwd_dbgdmht" => "Thưởng đặc biệt hàng tháng dành cho giám đốc miền (TD) ",
         "rd_rwd_tcldt_srd" => "Thưởng thăng cấp lần đầu tiên lên SRD",
         "rd_rwd_tcldt_td" => "Thưởng thăng cấp lần đầu tiên lên TD",
-        "rd_rwd_dthdvtt" => "Thưởng Duy Trì Hợp Đồng trên Vùng trực tiếp"
+        "rd_rwd_dthdtvtt" => "Thưởng Duy Trì Hợp Đồng trên Vùng trực tiếp"
     ];
 
     public $rwd_things = [
@@ -1420,17 +1420,25 @@ class AgentController extends Controller
         //     $month_to = $month_to . '-01';
         //     $income = $income->where('month', '<=', $month_to);
         // }
-        $income = $income->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
+        $selectStr = 'month, ';
+        foreach($this->income_code as $field => $name) {
+            $selectStr .= 'sum('.$field.') as '.$field.',';
+        }
+        $selectStr = substr($selectStr,0,-1);
+        $income = $income
+        ->groupBy('month')
+        ->selectRaw($selectStr)
+        ->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
         $explained_income = array();
         foreach ($income as $in) {
             $income_tmp = [
                 'month' => substr($in->month, 0, 7),
-                'file' => 'http://103.226.249.106/files/Bảng kê thu nhập (2).pdf',
+                'file' => '',
                 'detail' => [],
                 'total' => 0
             ];
             foreach ($in->toArray() as $key => $value) {
-                if (!isset($this->income_code[$key]) || $value  === 0)
+                if (!isset($this->income_code[$key]) || $value == 0)
                     continue;
                 $rwd_thing = isset($this->rwd_things[$key]) ? $this->rwd_things[$key] : null;
                 $unit = 'vnd';
