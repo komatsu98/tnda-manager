@@ -72,5 +72,5 @@ Route::prefix('api')->group(function () {
     // });
     Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
 
-    Route::get('/test/{id}', 'ComissionCalculatorController@getTwork')->name('api.test');
+    Route::get('/calc/{id}', 'ComissionCalculatorController@cal')->name('api.calc');
 });
