@@ -31,6 +31,9 @@ class Util
         return $contract_search_type_code;
     }
 
+    public static function get_contract_renewal_status_code() {
+        
+    }
     public static function get_contract_status_code() {
         $contract_status_code = [
             // "AP" => "Hiệu lực",
