@@ -31,6 +31,30 @@ class Util
         return $contract_search_type_code;
     }
 
+    public static function get_contract_term_code() {
+        $contract_term_code = [
+            "y" => "Hàng năm",
+            "m" => "Hàng tháng",
+            "q" => "Hàng quý",
+            "m6" => "Nửa năm",
+        ];
+        return $contract_term_code;
+    }
+
+    public static function get_contract_bg_color() {
+        // pending: '#F26A11',
+        // success: '#22D69F',
+        // fail: '#C7171B',
+        $contract_bg_color = [
+            "SM" => "#F26A1",
+            "21" => "#F26A11",
+            "RL" => "#F26A11",
+            "MA" => "#F26A11",
+            "LA" => "#C7171B"
+        ];
+        return $contract_bg_color;
+    }
+
     public static function get_contract_renewal_status_code() {
         
     }
@@ -45,9 +69,9 @@ class Util
             // "FL" => "Hủy hợp đồng trong thời gian cân nhắc",
             // "HP" => "PH RestPnd",
             // "IF" => "Hiệu lực",
-            // "LA" => "Mất hiệu lực",
+            "LA" => "Mất hiệu lực",
             // "LS" => "Mất hiệu lực/Hủy hợp đồng",
-            // "MA" => "Đáo hạn",
+            "MA" => "Đáo hạn",
             // "MP" => "Hiệu lực",
             // "NT" => "Hủy do quá hạn hoàn tất yêu cầu",
             // "P" => "Đang xư lý",
@@ -189,18 +213,6 @@ class Util
                 'code' => 'VBI',
                 'name' => 'Bảo hiểm VietinBank',
                 'icon' => 'http://103.226.249.106/images/logo_vbi.png',
-                'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
-            ],
-            [
-                'code' => 'BIDV_METLIFE',
-                'name' => 'Bảo hiểm phi nhân thọ - BIDV',
-                'icon' => 'http://103.226.249.106/images/logo_bidv_metlife.png',
-                'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
-            ],
-            [
-                'code' => 'FWD',
-                'name' => 'Bảo hiểm Nhân thọ FWD',
-                'icon' => 'http://103.226.249.106/images/logo_fwd.png',
                 'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
             ]
         ];

@@ -46,6 +46,8 @@ class AgentController extends Controller
         $this->partners = Util::get_partners();
         $this->marital_status_code = Util::get_marital_status_code();
         $this->instructions = Util::get_instructions();
+        $this->contract_term_code = Util::get_contract_term_code();
+        $this->contract_bg_color = Util::get_contract_bg_color();
     }
 
     public function login(Request $request)
@@ -494,7 +496,7 @@ class AgentController extends Controller
                 $query->whereRaw("DATE_FORMAT(day_of_birth, '%m-%d') <= DATE_FORMAT('" . $customer_birthday_to . "', '%m-%d')");
             });
         }
-
+        $partners = $this->partners;
         $contracts = $contracts->orderBy('created_at', 'desc')->offset($offset)->take($limit)->with('customer')->get();
         foreach ($contracts as $contract) {
             $contract->status_text = $this->contract_status_code[$contract->status_code];
@@ -509,7 +511,15 @@ class AgentController extends Controller
                     }
                 }
             }
+            $contract->bg_color = $this->contract_bg_color[$contract->status_code];
+            $partner_index = array_search($contract->partner_code, array_column($partners, 'code'));
+            if($partner_index !== false) {
+                $contract->partner_text = $partners[$partner_index]['name'];
+            } else $contract->partner_text = null;
+            
+            $contract->term_text = $this->contract_term_code[$contract->term_code];
             $contract->info_awaiting_text = $info_awaiting_text;
+            $contract->agent_name = $contract->agent()->pluck('fullname')[0];
         }
         $data = [];
         $respStatus = 'success';
