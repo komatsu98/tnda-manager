@@ -479,11 +479,11 @@ class AgentController extends Controller
             });
         }
         if ($search != '') {
-            $contracts = $contracts->where(function($q) use ($search) {
+            $contracts = $contracts->where(function ($q) use ($search) {
                 $q->where('contract_code', 'like', '%' . $search . '%')
-                ->orWhereHas('customer', function ($query) use ($search) {
-                    $query->where('fullname', 'like', '%' . $search . '%');
-                });
+                    ->orWhereHas('customer', function ($query) use ($search) {
+                        $query->where('fullname', 'like', '%' . $search . '%');
+                    });
             });
         }
         if ($customer_birthday_from !== '') {
@@ -513,10 +513,10 @@ class AgentController extends Controller
             }
             $contract->bg_color = $this->contract_bg_color[$contract->status_code];
             $partner_index = array_search($contract->partner_code, array_column($partners, 'code'));
-            if($partner_index !== false) {
+            if ($partner_index !== false) {
                 $contract->partner_text = $partners[$partner_index]['name'];
             } else $contract->partner_text = null;
-            
+
             $contract->term_text = $this->contract_term_code[$contract->term_code];
             $contract->info_awaiting_text = $info_awaiting_text;
             $contract->agent_name = $contract->agent()->pluck('fullname')[0];
@@ -1162,14 +1162,14 @@ class AgentController extends Controller
         //     $income = $income->where('month', '<=', $month_to);
         // }
         $selectStr = 'month, ';
-        foreach($this->income_code as $field => $name) {
-            $selectStr .= 'sum('.$field.') as '.$field.',';
+        foreach ($this->income_code as $field => $name) {
+            $selectStr .= 'sum(' . $field . ') as ' . $field . ',';
         }
-        $selectStr = substr($selectStr,0,-1);
+        $selectStr = substr($selectStr, 0, -1);
         $income = $income
-        ->groupBy('month')
-        ->selectRaw($selectStr)
-        ->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
+            ->groupBy('month')
+            ->selectRaw($selectStr)
+            ->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
         $explained_income = array();
         foreach ($income as $in) {
             $income_tmp = [
@@ -1292,9 +1292,9 @@ class AgentController extends Controller
         //     $metrics = $metrics->where('month', '<=', $month_to);
         // }
         $metrics = $metrics->groupBy('month')
-        ->selectRaw('month, count(id) as count, sum(FYC) as FYC, sum(FYP) as FYP, sum(IP) as IP, sum(APE) as APE, sum(CC) as CC, sum(K2) as K2, sum(AA) as AA')
-        ->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
-        
+            ->selectRaw('month, count(id) as count, sum(FYC) as FYC, sum(FYP) as FYP, sum(IP) as IP, sum(APE) as APE, sum(CC) as CC, sum(K2) as K2, sum(AA) as AA')
+            ->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
+
         $explained_metrics = array();
         foreach ($metrics as $m) {
             $m_tmp = [
@@ -1311,8 +1311,9 @@ class AgentController extends Controller
                 if (!isset($this->metric_code[$key]))
                     continue;
 
-                if($key == 'K2') {
-                    $value *= 100/$count;
+                if ($key == 'K2') {
+                    $value *= 100 / $count;
+                    $value = round($value, 1);
                 }
                 $tmp = [
                     'name' => $this->metric_code[$key],
@@ -1485,13 +1486,14 @@ class AgentController extends Controller
         return $result;
     }
 
-    private function getWholeTeamCodes($supervisor) {
+    private function getWholeTeamCodes($supervisor)
+    {
         $codes = [];
         $direct_agents = $supervisor->directAgents;
-        if(!count($direct_agents)) {
+        if (!count($direct_agents)) {
             return [];
         } else {
-            foreach($direct_agents as $dr_agent) {
+            foreach ($direct_agents as $dr_agent) {
                 array_push($codes, $dr_agent->agent_code);
                 $codes = array_merge($codes, $this->getWholeTeamCodes($dr_agent));
             }
