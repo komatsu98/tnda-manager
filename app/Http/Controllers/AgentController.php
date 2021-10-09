@@ -158,7 +158,7 @@ class AgentController extends Controller
         $respStatus = 'success';
         $agent = $session->agent;
 
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
@@ -405,7 +405,7 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
@@ -579,7 +579,7 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
@@ -661,7 +661,7 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
@@ -809,7 +809,7 @@ class AgentController extends Controller
         $offset = ($page - 1) * $limit;
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
@@ -862,7 +862,7 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
@@ -1064,7 +1064,7 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
@@ -1141,7 +1141,7 @@ class AgentController extends Controller
         $offset = ($page - 1) * $limit;
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
@@ -1258,7 +1258,7 @@ class AgentController extends Controller
         $offset = ($page - 1) * $limit;
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as')) {
+        if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
                 $respStatus = 'error';
