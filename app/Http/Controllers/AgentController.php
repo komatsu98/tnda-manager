@@ -1292,7 +1292,7 @@ class AgentController extends Controller
         //     $metrics = $metrics->where('month', '<=', $month_to);
         // }
         $metrics = $metrics->groupBy('month')
-        ->selectRaw('month, sum(FYC) as FYC, sum(FYP) as FYP, sum(IP) as IP, sum(APE) as APE, sum(CC) as CC, sum(K2) as K2, sum(AA) as AA')
+        ->selectRaw('month, count(id) as count, sum(FYC) as FYC, sum(FYP) as FYP, sum(IP) as IP, sum(APE) as APE, sum(CC) as CC, sum(K2) as K2, sum(AA) as AA')
         ->orderBy('month', 'desc')->offset($offset)->take($limit)->get();
         
         $explained_metrics = array();
@@ -1306,10 +1306,14 @@ class AgentController extends Controller
                 'AA' => 'Hoạt động',
                 'K2' => '%'
             ];
+            $count = $m->count;
             foreach ($m->toArray() as $key => $value) {
                 if (!isset($this->metric_code[$key]))
                     continue;
 
+                if($key == 'K2') {
+                    $value *= 100/$count;
+                }
                 $tmp = [
                     'name' => $this->metric_code[$key],
                     'amount' => $value,
