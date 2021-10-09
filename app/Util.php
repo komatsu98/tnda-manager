@@ -48,7 +48,7 @@ class Util
         $contract_bg_color = [
             "SM" => "#F26A1",
             "21" => "#F26A11",
-            "RL" => "#F26A11",
+            "RL" => "#22D69F",
             "MA" => "#F26A11",
             "LA" => "#C7171B"
         ];
