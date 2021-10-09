@@ -476,9 +476,12 @@ class AgentController extends Controller
                 $query->where('fullname', 'like', '%' . $customer_name . '%');
             });
         }
-        if ($search !== '') {
-            $contracts = $contracts->where('contract_code', 'like', '%' . $search . '%')->orWhereHas('customer', function ($query) use ($search) {
-                $query->where('fullname', 'like', '%' . $search . '%');
+        if ($search != '') {
+            $contracts = $contracts->where(function($q) use ($search) {
+                $q->where('contract_code', 'like', '%' . $search . '%')
+                ->orWhereHas('customer', function ($query) use ($search) {
+                    $query->where('fullname', 'like', '%' . $search . '%');
+                });
             });
         }
         if ($customer_birthday_from !== '') {

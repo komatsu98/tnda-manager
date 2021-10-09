@@ -178,7 +178,7 @@ class Util
             'RYP' => 'RYP',
             'CC' => 'Số hợp đồng thực cấp',
             'K2' => 'Tỷ lệ duy trì hợp đồng',
-            'AA' => 'Trạng thái lý hoạt động',
+            'AA' => 'Đại lý hoạt động',
         ];
         return $metric_code;
     }
