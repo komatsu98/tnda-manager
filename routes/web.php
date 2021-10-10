@@ -22,7 +22,11 @@ Auth::routes();
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin', 'AdminController@index')->name('admin.index');
     Route::get('/admin/users', 'AdminController@listUsers')->name('admin.users');
-    Route::get('/admin/users/create', 'AdminController@createUsers')->name('admin.user.create');
+    Route::get('/admin/user/create', 'AdminController@createUser')->name('admin.user.create');
+    Route::get('/admin/user/bulk-create', 'AdminController@createBulkUsers')->name('admin.user.bulk_create');
+    Route::get('/admin/user/{user}', 'AdminController@getUser')->name('admin.user.detail');
+
+    Route::post('/admin/user', 'AdminController@storeUser')->name('admin.user.store');
     Route::post('/admin/users', 'AdminController@importUsers')->name('admin.user.import');
     // Route::get('/admin/user/{user}/group', 'AdminController@listUserGroups')->name('admin.user.group.list');
     // Route::get('/admin/user/{user}/group/create', 'AdminController@createUserGroup')->name('admin.user.group.create');
@@ -66,10 +70,6 @@ Route::prefix('api')->group(function () {
     Route::get('/designation-codes', 'AgentController@getDesignationCodes')->name('api.designation_codes');
     Route::get('/product-codes', 'AgentController@getProductCodes')->name('api.product_codes');
     Route::get('/partners', 'AgentController@getPartners')->name('api.partners');
-
-    // Route::middleware(['checkIp'])->group(function () {
-    //     Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
-    // });
     Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
 
     Route::get('/calc/{id}', 'ComissionCalculatorController@cal')->name('api.calc');

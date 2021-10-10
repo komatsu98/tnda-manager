@@ -18,9 +18,8 @@ class User extends Authenticatable
     protected $table = 'users';
 
     protected $fillable = [
-        'username', 'email', 'password',
+        "id","is_admin","username","password","agent_code","IFA","IFA_branch","IFA_ref_code","IFA_ref_name","IFA_supervisor_code","IFA_supervisor_name","IFA_supervisor_designation_code","IFA_TD_code","IFA_TD_name","IFA_start_date","fullname","image","join_date","alloc_code_date","terminate_date","resident_address","resident_province","business_address","business_province","gender","marital_status_code","native_place","mobile_phone","day_of_birth","identity_num","identity_alloc_date","identity_alloc_place","email","designation_code","highest_designation_code","promote_date","supervisor_code","reference_code","branch_id","email_verified_at","active","created_at","updated_at"
     ];
-
     /**
      * The attributes that should be hidden for arrays.
      *
@@ -64,6 +63,10 @@ class User extends Authenticatable
 
     public function supervisor() {
         return $this->belongsTo('App\User', 'supervisor_code', 'agent_code');
+    }
+
+    public function reference() {
+        return $this->belongsTo('App\User', 'reference_code', 'agent_code');
     }
 
     public function directAgents()

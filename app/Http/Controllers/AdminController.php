@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\User;
 use App\Admin;
 use Auth;
+use App\Util;
+use Illuminate\Support\Facades\Hash;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class AdminController extends Controller
 {
@@ -26,46 +29,132 @@ class AdminController extends Controller
     //  */
     public function listUsers()
     {
-        $agents = User::orderBy('created_at', 'desc');
+        $users = User::orderBy('created_at', 'desc');
         if (request()->has('id')) {
             $id = request('id');
-            $agents = $agents->where('id', '=', $id);
+            $users = $users->where('id', '=', $id);
         }
         if (request()->has('search')) {
             $str = trim(strtolower(request('search')), ' ');
-            $agents = $agents->where('username', 'LIKE', '%' . $str . '%')
+            $users = $users->where('username', 'LIKE', '%' . $str . '%')
                 ->orwhere('fullname', 'LIKE', '%' . $str . '%')
                 ->orWhere('email', 'LIKE', '%' . $str . '%')
-                ->orWhere('agent_code', 'LIKE', '%' . $str . '%')
+                ->orWhere('user_code', 'LIKE', '%' . $str . '%')
                 ->orWhere('id', 'LIKE', '%' . $str . '%');
         }
-        $agents = $agents->paginate(15);
-        return view('agent.list', ['agents' => $agents]);
+        $users = $users->paginate(15);
+        foreach ($users as $user) {
+            $this->parseUserDetail($user);
+        }
+        return view('user.list', ['users' => $users]);
+    }
+
+    public function createUser()
+    {
+        return view('user.add', ['list_designation_code' => Util::get_designation_code()]);
+    }
+
+    public function createBulkUsers()
+    {
+        return view('user.import');
     }
 
     public function storeUser(Request $request)
     {
-        // $request->validate([
-        //     'fullname' => 'required',
-        //     'username' => 'required',
-        // ]);
-        // $input = $request->input();
-        // $input['is_master'] = $request->has('is_master');
+        $request->validate([
+            'fullname' => 'required',
+            'identity_num' => 'required',
+            'designation_code' => 'required',
+            'gender' => 'required',
+        ]);
+        $input = $request->input();
+        $check_exists = User::where(['identity_num' => $input['identity_num']])->first();
+        if ($check_exists) {
+            return redirect('admin/users')->with('error', 'Số CMND đã tồn tại!');
+        }
+        $highest_agent_code = intval(Util::get_highest_agent_code());
+        $agent_code = $highest_agent_code + 1;
+        $input['agent_code'] = $agent_code;
+        $input['password'] = Hash::make($input['identity_num']);
+        $input['highest_designation_code'] = $input['designation_code'];
+        $input['username'] = 'TNDA' . $agent_code;
+        try {
+            $new_agent = User::create($input);
+        } catch (Exception $e) {
+            return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại!');
+        }
 
-        // $user = FUser::find($id);
-        // if (!$user) {
-        //     return redirect('admin/users')->with('error', 'User not found.');
-        // }
-        // $gid = $input['group_id'];
-        // if ($user->groups()->find($gid)) {
-        //     return redirect('admin/user/' . $id . '/group')->with('error', 'Group already joined');
-        // }
-        // $group = FGroup::find($gid);
-        // if (!$group) {
-        //     return back()->with('error', 'Group not found.');
-        // }
-        // $user->groups()->attach($gid, ['group_id' => $input['group_id'], 'is_master' => $input['is_master']]);
-        // return redirect('admin/user/' . $id . '/group')->with('success', 'Group successfully joined.');
+        return redirect('admin/user/' . $agent_code)->with('success', 'Thêm thành viên thành công');
+    }
+
+    public function importUsers(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xls,xlsx',
+        ]);
+        $path = $request->file('file')->getRealPath();
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
+        $spreadsheet = $reader->load($path);
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $highestRow = $sheet->getHighestRow();
+        $rows = $sheet->rangeToArray('A2:AJ'.$highestRow);
+        $data = [];
+        echo "<pre>";
+		foreach ($rows as $row) {
+			$data[] = [
+                'fullname' => $row[2]
+            ];
+        }
+        print_r($data);
+        exit;
+        $filePath = $request->file('file');
+        $fileName = $filePath->getClientOriginalName();
+        echo $fileName;
+        exit;
+        $path = $request->file('file')->storeAs('uploads', $fileName, 'storage');
+        return $path;
+    }
+
+    public function getUser(Request $request, $agent_code)
+    {
+        $user = User::where(['agent_code' => $agent_code])->first();
+        // echo "<pre>";print_r(implode('","', array_keys($user->toArray())));exit;
+        $this->parseUserDetail($user);
+
+        return view('user.detail', compact('user'));
+    }
+
+    private function parseUserDetail($user)
+    {
+        $user->gender_text = $user->gender == 0 ? 'Nam' : 'Nữ';
+        $user->marital_status_text = (!is_null($user->marital_status_code) && $user->marital_status_code != '') ? (Util::get_marital_status_code())[$user->marital_status_code] : '';
+        $ref = $user->reference;
+        if ($ref) {
+            $user->ref_code = $user->reference_code;
+            $user->ref_name = $ref->fullname;
+        } else {
+            $user->ref_code = $user->IFA_ref_code;
+            $user->ref_name = $user->IFA_ref_name;
+        }
+        $supervisor = $user->supervisor;
+        if ($ref) {
+            $user->supervisor_code = $user->supervisor_code;
+            $user->supervisor_name = $supervisor->fullname;
+            $user->supervisor_designation_code = $supervisor->designation_code;
+        } else {
+            $user->supervisor_code = $user->IFA_supervisor_code;
+            $user->supervisor_name = $user->IFA_supervisor_name;
+            $user->supervisor_designation_code = $user->IFA_supervisor_designation_code;
+        }
+        $TD = Util::get_TD($user);
+        if ($TD) {
+            $user->TD_code = $TD->agent_code;
+            $user->TD_name = $TD->fullname;
+        } else {
+            $user->TD_code = $user->IFA_TD_code;
+            $user->TD_name = $user->IFA_TD_name;
+        }
     }
 
     // /**
@@ -78,9 +167,9 @@ class AdminController extends Controller
     // public function updateFUser(Request $request, $id)
     // {
     //     // $userId = Auth::user()->id;
-        // $request->validate([
-        //     'type' => 'required',
-        // ]);
+    // $request->validate([
+    //     'type' => 'required',
+    // ]);
     //     $user = FUser::find($id);
     //     if (!$user) {
     //         return redirect('admin/users')->with('error', 'User not found.');

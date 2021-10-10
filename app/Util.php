@@ -1,7 +1,7 @@
 <?php
 
 namespace App;
-
+use App\User;
 
 class Util
 {
@@ -342,4 +342,19 @@ class Util
         return $instructions;
     }
 
+    public static function get_highest_agent_code() {
+        $ha = User::select('agent_code')
+        ->orderBy('agent_code', 'desc')
+        ->limit(1)
+        ->first();
+        return $ha['agent_code'];
+    }
+
+    public static function get_TD($agent) {
+        $supervisor = $agent->supervisor;
+        while($supervisor) {
+            $supervisor = $supervisor->supervisor;
+        }
+        return $supervisor;
+    }
 }
