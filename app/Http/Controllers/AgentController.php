@@ -454,14 +454,15 @@ class AgentController extends Controller
         if ($maturity_to !== '') {
             $contracts = $contracts->where('maturity_date', '<=', $maturity_to);
         }
-        if ($contract_code !== '') {
+        if ($contract_code != '') {
             $contracts = $contracts->where('contract_code', '=', $contract_code);
         }
-        if ($status_code !== '') {
-            $contracts = $contracts->where('status_code', '=', $status_code);
+        if ($status_code != '') {
+            $status_codes = explode(",", $status_code);
+            $contracts = $contracts->whereIN('status_code', $status_codes);
         }
         ////////////////////////////////////
-        if ($search_type !== '') {
+        if ($search_type != '') {
             $search_type_codes = explode(",", $search_type);
             foreach ($search_type_codes as $stc) {
                 switch ($stc) {
@@ -470,6 +471,7 @@ class AgentController extends Controller
                 }
             }
         }
+        ///////////////////////////////////
         if ($customer_id !== '') {
             $contracts = $contracts->where('customer_id', '=', $customer_id);
         }
@@ -1064,15 +1066,15 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
-        if (request()->has('view_as') && request('view_as') != '') {
-            $view_as_code = request('view_as');
-            if (!$this->checkSupervisor($agent, $view_as_code)) {
-                $respStatus = 'error';
-                $respMsg = 'View as not allowed!';
-                return ['status' => $respStatus, 'message' => $respMsg];
-            }
-            $agent = User::where(['agent_code' => $view_as_code])->first();
-        }
+        // if (request()->has('view_as') && request('view_as') != '') {
+        //     $view_as_code = request('view_as');
+        //     if (!$this->checkSupervisor($agent, $view_as_code)) {
+        //         $respStatus = 'error';
+        //         $respMsg = 'View as not allowed!';
+        //         return ['status' => $respStatus, 'message' => $respMsg];
+        //     }
+        //     $agent = User::where(['agent_code' => $view_as_code])->first();
+        // }
 
         $data = [];
         $respStatus = 'success';
