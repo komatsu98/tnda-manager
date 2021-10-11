@@ -71,7 +71,7 @@ class AgentController extends Controller
             $data['latest_version'] = env('APP_VERSION', '0.0.0');
             $data['user'] = User::find($id);
             $data['user']->designation_text = $this->designation_code[$data['user']->designation_code];
-            $data['user']->marital_status_text = $this->marital_status_code[$data['user']->marital_status_code];
+            $data['user']->marital_status_text = $data['user']->marital_status_code != '' ? $this->marital_status_code[$data['user']->marital_status_code] : '';
             if ($session && $session->device == $input['device']) {
                 $respStatus = 'success';
                 $respMsg = 'Already logged in';

@@ -7,6 +7,7 @@ use App\User;
 use App\Admin;
 use Auth;
 use App\Util;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -29,7 +30,7 @@ class AdminController extends Controller
     //  */
     public function listUsers()
     {
-        $users = User::orderBy('created_at', 'desc');
+        $users = User::orderBy('agent_code', 'asc');
         if (request()->has('id')) {
             $id = request('id');
             $users = $users->where('id', '=', $id);
@@ -39,10 +40,9 @@ class AdminController extends Controller
             $users = $users->where('username', 'LIKE', '%' . $str . '%')
                 ->orwhere('fullname', 'LIKE', '%' . $str . '%')
                 ->orWhere('email', 'LIKE', '%' . $str . '%')
-                ->orWhere('user_code', 'LIKE', '%' . $str . '%')
                 ->orWhere('id', 'LIKE', '%' . $str . '%');
         }
-        $users = $users->paginate(15);
+        $users = $users->paginate(25);
         foreach ($users as $user) {
             $this->parseUserDetail($user);
         }
@@ -72,7 +72,7 @@ class AdminController extends Controller
         if ($check_exists) {
             return redirect('admin/users')->with('error', 'Số CMND đã tồn tại!');
         }
-        $highest_agent_code = intval(Util::get_highest_agent_code());
+        $highest_agent_code = $input['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(21)) : intval(Util::get_highest_agent_code());
         $agent_code = $highest_agent_code + 1;
         $input['agent_code'] = $agent_code;
         $input['password'] = Hash::make($input['identity_num']);
@@ -99,21 +99,52 @@ class AdminController extends Controller
 
         $highestRow = $sheet->getHighestRow();
         $rows = $sheet->rangeToArray('A2:AJ'.$highestRow);
-        $data = [];
-        echo "<pre>";
-		foreach ($rows as $row) {
-			$data[] = [
-                'fullname' => $row[2]
+        
+		foreach ($rows as $k => $row) {
+            $identity_alloc_date = Carbon::createFromFormat('d/m/Y', $row[8])->format('Y-m-d');
+            $day_of_birth = Carbon::createFromFormat('d-m-Y', $row[3].'-'.$row[4].'-'.$row[5])->format('Y-m-d');
+            $marital_status_code = strtolower($row[13]) == 'kết hôn' ? 'M' : (strtolower($row[13]) == 'độc thân' ? 'S' : (strtolower($row[13]) == 'ly hôn' ? 'D' : ''));
+            $IFA_start_date = $row[18] == '' ? $row[18] : Carbon::createFromFormat('d/m/Y', $row[18])->format('Y-m-d');
+            $designation_code = str_replace(['"', 'TNDA'], '', $row[28]);
+            $data = [
+                'fullname' => $row[2],
+                'day_of_birth' => $day_of_birth,
+                'gender' => strtolower($row[6]) == 'nam' ? 0 : 1,
+                'identity_num' => $row[7],
+                'identity_alloc_date' => $identity_alloc_date,
+                'identity_alloc_place' => $row[9],
+                'resident_place' => $row[10],
+                'email' => $row[11],
+                'mobile_phone' => $row[12],
+                'marital_status_code' => $marital_status_code,
+                'IFA_start_date' => $IFA_start_date,
+                'IFA_branch' => $row[20],
+                'IFA' => $row[21],
+                'designation_code' => $designation_code,
+                'IFA_ref_code' => $row[29],
+                'IFA_ref_name' => $row[30],
+                'IFA_supervisor_code' => $row[31],
+                'IFA_supervisor_name' => $row[32],
+                'IFA_supervisor_designation_code' => $row[33],
+                'IFA_TD_code' => $row[34],
+                'IFA_TD_name' => $row[35],
             ];
+            $highest_agent_code = $data['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(true)) : intval(Util::get_highest_agent_code());
+            $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
+            $data['agent_code'] = $agent_code;
+            $data['alloc_code_date'] = Carbon::now()->format('Y-m-d');
+            $data['promote_date'] = Carbon::now()->format('Y-m-d');
+            $data['password'] = Hash::make($data['identity_num']);
+            $data['highest_designation_code'] = $data['designation_code'];
+            $data['username'] = 'TNDA' . $agent_code;
+            try {
+                $new_agent = User::create($data);
+            } catch (Exception $e) {
+                return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại!');
+            }
         }
-        print_r($data);
-        exit;
-        $filePath = $request->file('file');
-        $fileName = $filePath->getClientOriginalName();
-        echo $fileName;
-        exit;
-        $path = $request->file('file')->storeAs('uploads', $fileName, 'storage');
-        return $path;
+        return back()->with('success', 'Thêm mới danh sách thành viên thành công');
+       
     }
 
     public function getUser(Request $request, $agent_code)

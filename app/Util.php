@@ -221,9 +221,9 @@ class Util
 
     public static function get_marital_status_code() {
         $marital_status_code = [
-            'M' => 'Đã kết hôn',
+            'M' => 'Kết hôn',
             'S' => 'Độc thân',
-            'D' => 'Đã ly hôn'
+            'D' => 'Ly hôn'
         ];
         return $marital_status_code;
     }
@@ -342,11 +342,19 @@ class Util
         return $instructions;
     }
 
-    public static function get_highest_agent_code() {
-        $ha = User::select('agent_code')
-        ->orderBy('agent_code', 'desc')
+    public static function get_highest_agent_code($is_special = false) {
+        $ha = User::select('agent_code');
+        if($is_special) {
+            $ha = $ha->where('agent_code', '<', '000021');
+        } else {
+            $ha = $ha->where('agent_code', '>', '000020');
+        }
+        $ha = $ha->orderBy('agent_code', 'desc')
         ->limit(1)
         ->first();
+        if(!$ha) {
+            return $is_special ? 0 : 20;
+        }
         return $ha['agent_code'];
     }
 

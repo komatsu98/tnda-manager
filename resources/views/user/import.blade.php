@@ -18,7 +18,6 @@
 			<div class="alert alert-success" role="alert">
 				{{ session('success') }}
 			</div>
-			<img src="uploads/{{ Session::get('file') }}">
 			@endif
 			@if (session('error'))
 			<div class="alert alert-error" role="alert">
