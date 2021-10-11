@@ -175,6 +175,11 @@ class AgentController extends Controller
             $respMsg = 'Password too long';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
+        if(strlen($new_password) < 8) {
+            $respStatus = 'error';
+            $respMsg = 'Password too short';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
         $agent->password = Hash::make($new_password);
         $agent->save();
         $respStatus = 'success';
@@ -1050,48 +1055,11 @@ class AgentController extends Controller
                 ]
             ]
         ];
+        $promotions = [];
         $data = [];
         $respStatus = 'success';
         $data['promotions'] = $promotions;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
-
-        // if (!request()->has('access_token')) {
-        //     $respStatus = 'error';
-        //     $respMsg = 'Invalid token';
-        //     return ['status' => $respStatus, 'message' => $respMsg];
-        // }
-        // $check = $this->checkSession(request('access_token'));
-        // if ($check['status'] == 'error') {
-        //     $respStatus = 'error';
-        //     $respMsg = $check['message'];
-        //     return ['status' => $respStatus, 'message' => $respMsg];
-        // }
-
-        // $page = 1;
-        // $limit = 25;
-        // if (request()->has('page')) {
-        //     $page = intval(request('page'));
-        //     if (!is_int($page)) {
-        //         $respStatus = 'error';
-        //         $respMsg = 'Invalid page';
-        //         return ['status' => $respStatus, 'message' => $respMsg];
-        //     }
-        // }
-        // if (request()->has('limit')) {
-        //     $limit = intval(request('limit'));
-        //     if (!is_int($limit)) {
-        //         $respStatus = 'error';
-        //         $respMsg = 'Invalid limit';
-        //         return ['status' => $respStatus, 'message' => $respMsg];
-        //     }
-        // }
-        // $offset = ($page - 1) * $limit;
-
-        // $customers = Customer::offset($offset)->take($limit)->get();
-        // $data = [];
-        // $respStatus = 'success';
-        // $data['customers'] = $customers;
-        // return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
     public function getTeam(Request $request)
