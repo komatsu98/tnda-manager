@@ -228,6 +228,11 @@ class Util
         return $marital_status_code;
     }
 
+    public static function get_default_avatar() {
+        $default_avatar = 'http://103.226.249.106/images/avatar_1.png';
+        return $default_avatar;
+    }
+
     public static function get_instructions() {
         $instructions = [
             [

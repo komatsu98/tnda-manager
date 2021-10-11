@@ -72,6 +72,9 @@ class AgentController extends Controller
             $data['user'] = User::find($id);
             $data['user']->designation_text = $this->designation_code[$data['user']->designation_code];
             $data['user']->marital_status_text = $data['user']->marital_status_code != '' ? $this->marital_status_code[$data['user']->marital_status_code] : '';
+            if($data['user']->image == '') {
+                $data['user']->image = Util::get_default_avatar();
+            }
             if ($session && $session->device == $input['device']) {
                 $respStatus = 'success';
                 $respMsg = 'Already logged in';
@@ -140,6 +143,44 @@ class AgentController extends Controller
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
+    public function changePassword(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if (!request()->has('current_password') || !request()->has('new_password')) {
+            $respStatus = 'error';
+            $respMsg = 'Missing password';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $agent = $check['session']->agent;
+        $current_password = request('current_password');
+        $new_password = request('new_password');
+        if(!Hash::check($current_password, $agent->password)) {
+            $respStatus = 'error';
+            $respMsg = 'Incorrect password';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if(strlen($new_password) > 32) {
+            $respStatus = 'error';
+            $respMsg = 'Password too long';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $agent->password = Hash::make($new_password);
+        $agent->save();
+        $respStatus = 'success';
+        return ['status' => $respStatus, 'message' => $respMsg];
+    }
+
     public function profile(Request $request)
     {
         $respStatus = $respMsg = '';
@@ -171,7 +212,10 @@ class AgentController extends Controller
         $data = [];
         $data['agent'] = $agent;
         $data['agent']->designation_text = $this->designation_code[$data['agent']->designation_code];
-        $data['agent']->marital_status_text = $this->marital_status_code[$data['agent']->marital_status_code];
+        $data['agent']->marital_status_text = $data['agent']->marital_status_code != '' ? $this->marital_status_code[$data['agent']->marital_status_code] : '';
+        if($data['agent']->image == '') {
+            $data['agent']->image = Util::get_default_avatar();
+        }
         // $data['session'] = $session;
         // ()->only(['id', 'name', 'email', 'email']);
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
@@ -1082,10 +1126,16 @@ class AgentController extends Controller
         foreach ($team as $dr_agent) {
             $dr_agent['team'] = $dr_agent->directAgents;
             $dr_agent->designation_text = $this->designation_code[$dr_agent->designation_code];
-            $dr_agent->marital_status_text = $this->marital_status_code[$dr_agent->marital_status_code];
+            $dr_agent->marital_status_text = $dr_agent->marital_status_code != '' ? $this->marital_status_code[$dr_agent->marital_status_code] : '';
+            if($dr_agent->image == '') {
+                $dr_agent->image = Util::get_default_avatar();
+            }
             foreach ($dr_agent['team'] as $dr_2_agent) {
                 $dr_2_agent->designation_text = $this->designation_code[$dr_2_agent->designation_code];
-                $dr_2_agent->marital_status_text = $this->marital_status_code[$dr_2_agent->marital_status_code];
+                $dr_2_agent->marital_status_text = $dr_2_agent->marital_status_code != '' ? $this->marital_status_code[$dr_2_agent->marital_status_code] : '';
+                if($dr_2_agent->image == '') {
+                    $dr_2_agent->image = Util::get_default_avatar();
+                }
             }
         }
         $data['team'] = $team;

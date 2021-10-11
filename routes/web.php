@@ -51,6 +51,7 @@ Route::group(['middleware' => 'auth'], function () {
 Route::prefix('api')->group(function () {
     Route::post('/login', 'AgentController@login')->name('api.login');
     Route::post('/require-update-contract', 'AgentController@requireUpdateContract')->name('api.require_update_contract');
+    Route::post('/change-password', 'AgentController@changePassword')->name('api.change_password');
 
     Route::get('/profile', 'AgentController@profile')->name('api.profile');
     Route::get('/contracts', 'AgentController@getAgentContracts')->name('api.contracts');
