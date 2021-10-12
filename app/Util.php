@@ -404,8 +404,7 @@ class Util
                 'content' => [
                     [
                         'type' => 'text',
-                        'value' => 'Phần mềm này là gì?
-                        Phần mềm này là gì?'
+                        'value' => 'TND Assurance App '
                     ],
                     [
                         'type' => 'image',
@@ -413,8 +412,7 @@ class Util
                     ],
                     [
                         'type' => 'text',
-                        'value' => 'Phần mềm này là gì?
-                        Phần mềm này là gì?'
+                        'value' => 'Đang cập nhật...'
                     ]
                 ]
             ],
@@ -423,8 +421,7 @@ class Util
                 'content' => [
                     [
                         'type' => 'text',
-                        'value' => 'Cấp lại mật khẩu
-                        Cấp lại mật khẩu'
+                        'value' => 'TND Assurance App '
                     ],
                     [
                         'type' => 'image',
@@ -432,8 +429,7 @@ class Util
                     ],
                     [
                         'type' => 'text',
-                        'value' => 'Cấp lại mật khẩu
-                        Cấp lại mật khẩu'
+                        'value' => 'Đang cập nhật...'
                     ]
                 ]
             ],
@@ -442,7 +438,7 @@ class Util
                 'content' => [
                     [
                         'type' => 'text',
-                        'value' => 'Số tiền lương tháng này xem ở đâu?'
+                        'value' => 'TND Assurance App '
                     ],
                     [
                         'type' => 'image',
@@ -450,7 +446,7 @@ class Util
                     ],
                     [
                         'type' => 'text',
-                        'value' => 'Số tiền lương tháng này xem ở đâu?'
+                        'value' => 'Đang cập nhật...'
                     ]
                 ]
             ],
@@ -459,8 +455,7 @@ class Util
                 'content' => [
                     [
                         'type' => 'text',
-                        'value' => 'Hướng dẫn tải xuống tài liệu
-                        Hướng dẫn tải xuống tài liệu'
+                        'value' => 'TND Assurance App '
                     ],
                     [
                         'type' => 'image',
@@ -468,7 +463,7 @@ class Util
                     ],
                     [
                         'type' => 'text',
-                        'value' => 'Hướng dẫn tải xuống tài liệu'
+                        'value' => 'Đang cập nhật...'
                     ]
                 ]
             ],
@@ -477,7 +472,7 @@ class Util
                 'content' => [
                     [
                         'type' => 'text',
-                        'value' => 'Xem thông tin chi tiết hợp đồng ở đâu?'
+                        'value' => 'TND Assurance App '
                     ],
                     [
                         'type' => 'image',
@@ -485,7 +480,7 @@ class Util
                     ],
                     [
                         'type' => 'text',
-                        'value' => 'Xem thông tin chi tiết hợp đồng ở đâu?'
+                        'value' => 'Đang cập nhật...'
                     ]
                 ]
             ],
@@ -494,7 +489,7 @@ class Util
                 'content' => [
                     [
                         'type' => 'text',
-                        'value' => 'Cách sử dụng tra cứu khách hàng tiềm năng'
+                        'value' => 'TND Assurance App '
                     ],
                     [
                         'type' => 'image',
@@ -502,13 +497,24 @@ class Util
                     ],
                     [
                         'type' => 'text',
-                        'value' => 'Cách sử dụng tra cứu khách hàng tiềm năng'
+                        'value' => 'Đang cập nhật...'
                     ]
                 ]
             ],
     
         ];
         return $instructions;
+    }
+
+    public static function get_documents() {
+        $documents = [
+            [
+                'name' => 'Tài liệu bán hàng (đang cập nhật)',
+                'url' => '',
+                'image' => 'http://103.226.249.106/images/logo.jpg'
+            ]
+        ];
+        return $documents;
     }
 
     public static function get_highest_agent_code($is_special = false) {

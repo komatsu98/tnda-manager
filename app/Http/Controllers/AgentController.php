@@ -46,6 +46,7 @@ class AgentController extends Controller
         $this->partners = Util::get_partners();
         $this->marital_status_code = Util::get_marital_status_code();
         $this->instructions = Util::get_instructions();
+        $this->documents = Util::get_documents();
         $this->contract_term_code = Util::get_contract_term_code();
         $this->contract_bg_color = Util::get_contract_bg_color();
     }
@@ -1230,23 +1231,7 @@ class AgentController extends Controller
 
         $data = [];
         $respStatus = 'success';
-        $documents = [
-            [
-                'name' => 'Tài liệu bán hàng 01',
-                'url' => 'http://103.226.249.106/files/Huong_dan_thi_Online-1 (1).pdf',
-                'image' => 'http://103.226.249.106/images/11-Tài liệu.png'
-            ],
-            [
-                'name' => 'Giá trị của niềm tin',
-                'url' => 'https://www.youtube.com/watch?v=VGTNUVlFK8k',
-                'image' => 'http://103.226.249.106/images/logo.jpg'
-            ],
-            [
-                'name' => 'Hướng dẫn bán hàng 02',
-                'url' => 'https://fb.watch/82V53xTyRC/',
-                'image' => 'http://103.226.249.106/images/logo.jpg'
-            ]
-        ];
+        $documents = $this->documents;
 
         $data['documents'] = $documents;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
