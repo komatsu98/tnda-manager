@@ -923,138 +923,6 @@ class AgentController extends Controller
             $agent = User::where(['agent_code' => $view_as_code])->first();
         }
 
-        $promotions = [
-            [
-                'code' => 'PRO_AM_DM',
-                'title' => 'Thăng cấp Trưởng phòng kinh doanh',
-                'requiment_count' => 8,
-                'gained_count' => 8,
-                'evaluation_date' => '2021-09-30',
-                'requirements' => [
-                    [
-                        'id' => 1,
-                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (AG)',
-                        'requirement_text' => '6 tháng',
-                        'progress_text' => '10 tháng',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 2,
-                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
-                        'requirement_text' => '06 nhân sự',
-                        'progress_text' => '06 nhân sự',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 3,
-                        'title' => 'Tổng số đại lý hoạt động (AA) trực tiếp GIỚI THIỆU trong 06 tháng vừa qua và còn làm việc tại thời điểm xét (mỗi AA chỉ được tính 1 lần)',
-                        'requirement_text' => '04 đại lý',
-                        'progress_text' => '05 đại lý',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 4,
-                        'title' => 'Tổng FYC trong 06 tháng vừa qua (bao gồm kết quả của cá nhân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
-                        'requirement_text' => '50 triệu đồng',
-                        'progress_text' => '60 triệu đồng',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 5,
-                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
-                        'requirement_text' => '30%',
-                        'progress_text' => '32.5%',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 6,
-                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của cá nhân đại lý tại thời điểm xét',
-                        'requirement_text' => '75%',
-                        'progress_text' => '80.5%',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 7,
-                        'title' => 'Hoàn thành khóa huấn luyện “Nền tảng quản lý và trả bài bằng Video”',
-                        'requirement_text' => 'Bắt buộc',
-                        'progress_text' => 'Hoàn thành',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 8,
-                        'title' => 'Không vi phạm quy chế Công ty',
-                        'requirement_text' => '75%',
-                        'progress_text' => 'Chưa hoàn thành',
-                        'is_done' => 1
-                    ]
-                ]
-            ],
-            [
-                'code' => 'PRO_DM_SDM',
-                'requiment_count' => 8,
-                'title' => 'Thăng cấp Trưởng phòng kinh doanh cấp cao',
-                'gained_count' => 7,
-                'evaluation_date' => '2021-09-30',
-                'requirements' => [
-                    [
-                        'id' => 1,
-                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (DM)',
-                        'requirement_text' => '6 tháng',
-                        'progress_text' => '10 tháng',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 2,
-                        'title' => 'Tổng số DM báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
-                        'requirement_text' => '03 DM',
-                        'progress_text' => '04 DM',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 3,
-                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
-                        'requirement_text' => '20 nhân sự',
-                        'progress_text' => '21 nhân sự',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 4,
-                        'title' => 'Tổng số đại lý hoạt động (AA) trực tiếp tuyển trong 06 tháng vừa qua và còn làm việc tại thời điểm xét (mỗi AA chỉ được tính 1 lần)',
-                        'requirement_text' => '04 AA',
-                        'progress_text' => '06 AA',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 5,
-                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
-                        'requirement_text' => '100 triệu đồng',
-                        'progress_text' => '90 triệu đồng',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 6,
-                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
-                        'requirement_text' => '30%',
-                        'progress_text' => '32.5%',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 7,
-                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
-                        'requirement_text' => '80%',
-                        'progress_text' => '80%',
-                        'is_done' => 1
-                    ],
-                    [
-                        'id' => 8,
-                        'title' => 'Hoàn thành khóa huấn luyện “Nền tảng quản lý”',
-                        'requirement_text' => 'Bắt buộc',
-                        'progress_text' => 'Hoàn thành',
-                        'is_done' => 1
-                    ]
-                ]
-            ]
-        ];
         $promotions = [];
         $data = [];
         $respStatus = 'success';
@@ -1078,33 +946,26 @@ class AgentController extends Controller
         }
 
         $agent = $check['session']->agent;
-        // if (request()->has('view_as') && request('view_as') != '') {
-        //     $view_as_code = request('view_as');
-        //     if (!$this->checkSupervisor($agent, $view_as_code)) {
-        //         $respStatus = 'error';
-        //         $respMsg = 'View as not allowed!';
-        //         return ['status' => $respStatus, 'message' => $respMsg];
-        //     }
-        //     $agent = User::where(['agent_code' => $view_as_code])->first();
-        // }
+        if (request()->has('team_as') && request('team_as') != '') {
+            $view_as_code = request('team_as');
+            if (!$this->checkSupervisor($agent, $view_as_code)) {
+                $respStatus = 'error';
+                $respMsg = 'View as not allowed!';
+                return ['status' => $respStatus, 'message' => $respMsg];
+            }
+            $agent = User::where(['agent_code' => $view_as_code])->first();
+        }
 
         $data = [];
         $respStatus = 'success';
         $team = $agent->directAgents;
         foreach ($team as $dr_agent) {
-            $dr_agent['team'] = $dr_agent->directAgents;
             $dr_agent->designation_text = $this->designation_code[$dr_agent->designation_code];
             $dr_agent->marital_status_text = $dr_agent->marital_status_code != '' ? $this->marital_status_code[$dr_agent->marital_status_code] : '';
             if($dr_agent->image == '') {
                 $dr_agent->image = Util::get_default_avatar();
             }
-            foreach ($dr_agent['team'] as $dr_2_agent) {
-                $dr_2_agent->designation_text = $this->designation_code[$dr_2_agent->designation_code];
-                $dr_2_agent->marital_status_text = $dr_2_agent->marital_status_code != '' ? $this->marital_status_code[$dr_2_agent->marital_status_code] : '';
-                if($dr_2_agent->image == '') {
-                    $dr_2_agent->image = Util::get_default_avatar();
-                }
-            }
+            $dr_agent->team_length = $dr_agent->directAgents()->count();
         }
         $data['team'] = $team;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
@@ -1488,6 +1349,10 @@ class AgentController extends Controller
         $data['partners'] = $partners;
 
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+    }
+
+    public function test(Request $request) {
+        return Util::get_promotions('', 'AM');
     }
 
     private function checkSupervisor($supervisor, $agent_code)

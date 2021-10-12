@@ -177,6 +177,170 @@ class Util
         ];
         return $income_code;
     }
+
+    public static function get_promotions($designation_code = '', $code = '') {
+        $promotions = [
+            [
+                'code' => 'PRO_AM_DM',
+                'designation_code' => 'AM',
+                'title' => 'Thăng cấp Trưởng phòng kinh doanh',
+                'requiment_count' => 8,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (AG)',
+                        'requirement_value' => 6,
+                        'requirement_text' => '6 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 6,
+                        'requirement_text' => '06 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số đại lý hoạt động (AA) trực tiếp GIỚI THIỆU trong 06 tháng vừa qua và còn làm việc tại thời điểm xét (mỗi AA chỉ được tính 1 lần)',
+                        'requirement_value' => 4,
+                        'requirement_text' => '04 đại lý',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng FYC trong 06 tháng vừa qua (bao gồm kết quả của cá nhân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 50,
+                        'requirement_text' => '50 triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.3,
+                        'requirement_text' => '30%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của cá nhân đại lý tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Hoàn thành khóa huấn luyện “Nền tảng quản lý và trả bài bằng Video”',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 8,
+                        'title' => 'Không vi phạm quy chế Công ty',
+                        'requirement_value' => 1,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'PRO_DM_SDM',
+                'designation_code' => 'DM',
+                'title' => 'Thăng cấp Trưởng phòng kinh doanh cấp cao',
+                'requiment_count' => 8,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (DM)',
+                        'requirement_value' => 6,
+                        'requirement_text' => '6 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số DM báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 3,
+                        'requirement_text' => '03 DM',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 20,
+                        'requirement_text' => '20 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng số đại lý hoạt động (AA) trực tiếp tuyển trong 06 tháng vừa qua và còn làm việc tại thời điểm xét (mỗi AA chỉ được tính 1 lần)',
+                        'requirement_value' => 4,
+                        'requirement_text' => '04 AA',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 100000000,
+                        'requirement_text' => '100 triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.3,
+                        'requirement_text' => '30%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.8,
+                        'requirement_text' => '80%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 8,
+                        'title' => 'Hoàn thành khóa huấn luyện “Nền tảng quản lý”',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ]
+        ];
+        if($designation_code != '') {
+            $promotions = array_filter($promotions, function ($var) use ($designation_code) {
+                return ($var['designation_code'] == $designation_code);
+            });
+        }
+        if($code != '') {
+            $promotions = array_filter($promotions, function ($var) use ($code) {
+                return ($var['code'] == $code);
+            });
+        }
+        return $promotions;
+    }
     
     public static function get_rwd_things() {
         $rwd_things = [

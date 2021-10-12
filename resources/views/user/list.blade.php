@@ -6,7 +6,7 @@
 		<div class="col-md-3">
 			<h2>
 			Users List 
-			<a href="{{ route('admin.user.create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a>
+			<!-- <a href="{{ route('admin.user.create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a> -->
 			<a href="{{ route('admin.user.bulk_create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a>
 			</h2>
 
