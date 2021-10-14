@@ -1337,7 +1337,7 @@ class AgentController extends Controller
     }
 
     public function test(Request $request) {
-        return Util::get_promotions('', 'AM');
+        return Hash::make('Monitaz2021@@');
     }
 
     private function checkSupervisor($supervisor, $agent_code)

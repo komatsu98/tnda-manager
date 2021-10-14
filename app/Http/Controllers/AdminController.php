@@ -10,6 +10,10 @@ use App\Util;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use Illuminate\Support\Facades\Validator;
+use Excel;
+use App\UsersImport;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -88,9 +92,57 @@ class AdminController extends Controller
     }
 
     public function importUsers(Request $request)
-    {
+    {       
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:xlsx'
+        ]);
+        // process the form
+        if ($validator->fails()) {
+            return redirect()->to(route('admin.user.bulk_create'))->withErrors($validator);
+        } else {
+            $import = new UsersImport;
+            Excel::import($import, $request->file('file'));
+            $errors = [];
+            $success = [];
+            
+            foreach($import->data as $user) {
+                try 
+                {
+                    $highest_agent_code = $user['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(true)) : intval(Util::get_highest_agent_code());
+                    $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
+                    $user['agent_code'] = $agent_code;
+                    $user['username'] = 'TNDA' . $agent_code;
+                    User::create($user);
+                    $success[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . "\r\n";
+                }
+                catch(\Illuminate\Database\QueryException $e){
+                    $errors[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . " FAILED:" .$e->getMessage() . "\r\n";
+                }
+                // try {
+                //     DB::table('users')->insertOrIgnore($import->data);
+                // } catch (Exception $e) {
+                //     return back()->with('error', $e->getMessages());
+                // }
+                // return back()->with('success', 'Thêm mới danh sách thành viên thành công');
+            }
+            if(count($errors)) {
+                return back()->with('error', "SUCCESS ". json_encode($success) . "\r\n===============\r\nERROR " . json_encode($errors));
+            } else {
+                return back()->with('success', 'Thêm mới danh sách thành viên thành công' . json_encode($success));
+            }
+            // try {
+            //     $import = new UsersImport;
+            //     Excel::import($import, $request->file('file'));
+            //     dd($import->data);
+            //     return back()->with('success', 'Thêm mới danh sách thành viên thành công');
+            // } catch (\Exception $e) {
+            //     return back()->with('error', $e->getMessage());
+            // }
+        }
+
+        return back();
         $request->validate([
-            'file' => 'required|mimes:xls,xlsx',
+            'file' => 'required|mimes:xlsx',
         ]);
         $path = $request->file('file')->getRealPath();
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
@@ -98,37 +150,74 @@ class AdminController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
 
         $highestRow = $sheet->getHighestRow();
-        $rows = $sheet->rangeToArray('A2:AJ'.$highestRow);
-        
-		foreach ($rows as $k => $row) {
-            $identity_alloc_date = Carbon::createFromFormat('d/m/Y', $row[8])->format('Y-m-d');
-            $day_of_birth = Carbon::createFromFormat('d-m-Y', $row[3].'-'.$row[4].'-'.$row[5])->format('Y-m-d');
-            $marital_status_code = strtolower($row[13]) == 'kết hôn' ? 'M' : (strtolower($row[13]) == 'độc thân' ? 'S' : (strtolower($row[13]) == 'ly hôn' ? 'D' : ''));
+        $rows = $sheet->rangeToArray('A2:AJ' . $highestRow);
+
+        foreach ($rows as $k => $row) {
+            // $identity_alloc_date = Carbon::createFromFormat('d/m/Y', $row[8])->format('Y-m-d');
+            // $day_of_birth = Carbon::createFromFormat('d-m-Y', $row[3].'-'.$row[4].'-'.$row[5])->format('Y-m-d');
+            // $marital_status_code = strtolower($row[13]) == 'kết hôn' ? 'M' : (strtolower($row[13]) == 'độc thân' ? 'S' : (strtolower($row[13]) == 'ly hôn' ? 'D' : ''));
+            // $IFA_start_date = $row[18] == '' ? $row[18] : Carbon::createFromFormat('d/m/Y', $row[18])->format('Y-m-d');
+            // $designation_code = str_replace(['"', 'TNDA'], '', $row[28]);
+            // $data = [
+            //     'fullname' => $row[2],
+            //     'day_of_birth' => $day_of_birth,
+            //     'gender' => strtolower($row[6]) == 'nam' ? 0 : 1,
+            //     'identity_num' => $row[7],
+            //     'identity_alloc_date' => $identity_alloc_date,
+            //     'identity_alloc_place' => $row[9],
+            //     'resident_place' => $row[10],
+            //     'email' => $row[11],
+            //     'mobile_phone' => $row[12],
+            //     'marital_status_code' => $marital_status_code,
+            //     'IFA_start_date' => $IFA_start_date,
+            //     'IFA_branch' => $row[20],
+            //     'IFA' => $row[21],
+            //     'designation_code' => $designation_code,
+            //     'IFA_ref_code' => $row[29],
+            //     'IFA_ref_name' => $row[30],
+            //     'IFA_supervisor_code' => $row[31],
+            //     'IFA_supervisor_name' => $row[32],
+            //     'IFA_supervisor_designation_code' => $row[33],
+            //     'IFA_TD_code' => $row[34],
+            //     'IFA_TD_name' => $row[35],
+            // ];
+            $identity_alloc_date = Carbon::createFromFormat('d/m/Y', $row[7])->format('Y-m-d');
+            $day_of_birth = Carbon::createFromFormat('d-m-Y', $row[2] . '-' . $row[3] . '-' . $row[4])->format('Y-m-d');
+            $marital_status_code = strtolower($row[12]) == 'kết hôn' ? 'M' : (strtolower($row[12]) == 'độc thân' ? 'S' : (strtolower($row[12]) == 'ly hôn' ? 'D' : ''));
             $IFA_start_date = $row[18] == '' ? $row[18] : Carbon::createFromFormat('d/m/Y', $row[18])->format('Y-m-d');
-            $designation_code = str_replace(['"', 'TNDA'], '', $row[28]);
+            $designation_code = str_replace(['"', 'TNDA'], '', $row[13]);
+            $IFA_supervisor_designation_code = str_replace(['"', 'TNDA'], '', $row[19]);
             $data = [
-                'fullname' => $row[2],
+                'fullname' => $row[1],
                 'day_of_birth' => $day_of_birth,
-                'gender' => strtolower($row[6]) == 'nam' ? 0 : 1,
-                'identity_num' => $row[7],
+                'gender' => strtolower($row[5]) == 'nam' ? 0 : 1,
+                'identity_num' => $row[6],
                 'identity_alloc_date' => $identity_alloc_date,
-                'identity_alloc_place' => $row[9],
-                'resident_place' => $row[10],
-                'email' => $row[11],
-                'mobile_phone' => $row[12],
+                'identity_alloc_place' => $row[8],
+                'resident_place' => $row[9],
+                'email' => $row[10],
+                'mobile_phone' => $row[11],
                 'marital_status_code' => $marital_status_code,
-                'IFA_start_date' => $IFA_start_date,
-                'IFA_branch' => $row[20],
-                'IFA' => $row[21],
+                'IFA_start_date' => '',
+                'IFA_branch' => '',
+                'IFA' => '',
                 'designation_code' => $designation_code,
-                'IFA_ref_code' => $row[29],
-                'IFA_ref_name' => $row[30],
-                'IFA_supervisor_code' => $row[31],
-                'IFA_supervisor_name' => $row[32],
-                'IFA_supervisor_designation_code' => $row[33],
-                'IFA_TD_code' => $row[34],
-                'IFA_TD_name' => $row[35],
+                'IFA_ref_code' => trim($row[14]),
+                'IFA_ref_name' => $row[15],
+                'IFA_supervisor_code' => trim($row[17]),
+                'IFA_supervisor_name' => $row[18],
+                'IFA_supervisor_designation_code' => $IFA_supervisor_designation_code,
+                'IFA_TD_code' => '',
+                'IFA_TD_name' => $row[25],
             ];
+            $reference = User::where(['username' => $data['IFA_ref_code']])->orWhere(['identity_num' => $data['IFA_ref_code']])->first();
+            if ($reference) {
+                $data['reference_code'] = $reference->agent_code;
+            }
+            $supervisor = User::where(['username' => $data['IFA_supervisor_code']])->orWhere(['identity_num' => $data['IFA_supervisor_code']])->first();
+            if ($supervisor) {
+                $data['supervisor_code'] = $supervisor->agent_code;
+            }
             $highest_agent_code = $data['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(true)) : intval(Util::get_highest_agent_code());
             $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
             $data['agent_code'] = $agent_code;
@@ -144,7 +233,6 @@ class AdminController extends Controller
             }
         }
         return back()->with('success', 'Thêm mới danh sách thành viên thành công');
-       
     }
 
     public function getUser(Request $request, $agent_code)

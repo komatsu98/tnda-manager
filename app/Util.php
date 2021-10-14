@@ -509,7 +509,7 @@ class Util
     public static function get_documents() {
         $documents = [
             [
-                'name' => 'Tài liệu bán hàng (đang cập nhật)',
+                'name' => 'Tài liệu tham khảo (đang cập nhật)',
                 'url' => '',
                 'image' => 'http://103.226.249.106/images/logo.jpg'
             ]
