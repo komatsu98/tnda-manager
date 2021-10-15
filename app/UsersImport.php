@@ -47,14 +47,7 @@ class UsersImport implements ToCollection
                 'IFA_TD_code' => null,
                 'IFA_TD_name' => $row[25],
             ];
-            $reference = User::where(['username' => $user['IFA_ref_code']])->orWhere(['identity_num' => $user['IFA_ref_code']])->first();
-            if ($reference) {
-                $user['reference_code'] = $reference->agent_code;
-            }
-            $supervisor = User::where(['username' => $user['IFA_supervisor_code']])->orWhere(['identity_num' => $user['IFA_supervisor_code']])->first();
-            if ($supervisor) {
-                $user['supervisor_code'] = $supervisor->agent_code;
-            }
+            
             $user['alloc_code_date'] = Carbon::now()->format('Y-m-d');
             $user['promote_date'] = Carbon::now()->format('Y-m-d');
             $user['password'] = Hash::make($user['identity_num']);

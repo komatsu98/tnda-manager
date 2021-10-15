@@ -108,6 +108,14 @@ class AdminController extends Controller
             foreach($import->data as $user) {
                 try 
                 {
+                    $reference = User::where(['username' => $user['IFA_ref_code']])->orWhere(['identity_num' => $user['IFA_ref_code']])->first();
+                    if ($reference) {
+                        $user['reference_code'] = $reference->agent_code;
+                    }
+                    $supervisor = User::where(['username' => $user['IFA_supervisor_code']])->orWhere(['identity_num' => $user['IFA_supervisor_code']])->first();
+                    if ($supervisor) {
+                        $user['supervisor_code'] = $supervisor->agent_code;
+                    }
                     $highest_agent_code = $user['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(true)) : intval(Util::get_highest_agent_code());
                     $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
                     $user['agent_code'] = $agent_code;
