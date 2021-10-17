@@ -26,6 +26,7 @@ class UsersImport implements ToCollection
             $IFA_ref_code = str_replace(['"'], '', trim($row[17]));
             $IFA_supervisor_code = str_replace(['"'], '', trim($row[19]));
             $IFA_supervisor_designation_code = str_replace(['"'], '', trim($row[21]));
+            $alloc_code_date = Carbon::createFromFormat('m/d/Y', is_numeric($row[24]) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[24])->format('m/d/Y') : $row[24])->format('Y-m-d');
             $user = [
                 'fullname' => $row[2],
                 'day_of_birth' => $day_of_birth,
@@ -48,17 +49,17 @@ class UsersImport implements ToCollection
                 'IFA_supervisor_designation_code' => $IFA_supervisor_designation_code,
                 'IFA_TD_code' => null,
                 'IFA_TD_name' => $row[23],
+                'alloc_code_date' => $alloc_code_date,
+                'promote_date' => $alloc_code_date
             ];
             
-            $user['alloc_code_date'] = Carbon::now()->format('Y-m-d');
-            $user['promote_date'] = Carbon::now()->format('Y-m-d');
             $user['password'] = Hash::make($user['identity_num']);
             $user['highest_designation_code'] = $user['designation_code'];
             
             $data[] = $user;
         }
         
-        Util::sortByDesDesc($data); 
+        // Util::sortByDesDesc($data); 
         $this->data = $data;
     }
 
