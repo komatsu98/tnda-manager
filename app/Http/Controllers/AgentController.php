@@ -1328,8 +1328,18 @@ class AgentController extends Controller
             $respMsg = $check['message'];
             return ['status' => $respStatus, 'message' => $respMsg];
         }
+        $agent = $check['session']->agent;
         $partners = $this->partners;
+        foreach($partners as $key => $ptn) {
+            if($ptn['code'] == 'VBI') {
+                $info = base64_encode($agent->agent_code);
+                $hash = hash_hmac('sha256', $info, config('partner.VBI')['hash_key']);
+                $ptn['url'] .= '?info=' . $info . '&hash=' . $hash;
+                $partners[$key] = $ptn;
+            }
+        }
         $respStatus = 'success';
+
         $data = [];
         $data['partners'] = $partners;
 
