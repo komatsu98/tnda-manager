@@ -104,7 +104,8 @@ class AdminController extends Controller
             Excel::import($import, $request->file('file'));
             $errors = [];
             $success = [];
-            
+            $final = [];
+            // dd($import->data); exit;
             foreach($import->data as $user) {
                 try 
                 {
@@ -120,7 +121,24 @@ class AdminController extends Controller
                     $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
                     $user['agent_code'] = $agent_code;
                     $user['username'] = 'TNDA' . $agent_code;
+                    $user['reference_r'] = [];
+                    $user['supervisor_r'] = [];
+
+
                     User::create($user);
+                    $reference_r = User::where(['IFA_ref_code' => $user['identity_num']])->orWhere(['IFA_ref_code' => $user['username']])->get();
+                    foreach($reference_r as $rf) {
+                        $rf->reference_code = $user['agent_code'];
+                        $user['reference_r'][] = $rf->agent_code;
+                        $rf->save();
+                    }
+                    $supervisor_r = User::where(['IFA_supervisor_code' => $user['identity_num']])->orWhere(['IFA_supervisor_code' => $user['username']])->get();
+                    foreach($supervisor_r as $sf) {
+                        $sf->supervisor_code = $user['agent_code'];
+                        $sf->save();
+                        $user['supervisor_r'][] = $sf->agent_code;
+                    }
+                    // $final[] = $user;
                     $success[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . "\r\n";
                 }
                 catch(\Illuminate\Database\QueryException $e){
@@ -133,6 +151,8 @@ class AdminController extends Controller
                 // }
                 // return back()->with('success', 'Thêm mới danh sách thành viên thành công');
             }
+            // dd($final); exit;
+
             if(count($errors)) {
                 return back()->with('error', "SUCCESS ". json_encode($success) . "\r\n===============\r\nERROR " . json_encode($errors));
             } else {

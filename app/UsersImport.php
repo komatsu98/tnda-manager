@@ -16,36 +16,38 @@ class UsersImport implements ToCollection
     {
         $data = [];
         foreach($rows as $row) {
-            if($row[0] == "STT")
+            if($row[0] == "STT" || strlen($row[1]) > 0)
                 continue;
     
-            $identity_alloc_date = Carbon::createFromFormat('m/d/Y', is_numeric($row[7]) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[7])->format('m/d/Y') : $row[7])->format('Y-m-d');
-            $day_of_birth = Carbon::createFromFormat('d-m-Y', $row[2] . '-' . $row[3] . '-' . $row[4])->format('Y-m-d');
-            $marital_status_code = strtolower($row[12]) == 'kết hôn' ? 'M' : (strtolower($row[12]) == 'độc thân' ? 'S' : (strtolower($row[12]) == 'ly hôn' ? 'D' : ''));
-            $designation_code = str_replace(['"', 'TNDA'], '', $row[13]);
-            $IFA_supervisor_designation_code = str_replace(['"', 'TNDA'], '', $row[19]);
+            $day_of_birth = Carbon::createFromFormat('d-m-Y', $row[3] . '-' . $row[4] . '-' . $row[5])->format('Y-m-d');
+            $identity_alloc_date = Carbon::createFromFormat('m/d/Y', is_numeric($row[8]) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[8])->format('m/d/Y') : $row[8])->format('Y-m-d');
+            $marital_status_code = strtolower($row[13]) == 'kết hôn' ? 'M' : (strtolower($row[13]) == 'độc thân' ? 'S' : (strtolower($row[13]) == 'ly hôn' ? 'D' : ''));
+            $designation_code = str_replace(['"', 'TNDA'], '', trim($row[16]));
+            $IFA_ref_code = str_replace(['"'], '', trim($row[17]));
+            $IFA_supervisor_code = str_replace(['"'], '', trim($row[19]));
+            $IFA_supervisor_designation_code = str_replace(['"'], '', trim($row[21]));
             $user = [
-                'fullname' => $row[1],
+                'fullname' => $row[2],
                 'day_of_birth' => $day_of_birth,
-                'gender' => strtolower($row[5]) == 'nam' ? 0 : 1,
-                'identity_num' => $row[6],
+                'gender' => strtolower($row[6]) == 'nam' ? 0 : 1,
+                'identity_num' => $row[7],
                 'identity_alloc_date' => $identity_alloc_date,
-                'identity_alloc_place' => $row[8],
-                'resident_place' => $row[9],
-                'email' => $row[10],
-                'mobile_phone' => $row[11],
+                'identity_alloc_place' => $row[9],
+                'resident_place' => $row[10],
+                'email' => $row[11],
+                'mobile_phone' => $row[12],
                 'marital_status_code' => $marital_status_code,
                 'IFA_start_date' => null,
                 'IFA_branch' => null,
                 'IFA' => null,
                 'designation_code' => $designation_code,
-                'IFA_ref_code' => trim($row[14]),
-                'IFA_ref_name' => $row[15],
-                'IFA_supervisor_code' => trim($row[17]),
-                'IFA_supervisor_name' => $row[18],
+                'IFA_ref_code' => $IFA_ref_code,
+                'IFA_ref_name' => $row[18],
+                'IFA_supervisor_code' => $IFA_supervisor_code,
+                'IFA_supervisor_name' => $row[20],
                 'IFA_supervisor_designation_code' => $IFA_supervisor_designation_code,
                 'IFA_TD_code' => null,
-                'IFA_TD_name' => $row[25],
+                'IFA_TD_name' => $row[23],
             ];
             
             $user['alloc_code_date'] = Carbon::now()->format('Y-m-d');
@@ -55,6 +57,10 @@ class UsersImport implements ToCollection
             
             $data[] = $user;
         }
+        
+        Util::sortByDesDesc($data); 
         $this->data = $data;
     }
+
 }
+

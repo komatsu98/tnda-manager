@@ -1,6 +1,7 @@
 <?php
 
 namespace App;
+
 use App\User;
 
 class Util
@@ -8,8 +9,9 @@ class Util
     /**
      * The user that history belonged to.
      */
-    
-    public static function get_designation_code() {
+
+    public static function get_designation_code()
+    {
         $designation_code = [
             'AG' => 'Đại lý',
             'DM' => 'Trưởng phòng kinh doanh',
@@ -21,8 +23,9 @@ class Util
         ];
         return $designation_code;
     }
-    
-    public static function get_contract_search_type_code() {
+
+    public static function get_contract_search_type_code()
+    {
         $contract_search_type_code = [
             "S1C" => "HSYCBH nộp trong tháng",
             "S2C" => "Hợp đồng phát hành trong tháng",
@@ -31,7 +34,8 @@ class Util
         return $contract_search_type_code;
     }
 
-    public static function get_contract_term_code() {
+    public static function get_contract_term_code()
+    {
         $contract_term_code = [
             "y" => "Hàng năm",
             "m" => "Hàng tháng",
@@ -41,7 +45,8 @@ class Util
         return $contract_term_code;
     }
 
-    public static function get_contract_bg_color() {
+    public static function get_contract_bg_color()
+    {
         // pending: '#F26A11',
         // success: '#22D69F',
         // fail: '#C7171B',
@@ -55,10 +60,11 @@ class Util
         return $contract_bg_color;
     }
 
-    public static function get_contract_renewal_status_code() {
-        
+    public static function get_contract_renewal_status_code()
+    {
     }
-    public static function get_contract_status_code() {
+    public static function get_contract_status_code()
+    {
         $contract_status_code = [
             // "AP" => "Hiệu lực",
             // "CF" => "Vô hiệu hợp đồng",
@@ -94,9 +100,10 @@ class Util
             "RL" => "Phát hành"
         ];
         return $contract_status_code;
-    }  
+    }
 
-    public static function get_contract_info_await_code() {
+    public static function get_contract_info_await_code()
+    {
         $contract_info_await_code = [
             "I1A" => "Thiếu giấy khám sức khỏe",
             "I2A" => "Thiếu xác nhận ABC"
@@ -104,7 +111,8 @@ class Util
         return $contract_info_await_code;
     }
 
-    public static function get_product_code() {
+    public static function get_product_code()
+    {
         $product_code = [
             "WP02" => "Bảo Hiểm Miễn Thu Phí Bệnh Hiểm Nghèo",
             "UX01" => "Phí đóng thêm",
@@ -147,7 +155,8 @@ class Util
         return $product_code;
     }
 
-    public static function get_income_code() {
+    public static function get_income_code()
+    {
         $income_code = [
             "ag_rwd_hldlth" => "Thưởng huấn luyện đại lý Tinh Hoa",
             "ag_hh_bhcn" => "Hoa hồng bán hàng cá nhân",
@@ -178,7 +187,8 @@ class Util
         return $income_code;
     }
 
-    public static function get_promotions($designation_code = '', $code = '') {
+    public static function get_promotions($designation_code = '', $code = '')
+    {
         $promotions = [
             [
                 'code' => 'PRO_AM_DM',
@@ -329,20 +339,21 @@ class Util
                 ]
             ]
         ];
-        if($designation_code != '') {
+        if ($designation_code != '') {
             $promotions = array_filter($promotions, function ($var) use ($designation_code) {
                 return ($var['designation_code'] == $designation_code);
             });
         }
-        if($code != '') {
+        if ($code != '') {
             $promotions = array_filter($promotions, function ($var) use ($code) {
                 return ($var['code'] == $code);
             });
         }
         return $promotions;
     }
-    
-    public static function get_rwd_things() {
+
+    public static function get_rwd_things()
+    {
         $rwd_things = [
             "ag_rwd_hldlth" => "Tham dự chương trình huấn luyện kỹ năng và du lịch dã ngoại",
             "ag_rwd_tcldt_dm" => "Tham dự tiệc vinh danh thăng cấp tại chương trình huấn luyện, du lịch.",
@@ -355,9 +366,10 @@ class Util
         ];
         return $rwd_things;
     }
-    
 
-    public static function get_metric_code() {
+
+    public static function get_metric_code()
+    {
         $metric_code = [
             'FYC' => 'FYC',
             'FYP' => 'FYP',
@@ -371,7 +383,8 @@ class Util
         return $metric_code;
     }
 
-    public static function get_partners() {
+    public static function get_partners()
+    {
         $partners = [
             [
                 'code' => 'VBI',
@@ -383,7 +396,8 @@ class Util
         return $partners;
     }
 
-    public static function get_marital_status_code() {
+    public static function get_marital_status_code()
+    {
         $marital_status_code = [
             'M' => 'Kết hôn',
             'S' => 'Độc thân',
@@ -392,12 +406,14 @@ class Util
         return $marital_status_code;
     }
 
-    public static function get_default_avatar() {
+    public static function get_default_avatar()
+    {
         $default_avatar = 'http://103.226.249.106/images/avatar_1.png';
         return $default_avatar;
     }
 
-    public static function get_instructions() {
+    public static function get_instructions()
+    {
         $instructions = [
             [
                 'title' => 'Phần mềm này là gì?',
@@ -501,12 +517,13 @@ class Util
                     ]
                 ]
             ],
-    
+
         ];
         return $instructions;
     }
 
-    public static function get_documents() {
+    public static function get_documents()
+    {
         $documents = [
             [
                 'name' => 'Tài liệu tham khảo (đang cập nhật)',
@@ -517,27 +534,45 @@ class Util
         return $documents;
     }
 
-    public static function get_highest_agent_code($is_special = false) {
+    public static function get_highest_agent_code($is_special = false)
+    {
         $ha = User::select('agent_code');
-        if($is_special) {
+        if ($is_special) {
             $ha = $ha->where('agent_code', '<', '000021');
         } else {
             $ha = $ha->where('agent_code', '>', '000020');
         }
         $ha = $ha->orderBy('agent_code', 'desc')
-        ->limit(1)
-        ->first();
-        if(!$ha) {
+            ->limit(1)
+            ->first();
+        if (!$ha) {
             return $is_special ? 0 : 20;
         }
         return $ha['agent_code'];
     }
 
-    public static function get_TD($agent) {
+    public static function get_TD($agent)
+    {
         $supervisor = $agent->supervisor;
-        while($supervisor) {
+        while ($supervisor) {
             $supervisor = $supervisor->supervisor;
         }
         return $supervisor;
     }
+
+    public static function sortByDesDesc($users)
+    {
+        usort($users, function($a,$b) {
+            $score_a = get_designation_rank($a['designation_code']);
+            $score_b = get_designation_rank($b['designation_code']);
+            if ($score_a==$score_b) return 0;
+            return ($score_a<$score_b)?1:-1;
+        });
+    }
+}
+
+function get_designation_rank($d)
+{
+    $ranks = ['AG' => 1, 'DM' => 2, 'SDM' => 3, 'AM' => 4, 'RD' => 5, 'SRD' => 6, 'TD' => 7];
+    return $ranks[$d];
 }
