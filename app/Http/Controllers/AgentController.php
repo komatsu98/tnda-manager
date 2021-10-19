@@ -552,8 +552,11 @@ class AgentController extends Controller
         $contracts = $contracts->orderBy('created_at', 'desc')->offset($offset)->take($limit)->with('customer')->get();
         foreach ($contracts as $contract) {
             $contract->status_text = $this->contract_status_code[$contract->status_code];
-            $contract->product_text = $this->product_code[$contract->product_code];
-            $contract->sub_product_text = $this->product_code[$contract->sub_product_code];
+            $product_texts = [];
+            foreach(explode(",", $contract->product_code) as $pc) {
+                $product_texts[] = $this->product_code[trim($pc)];
+            }
+            $contract->product_text = implode(", ", $product_texts);
             $info_awaiting_text = [];
             if ($contract->info_awaiting && strlen($contract->info_awaiting)) {
                 $await_codes = explode(",", $contract->info_awaiting);
