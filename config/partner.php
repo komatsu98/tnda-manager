@@ -14,6 +14,8 @@ return [
     */
 
     'VBI' => [
-        'hash_key' => env('PARTNER_SECRET_VBI_HASH_KEY', '')
+        'hash_key' => env('PARTNER_SECRET_VBI_HASH_KEY', ''),
+        'data_auth' => env('PARTNER_SECRET_VBI_URL_DATA_AUTHORITY', ''),
+        'data_url' => env('PARTNER_SECRET_VBI_URL_DATA', ''),
     ],
 ];

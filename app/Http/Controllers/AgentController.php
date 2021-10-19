@@ -1332,7 +1332,7 @@ class AgentController extends Controller
         $partners = $this->partners;
         foreach($partners as $key => $ptn) {
             if($ptn['code'] == 'VBI') {
-                $info = base64_encode($agent->agent_code);
+                $info = base64_encode($agent->username);
                 $hash = hash_hmac('sha256', $info, config('partner.VBI')['hash_key']);
                 $ptn['url'] .= '?info=' . $info . '&hash=' . $hash;
                 $partners[$key] = $ptn;

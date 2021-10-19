@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Contract extends Model
 {
     protected $table = 'contracts';
-    protected $fillable = ['agent_code', 'customerlient_id', 'contract_code', 'submit_date', 'ack_date', 'status_code', 'contract_year', 'product_code', 'sub_product_code', 'premium', 'term_code', 'release_date', 'expire_date', 'maturity_code'];
+    protected $fillable = ['agent_code', 'customer_id', 'contract_code', 'partner_contract_code', 'partner_code', 'submit_date', 'ack_date', 'status_code', 'info_awaiting', 'contract_year', 'product_code', 'sub_product_code', 'premium', 'premium_term', 'premium_received', 'term_code', 'release_date', 'expire_date', 'maturity_date', 'renewal_premium_required', 'active_require_update_time'];
     protected $casts = [
     ];
 

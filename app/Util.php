@@ -150,7 +150,8 @@ class Util
             "BP01" => "FWD Bộ 3 bảo vệ",
             "IX01" => "Khoản Đầu Tư Thêm",
             "IL01" => "FWD Bộ đôi tài sản",
-            "EF02" => "FWD Cả nhà vui khỏe - Kế hoạch B"
+            "EF02" => "FWD Cả nhà vui khỏe - Kế hoạch B",
+            "BAN_LE_TITAN" => "VBIcare gói Titan"
         ];
         return $product_code;
     }
@@ -568,6 +569,17 @@ class Util
             if ($score_a==$score_b) return 0;
             return ($score_a<$score_b)?1:-1;
         });
+    }
+
+    public static function get_highest_contract_code()
+    {
+        $ha = Contract::select('contract_code')->orderBy('contract_code', 'desc')
+            ->limit(1)
+            ->first();
+        if (!$ha) {
+            return 0;
+        }
+        return $ha['contract_code'];
     }
 }
 
