@@ -177,4 +177,58 @@ class PartnerController extends Controller
         if($respStatus == '') $respStatus = 'success';
         return ['status' => $respStatus, 'message' => $respMsg];
     }
+
+    public function BIDVReturn(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        $auth_str = 'tndaauthexample';
+        $auth_header = $request->header('Authorization');
+        if($auth_header != $auth_str) {
+            $respStatus = 'error';
+            $respMsg = 'Unauthenticated';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if (!request()->has('agent_code')) {
+            $respStatus = 'error';
+            $respMsg = 'Missing agent_code';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $input = $request->input();
+        // $agent_code = str_replace(['tnda'], '', strtolower($input['agent_code']));
+
+        try {
+            Storage::append('bidv_return.log', date('Y-m-d H:i:s') . "---" . json_encode($input)) . "\r\n";
+            // $agent = User::where(['agent_code' => $agent_code])->first();
+            // if(!$agent) {
+            //     $respStatus = 'error';
+            //     $respMsg = 'Invalid agent_code';
+            //     return ['status' => $respStatus, 'message' => $respMsg];
+            // }
+            // $short_data = $input['data'];
+            // $check_exists = Contract::where(['partner_contract_code' => $short_data['so_id']])->first();
+            // if($check_exists) {
+            //     $respStatus = 'error';
+            //     $respMsg = 'Duplicate so_id';
+            //     return ['status' => $respStatus, 'message' => $respMsg];
+            // }
+            // $detail = $this->VBIFetchData($short_data['so_id']);
+            
+            // if($detail) {
+            //     $r = $this->VBICreateContract($agent_code, $detail->response_data);
+            //     if(!$r) {
+            //         $respStatus = 'error';
+            //         $respMsg = 'Unable to save contract detail';
+            //         return ['status' => $respStatus, 'message' => $respMsg];
+            //     }
+            // } else {
+            //     $respMsg = 'Unable to get VBI contract data';
+            // }
+        } catch (Exception $e) {
+            $respStatus = 'error';
+            $respMsg = 'Something went wrong ' . $e->getMessage();
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if($respStatus == '') $respStatus = 'success';
+        return ['status' => $respStatus, 'message' => $respMsg];
+    }
 }
