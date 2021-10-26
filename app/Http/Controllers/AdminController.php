@@ -118,6 +118,10 @@ class AdminController extends Controller
                         $user['supervisor_code'] = $supervisor->agent_code;
                     }
                     $highest_agent_code = $user['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(true)) : intval(Util::get_highest_agent_code());
+                    $saved_numbers = Util::get_saved_numbers();
+                    while(in_array($highest_agent_code + 1, $saved_numbers)) {
+                        $highest_agent_code++;
+                    }
                     $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
                     $user['agent_code'] = $agent_code;
                     $user['username'] = 'TNDA' . $agent_code;

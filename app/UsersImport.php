@@ -26,7 +26,7 @@ class UsersImport implements ToCollection
             $IFA_ref_code = str_replace(['"'], '', trim($row[17]));
             $IFA_supervisor_code = str_replace(['"'], '', trim($row[19]));
             $IFA_supervisor_designation_code = str_replace(['"'], '', trim($row[21]));
-            $alloc_code_date = Carbon::createFromFormat('m/d/Y', is_numeric($row[24]) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[24])->format('m/d/Y') : $row[24])->format('Y-m-d');
+            $alloc_code_date = Carbon::createFromFormat('d/m/Y', is_numeric($row[24]) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[24])->format('d/m/Y') : $row[24])->format('Y-m-d');
             $user = [
                 'fullname' => $row[2],
                 'day_of_birth' => $day_of_birth,

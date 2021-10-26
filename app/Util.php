@@ -582,6 +582,11 @@ class Util
         }
         return $ha['contract_code'];
     }
+
+    public static function get_saved_numbers()
+    {
+        return [68,86,100,111,123,168,186,200,222,234];
+    }
 }
 
 function get_designation_rank($d)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Contract;
 use App\User;
 use Carbon\Carbon;
 use Exception;
@@ -9,7 +10,8 @@ use Storage;
 use Illuminate\Http\Request;
 use App\Util;
 use App\MonthlyMetric;
-
+use App\Transaction;
+use App\Comission;
 
 class ComissionCalculatorController extends Controller
 {
@@ -39,13 +41,14 @@ class ComissionCalculatorController extends Controller
         $data['RYPr'] = $this->getRYP($agent, $status = "r", 0, 14);
         $data['isAA'] = $this->getIsAA($agent, 2);
         $data['K2'] = $this->getK2($agent);
+        $data['RYPp'] = $this->calcThisMonthRYPp($agent);
         return $data;
     }
 
     private function getTwork($agent, $month_back = 0)
     {
         $to = Carbon::now()->subMonths($month_back);
-        $from = Carbon::createFromFormat('Y-m-d', $agent->join_date);
+        $from = Carbon::createFromFormat('Y-m-d', $agent->alloc_code_date);
         $twork = $to->diffInMonths($from);
         return $twork;
     }
@@ -72,7 +75,7 @@ class ComissionCalculatorController extends Controller
     {
         $pos_list = array_keys($this->designation_code);
         $cur_pos_index = array_search($agent->designation_code, $pos_list);
-        return $pos_list[$cur_pos_index + 1];
+        return $pos_list[$cur_pos_index];
     }
 
     private function getCC($agent, $month_back = 0, $month_range = 1)
@@ -82,6 +85,23 @@ class ComissionCalculatorController extends Controller
         $CCs = $agent->monthlyMetrics()->where([
             ['month', '>=', $from],
             ['month', '<=', $to]
+        ])
+            ->selectRaw('sum(CC) as count')
+            ->get();
+        $countCC = 0;
+        if (count($CCs)) {
+            $countCC = intval($CCs[0]->count);
+        }
+        return $countCC;
+    }
+
+    private function calcThisMonthCC($agent)
+    {
+        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $CCs = Contract::where([
+            ['release_date', '>=', $from],
+            ['agent_code', '>=', $agent->agent_code],
         ])
             ->selectRaw('sum(CC) as count')
             ->get();
@@ -109,6 +129,23 @@ class ComissionCalculatorController extends Controller
         return $countFYP;
     }
 
+    private function calcThisMonthFYP($agent)
+    {
+        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $FYPs = Transaction::where([
+            ['trans_date', '>=', $from],
+            ['agent_code', '>=', $agent->agent_code],
+        ])
+            ->selectRaw('sum(premium_received) as count')
+            ->get();
+        $countFYP = 0;
+        if (count($FYPs)) {
+            $countFYP = intval($FYPs[0]->count);
+        }
+        return $countFYP;
+    }
+
     private function getFYC($agent, $month_back = 0, $month_range = 1)
     {
         $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
@@ -118,6 +155,23 @@ class ComissionCalculatorController extends Controller
             ['month', '<=', $to]
         ])
             ->selectRaw('sum(FYC) as count')
+            ->get();
+        $countFYC = 0;
+        if (count($FYCs)) {
+            $countFYC = intval($FYCs[0]->count);
+        }
+        return $countFYC;
+    }
+
+    private function calcThisMonthFYC($agent)
+    {
+        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $FYCs = Comission::where([
+            ['com_date', '>=', $from],
+            ['agent_code', '>=', $agent->agent_code],
+        ])
+            ->selectRaw('sum(amount) as count')
             ->get();
         $countFYC = 0;
         if (count($FYCs)) {
@@ -163,6 +217,26 @@ class ComissionCalculatorController extends Controller
             }
         }
 
+        return $countRYP;
+    }
+
+    private function calcThisMonthRYPp($agent)
+    {
+        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $RYPs = Transaction::where([
+            ['trans_date', '>=', $from],
+            ['agent_code', '>=', $agent->agent_code],
+        ])
+            ->whereHas('contract', function ($query) {
+                $query->whereIn('status_code', ['MA']);
+            })
+            ->selectRaw('sum(premium_received) as count')
+            ->get();
+        $countRYP = 0;
+        if (count($RYPs)) {
+            $countRYP = intval($RYPs[0]->count);
+        }
         return $countRYP;
     }
 

@@ -18,4 +18,9 @@ class Comission extends Model
     {
         return $this->belongsTo('App\User');
     }
+
+    public function contract()
+    {
+        return $this->belongsTo('App\Contract');
+    }
 }
