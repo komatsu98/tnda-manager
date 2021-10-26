@@ -289,7 +289,7 @@ class AdminController extends Controller
             $user->ref_name = $user->IFA_ref_name;
         }
         $supervisor = $user->supervisor;
-        if ($ref) {
+        if ($supervisor) {
             $user->supervisor_code = $user->supervisor_code;
             $user->supervisor_name = $supervisor->fullname;
             $user->supervisor_designation_code = $supervisor->designation_code;
