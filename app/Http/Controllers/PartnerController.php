@@ -122,7 +122,7 @@ class PartnerController extends Controller
         $contract_data = [
             'agent_code' => $agent_code,
             'customer_id' => $customer->id,
-            'contract_code' => $hc+1,
+            'contract_code' => $hc,
             'partner_contract_code' => $hd->SO_ID_VBI,
             'partner_code' => 'VBI',
             'submit_date' => Carbon::createFromFormat('d/m/Y', $hd->NGAY_HT)->format('Y-m-d'),
@@ -141,7 +141,7 @@ class PartnerController extends Controller
             'expire_date' => Carbon::createFromFormat('d/m/Y', $hd->NGAY_KT)->format('Y-m-d'),
             'maturity_date' => Carbon::createFromFormat('d/m/Y', $hd->NGAY_KT)->format('Y-m-d'),
         ];
-        $contract = Contract::create($contract_data);
+        $contract = null;
         while($contract == null) {
             try {
                 $contract_data['contract_code'] += 1;

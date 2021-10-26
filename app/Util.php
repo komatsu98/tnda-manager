@@ -20,6 +20,8 @@ class Util
             'RD' => 'Giám đốc phát triển kinh doanh vùng ',
             'SRD' => 'Giám đốc phát triển kinh doanh vùng cấp cao',
             'TD' => 'Giám đốc phát triển kinh doanh miền',
+            'PGD' => 'Phó Tổng Giám đốc',
+            'GD' => 'Tổng Giám đốc'
         ];
         return $designation_code;
     }
@@ -585,12 +587,12 @@ class Util
 
     public static function get_saved_numbers()
     {
-        return [68,86,100,111,123,168,186,200,222,234];
+        return [68,86,100,111,123,168,186,200,222,234,246];
     }
 }
 
 function get_designation_rank($d)
 {
-    $ranks = ['AG' => 1, 'DM' => 2, 'SDM' => 3, 'AM' => 4, 'RD' => 5, 'SRD' => 6, 'TD' => 7];
+    $ranks = ['AG' => 1, 'DM' => 2, 'SDM' => 3, 'AM' => 4, 'RD' => 5, 'SRD' => 6, 'TD' => 7, 'PGD' => 8, 'GD' => 9];
     return $ranks[$d];
 }
