@@ -34,7 +34,7 @@ class UsersImport implements ToCollection
                 'identity_num' => $row[7],
                 'identity_alloc_date' => $identity_alloc_date,
                 'identity_alloc_place' => $row[9],
-                'resident_place' => $row[10],
+                'resident_address' => $row[10],
                 'email' => $row[11],
                 'mobile_phone' => $row[12],
                 'marital_status_code' => $marital_status_code,

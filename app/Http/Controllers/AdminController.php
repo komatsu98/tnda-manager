@@ -148,12 +148,6 @@ class AdminController extends Controller
                 catch(\Illuminate\Database\QueryException $e){
                     $errors[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . " FAILED:" .$e->getMessage() . "\r\n";
                 }
-                // try {
-                //     DB::table('users')->insertOrIgnore($import->data);
-                // } catch (Exception $e) {
-                //     return back()->with('error', $e->getMessages());
-                // }
-                // return back()->with('success', 'Thêm mới danh sách thành viên thành công');
             }
             // dd($final); exit;
 
@@ -162,14 +156,6 @@ class AdminController extends Controller
             } else {
                 return back()->with('success', 'Thêm mới danh sách thành viên thành công' . json_encode($success));
             }
-            // try {
-            //     $import = new UsersImport;
-            //     Excel::import($import, $request->file('file'));
-            //     dd($import->data);
-            //     return back()->with('success', 'Thêm mới danh sách thành viên thành công');
-            // } catch (\Exception $e) {
-            //     return back()->with('error', $e->getMessage());
-            // }
         }
 
         return back();
@@ -185,34 +171,6 @@ class AdminController extends Controller
         $rows = $sheet->rangeToArray('A2:AJ' . $highestRow);
 
         foreach ($rows as $k => $row) {
-            // $identity_alloc_date = Carbon::createFromFormat('d/m/Y', $row[8])->format('Y-m-d');
-            // $day_of_birth = Carbon::createFromFormat('d-m-Y', $row[3].'-'.$row[4].'-'.$row[5])->format('Y-m-d');
-            // $marital_status_code = strtolower($row[13]) == 'kết hôn' ? 'M' : (strtolower($row[13]) == 'độc thân' ? 'S' : (strtolower($row[13]) == 'ly hôn' ? 'D' : ''));
-            // $IFA_start_date = $row[18] == '' ? $row[18] : Carbon::createFromFormat('d/m/Y', $row[18])->format('Y-m-d');
-            // $designation_code = str_replace(['"', 'TNDA'], '', $row[28]);
-            // $data = [
-            //     'fullname' => $row[2],
-            //     'day_of_birth' => $day_of_birth,
-            //     'gender' => strtolower($row[6]) == 'nam' ? 0 : 1,
-            //     'identity_num' => $row[7],
-            //     'identity_alloc_date' => $identity_alloc_date,
-            //     'identity_alloc_place' => $row[9],
-            //     'resident_place' => $row[10],
-            //     'email' => $row[11],
-            //     'mobile_phone' => $row[12],
-            //     'marital_status_code' => $marital_status_code,
-            //     'IFA_start_date' => $IFA_start_date,
-            //     'IFA_branch' => $row[20],
-            //     'IFA' => $row[21],
-            //     'designation_code' => $designation_code,
-            //     'IFA_ref_code' => $row[29],
-            //     'IFA_ref_name' => $row[30],
-            //     'IFA_supervisor_code' => $row[31],
-            //     'IFA_supervisor_name' => $row[32],
-            //     'IFA_supervisor_designation_code' => $row[33],
-            //     'IFA_TD_code' => $row[34],
-            //     'IFA_TD_name' => $row[35],
-            // ];
             $identity_alloc_date = Carbon::createFromFormat('d/m/Y', $row[7])->format('Y-m-d');
             $day_of_birth = Carbon::createFromFormat('d-m-Y', $row[2] . '-' . $row[3] . '-' . $row[4])->format('Y-m-d');
             $marital_status_code = strtolower($row[12]) == 'kết hôn' ? 'M' : (strtolower($row[12]) == 'độc thân' ? 'S' : (strtolower($row[12]) == 'ly hôn' ? 'D' : ''));
@@ -276,13 +234,21 @@ class AdminController extends Controller
         return view('user.detail', compact('user'));
     }
 
+    public function getUserRaw(Request $request, $agent_code)
+    {
+        $user = User::where(['agent_code' => $agent_code])->first();
+        // echo "<pre>";print_r(implode('","', array_keys($user->toArray())));exit;
+        // $this->parseUserDetail($user);
+        return $user;
+    }
+
     private function parseUserDetail($user)
     {
         $user->gender_text = $user->gender == 0 ? 'Nam' : 'Nữ';
         $user->marital_status_text = (!is_null($user->marital_status_code) && $user->marital_status_code != '') ? (Util::get_marital_status_code())[$user->marital_status_code] : '';
         $ref = $user->reference;
         if ($ref) {
-            $user->ref_code = $user->reference_code;
+            $user->ref_code = "TNDA" . $user->reference_code;
             $user->ref_name = $ref->fullname;
         } else {
             $user->ref_code = $user->IFA_ref_code;
@@ -290,7 +256,7 @@ class AdminController extends Controller
         }
         $supervisor = $user->supervisor;
         if ($supervisor) {
-            $user->supervisor_code = $user->supervisor_code;
+            $user->supervisor_code = "TNDA" . $user->supervisor_code;
             $user->supervisor_name = $supervisor->fullname;
             $user->supervisor_designation_code = $supervisor->designation_code;
         } else {
@@ -300,7 +266,7 @@ class AdminController extends Controller
         }
         $TD = Util::get_TD($user);
         if ($TD) {
-            $user->TD_code = $TD->agent_code;
+            $user->TD_code = "TNDA" . $TD->agent_code;
             $user->TD_name = $TD->fullname;
         } else {
             $user->TD_code = $user->IFA_TD_code;
@@ -308,6 +274,52 @@ class AdminController extends Controller
         }
     }
 
+    public function editUser($agent_code)
+    {
+        $user = User::where(['agent_code' => $agent_code])->first();
+        $list_designation_code = Util::get_designation_code();
+        $list_marital_status_code = Util::get_marital_status_code();
+        if ($user) {
+            if($user->reference_code) {
+                $reference = $user->reference;
+                if($reference) {
+                    $user->reference_name = $reference->fullname;
+                } else {
+                    $user->reference_name = 'Người này chưa được cấp code';
+                }
+                $user->reference_code = 'TNDA' . $user->reference_code;
+            }
+            return view('user.edit', [
+                'user' => $user, 
+                'list_designation_code' => $list_designation_code,
+                'list_marital_status_code' => $list_marital_status_code,
+            ]);
+        } else {
+            return redirect('admin/users')->with('error', 'Không tìm thấy thành viên.');
+        }
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        // $userId = Auth::user()->id;
+        $request->validate();
+        $user = User::find($id);
+        if (!$user) {
+            return redirect('admin/users')->with('error', 'Không tìm thấy thành viên.');
+        }
+        // echo "<pre>";
+        $input = $request->input();
+        $input['status'] = $request->has('status');
+        // $input['user_id'] = $userId;
+        if($input['type'] == "active") {
+            $userStatus = $user->update(['status' => $input['status']]);
+        }
+        if ($userStatus) {
+            return back()->with('success', 'User successfully updated.');
+        } else {
+            return back()->with('error', 'Oops something went wrong. User not updated');
+        }
+    }
     // /**
     //  * Update the specified resource in storage.
     //  *

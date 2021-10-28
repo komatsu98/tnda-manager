@@ -12,10 +12,9 @@
             <th>Email</th>
             <th>Điện thoại</th>
             <th>Tình trạng hôn nhân</th>
-            <th>Ngày bắt đầu</th>
             <th>Ngày cấp code</th>
-            <th>Đơn vị</th>
-            <th>IFA</th>
+            <!-- <th>Đơn vị</th>
+            <th>IFA</th> -->
             <th>Chức vụ</th>
             <th>Người giới thiệu</th>
             <th>Mã số người giới thiệu</th>
@@ -40,10 +39,9 @@
             <td>{{ $user->email }}</td>
             <td>{{ $user->mobile_phone }}</td>
             <td>{{ $user->marital_status_text }}</td>
-            <td>{{ $user->IFA_start_date }}</td>
             <td>{{ $user->alloc_code_date }}</td>
-            <td>{{ $user->IFA_branch }}</td>
-            <td>{{ $user->IFA }}</td>
+            <!-- <td>{{ $user->IFA_branch }}</td>
+            <td>{{ $user->IFA }}</td> -->
             <td>{{ $user->designation_code }}</td>
             <td>{{ $user->ref_name }}</td>
             <td>{{ $user->ref_code }}</td>

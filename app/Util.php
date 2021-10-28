@@ -558,7 +558,8 @@ class Util
     public static function get_TD($agent)
     {
         $supervisor = $agent->supervisor;
-        while ($supervisor) {
+
+        while ($supervisor && $supervisor->designation_code != 'TD') {
             $supervisor = $supervisor->supervisor;
         }
         return $supervisor;

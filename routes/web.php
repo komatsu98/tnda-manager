@@ -25,9 +25,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin/user/create', 'AdminController@createUser')->name('admin.user.create');
     Route::get('/admin/user/bulk-create', 'AdminController@createBulkUsers')->name('admin.user.bulk_create');
     Route::get('/admin/user/{user}', 'AdminController@getUser')->name('admin.user.detail');
-
+    Route::get('/admin/user/{user}/raw', 'AdminController@getUserRaw')->name('admin.user.raw');
     Route::post('/admin/user', 'AdminController@storeUser')->name('admin.user.store');
     Route::post('/admin/users', 'AdminController@importUsers')->name('admin.user.import');
+    Route::get('/admin/user/{user}/edit', 'AdminController@editUser')->name('admin.user.edit');
+    Route::put('/admin/user/{user}', 'AdminController@updateUser')->name('admin.user.update');
     // Route::get('/admin/user/{user}/group', 'AdminController@listUserGroups')->name('admin.user.group.list');
     // Route::get('/admin/user/{user}/group/create', 'AdminController@createUserGroup')->name('admin.user.group.create');
     // Route::post('/admin/user/{user}/group', 'AdminController@storeUserGroup')->name('admin.user.group.store');
@@ -42,8 +44,8 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::get('/admin/group/{group}/user', 'AdminController@listGroupUsers')->name('admin.group.user.list');
     // Route::get('/admin/group/create', 'AdminController@createFGroup')->name('admin.group.create');
     // Route::post('/admin/group', 'AdminController@storeFGroup')->name('admin.group.store');
-    // Route::get('/admin/group/{group}/edit', 'AdminController@editFGroup')->name('admin.group.edit');
-    // Route::put('/admin/group/{group}', 'AdminController@updateFGroup')->name('admin.group.update');
+    // 
+    // 
     // Route::delete('/admin/group/{group}', 'AdminController@destroyFGroup')->name('admin.group.destroy');
 
 });
