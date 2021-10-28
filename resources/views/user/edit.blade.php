@@ -57,15 +57,15 @@
                         <label for="identity_alloc_date">Ngày cấp CMTND</label>
                         <input type="date" class="form-control" id="identity_alloc_date" name="identity_alloc_date" value="{{ $user->identity_alloc_date }}">
                     </div>
-                    <div class="col-md-4 form-group">
+                    <div class="col-md-5 form-group">
                         <label for="resident_address">Địa chỉ thường trú</label>
                         <input type="text" class="form-control" id="resident_address" name="resident_address" value="{{ $user->resident_address }}">
                     </div>
-                    <div class="col-md-4 form-group">
+                    <div class="col-md-3 form-group">
                         <label for="email">Email cá nhân</label>
                         <input type="text" class="form-control" id="email" name="email" value="{{ $user->email }}">
                     </div>
-                    <div class="col-md-4 form-group">
+                    <div class="col-md-3 form-group">
                         <label for="company_email">Email công ty</label>
                         <input type="text" class="form-control" id="company_email" name="company_email" value="{{ $user->company_email }}">
                     </div>
@@ -84,9 +84,9 @@
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="alloc_code_date">Ngày cấp code</label>
-                        <input type="date" class="form-control" id="alloc_code_date" name="alloc_code_date" value="{{ $user->alloc_code_date }}">
+                        <input type="date" class="form-control" id="alloc_code_date" name="alloc_code_date" value="{{ $user->alloc_code_date }}" disabled>
                     </div>
-                    <div class="col-md-3 form-group">
+                    <div class="col-md-4 form-group">
                         <label for="designation_code">Chức vụ</label>
                         <select name="designation_code" id="designation_code" class="form-control">
                             <option value="">Chọn chức vụ</option>
@@ -99,17 +99,22 @@
                         <label for="reference_code">Mã số người giới thiệu</label>
                         <input type="text" class="form-control" id="reference_code" name="reference_code" value="{{ $user->reference_code }}">
                     </div>
-                    <div class="col-md-3 form-group">
+                    <div class="col-md-4 form-group">
                         <label for="reference_name">Tên người giới thiệu</label>
                         <input type="text" class="form-control" id="reference_name" name="reference_name" value="{{ $user->reference_name }}" disabled>
                     </div>
-                    <!-- <div class="form-group">
-                    <label for="status">Select todo status</label>
-                    <select class="form-control" id="status" name="status">
-                        <option value="pending" @if ($user->status == 'pending') selected @endif>Pending</option>
-                        <option value="completed" @if ($user->status == 'completed') selected @endif>Completed</option>
-                    </select>
-                    </div>  -->
+                    <div class="col-md-3 form-group">
+                        <label for="supervisor_code">Mã số quản lý trực tiếp</label>
+                        <input type="text" class="form-control" id="supervisor_code" name="supervisor_code" value="{{ $user->supervisor_code }}">
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label for="supervisor_name">Tên quản lý trực tiếp</label>
+                        <input type="text" class="form-control" id="supervisor_name" name="supervisor_name" value="{{ $user->supervisor_name }}" disabled>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label for="supervisor_designation_text">Chức vụ người quản lý trực tiếp</label>
+                        <input type="text" class="form-control" id="supervisor_designation_text" name="supervisor_designation_text" value="{{ $user->supervisor_designation_text }}" disabled>
+                    </div>                    
                 </div>
 
                 <button type="submit" class="btn btn-default">Submit</button>
@@ -124,25 +129,23 @@
         $('#marital_status_code').val("{{$user->marital_status_code ? $user->marital_status_code : ''}}");
         $('#designation_code').val("{{$user->designation_code ? $user->designation_code : ''}}");
         $('#reference_code').change(function() {
-            var ref_code = $(this).val();
-            $.get(`{{ route('user.brand', ['agent_code' => ${ref_code}]) } `, da , function (data) {
-                let html = " ";
-                html += `<label>Object: </label> <select name="object" class="form-control">
-                    <option value="0" `;
-                    
-                html += ` >Chọn company...</option>`;
-                
-                data.forEach(val => {
-                    html += `<option value="`+val['id']+`" `
-                    if (object_id == val['id']) {
-                        html += ` selected `
-                    }
-                    
-                    html += ` >`+val['name']+`</option>`
-                });
-                
-                html += `</select>`
-                document.getElementById('select-object').innerHTML= html;
+            $('#reference_name').val('');
+            var ref_code = $(this).val().toLowerCase().replace('tnda', '');
+            console.log("ref_code", ref_code)
+            $.get(`/admin/user/${ref_code}/raw`, function (data) {
+                if(data) $('#reference_name').val(data.fullname)
+            });
+        });
+        $('#supervisor_code').change(function() {
+            $('#supervisor_name').val('');
+            $('#supervisor_designation_text').val('');
+            var sup_code = $(this).val().toLowerCase().replace('tnda', '');
+            console.log("sup_code", sup_code)
+            $.get(`/admin/user/${sup_code}/raw`, function (data) {
+                if(data) {
+                    $('#supervisor_name').val(data.fullname)
+                    $('#supervisor_designation_text').val(data.designation_text)
+                }
             });
         })
     })

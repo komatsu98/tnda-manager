@@ -22,7 +22,8 @@
             <th>Mã số Quản lý trực tiếp</th>
             <th>Chức vụ Quản lý trực tiếp</th>
             <th>Giám đốc kinh doanh miền</th>
-            <th>Mã số Giám đốc kinh doanh miền</th>
+            <!-- <th>Mã số Giám đốc kinh doanh miền</th> -->
+            <th>Cập nhật</th>
         </tr>
     </thead>
     <tbody>
@@ -49,7 +50,8 @@
             <td>{{ $user->supervisor_code }}</td>
             <td>{{ $user->supervisor_designation_code }}</td>
             <td>{{ $user->TD_name }}</td>
-            <td>{{ $user->TD_code }}</td>
+            <!-- <td>{{ $user->TD_code }}</td> -->
+            <td><a href="{{route('admin.user.edit', $user->agent_code)}}"><i class="fa fa-edit"></i></a></td>
         </tr>
         @empty
         <tr>

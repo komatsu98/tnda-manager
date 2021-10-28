@@ -239,6 +239,10 @@ class AdminController extends Controller
         $user = User::where(['agent_code' => $agent_code])->first();
         // echo "<pre>";print_r(implode('","', array_keys($user->toArray())));exit;
         // $this->parseUserDetail($user);
+        if($user) {
+            $list_designation_code = Util::get_designation_code();
+            if($user->designation_code) $user->designation_text = $list_designation_code[$user->designation_code];
+        }
         return $user;
     }
 
@@ -262,7 +266,7 @@ class AdminController extends Controller
         } else {
             $user->supervisor_code = $user->IFA_supervisor_code;
             $user->supervisor_name = $user->IFA_supervisor_name;
-            $user->supervisor_designation_code = $user->IFA_supervisor_designation_code;
+            // $user->supervisor_designation_code = $user->IFA_supervisor_designation_code;
         }
         $TD = Util::get_TD($user);
         if ($TD) {
@@ -288,6 +292,16 @@ class AdminController extends Controller
                     $user->reference_name = 'Người này chưa được cấp code';
                 }
                 $user->reference_code = 'TNDA' . $user->reference_code;
+            }
+            $supervisor = $user->supervisor;
+            if ($supervisor) {
+                $user->supervisor_code = "TNDA" . $user->supervisor_code;
+                $user->supervisor_name = $supervisor->fullname;
+                if($supervisor->designation_code) $user->supervisor_designation_text = $list_designation_code[$supervisor->designation_code];
+            } else {
+                $user->supervisor_code = $user->IFA_supervisor_code;
+                $user->supervisor_name = 'Người này chưa được cấp code';
+                $user->supervisor_designation_code = $user->IFA_supervisor_designation_code;
             }
             return view('user.edit', [
                 'user' => $user, 

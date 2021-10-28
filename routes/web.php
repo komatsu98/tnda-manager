@@ -30,7 +30,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/admin/users', 'AdminController@importUsers')->name('admin.user.import');
     Route::get('/admin/user/{user}/edit', 'AdminController@editUser')->name('admin.user.edit');
     Route::put('/admin/user/{user}', 'AdminController@updateUser')->name('admin.user.update');
-    // Route::get('/admin/user/{user}/group', 'AdminController@listUserGroups')->name('admin.user.group.list');
+
+    Route::get('/admin/user/{user}/group', 'AdminController@listUserGroups')->name('admin.user.group.list');
     // Route::get('/admin/user/{user}/group/create', 'AdminController@createUserGroup')->name('admin.user.group.create');
     // Route::post('/admin/user/{user}/group', 'AdminController@storeUserGroup')->name('admin.user.group.store');
     // Route::get('/admin/user/{user}/group/edit', 'AdminController@editUserGroup')->name('admin.user.group.edit');

@@ -3,9 +3,17 @@
 @section('content')
 
 <div class="container">
-	<div class="">
-		<h2>Add User</h2>
+	<div class="row justify-content-center">
+		<div class="col-md-6">
+			<h2>Thêm thành viên mới</h2>
+		</div>
+		<div class="col-md-6">
+            <div class="float-right">
+                <a href="{{ route('admin.users') }}" class="btn btn-primary">Back</a>
+            </div>
+        </div>
 	</div>
+	
 	<div class="card bg-light mt-3">
 		<div class="card-header">
 			Choose file to upload
@@ -26,7 +34,7 @@
 				@csrf
 				<input type="file" name="file" class="form-control">
 				<br>
-				<button class="btn btn-success">Import</button>
+				<button class="btn btn-success">Nhập</button>
 			</form>
 		</div>
 	</div>
