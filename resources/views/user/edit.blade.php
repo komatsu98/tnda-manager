@@ -31,15 +31,15 @@
                 <div class="row">
                     <div class="col-md-4 form-group">
                         <label for="name">Họ và tên</label>
-                        <input type="text" class="form-control" id="fullname" name="fullname" value="{{ $user->fullname }}">
+                        <input type="text" class="form-control" id="fullname" name="fullname" value="{{ $user->fullname }}" required>
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="day_of_birth">Ngày sinh</label>
-                        <input type="date" class="form-control" id="day_of_birth" name="day_of_birth" value="{{ $user->day_of_birth }}">
+                        <input type="date" class="form-control" id="day_of_birth" name="day_of_birth" value="{{ $user->day_of_birth }}" required>
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="gender">Giới tính</label>
-                        <select name="gender" id="gender" class="form-control">
+                        <select name="gender" id="gender" class="form-control" required>
                             <option value="">Chọn giới tính</option>
                             <option value="0">Nam</option>
                             <option value="1">Nữ</option>
@@ -47,15 +47,15 @@
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="identity_num">Số CMTND</label>
-                        <input type="text" class="form-control" id="identity_num" name="identity_num" value="{{ $user->identity_num }}">
+                        <input type="text" class="form-control" id="identity_num" name="identity_num" value="{{ $user->identity_num }}" required>
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="identity_alloc_place">Nơi cấp CMTND</label>
-                        <input type="text" class="form-control" id="identity_alloc_place" name="identity_alloc_place" value="{{ $user->identity_alloc_place }}">
+                        <input type="text" class="form-control" id="identity_alloc_place" name="identity_alloc_place" value="{{ $user->identity_alloc_place }}" required>
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="identity_alloc_date">Ngày cấp CMTND</label>
-                        <input type="date" class="form-control" id="identity_alloc_date" name="identity_alloc_date" value="{{ $user->identity_alloc_date }}">
+                        <input type="date" class="form-control" id="identity_alloc_date" name="identity_alloc_date" value="{{ $user->identity_alloc_date }}" required>
                     </div>
                     <div class="col-md-5 form-group">
                         <label for="resident_address">Địa chỉ thường trú</label>
@@ -88,7 +88,7 @@
                     </div>
                     <div class="col-md-4 form-group">
                         <label for="designation_code">Chức vụ</label>
-                        <select name="designation_code" id="designation_code" class="form-control">
+                        <select name="designation_code" id="designation_code" class="form-control" required>
                             <option value="">Chọn chức vụ</option>
                             @foreach ($list_designation_code as $code => $name)
                             <option value="{{$code}}">{{$name}}</option>
@@ -114,7 +114,11 @@
                     <div class="col-md-4 form-group">
                         <label for="supervisor_designation_text">Chức vụ người quản lý trực tiếp</label>
                         <input type="text" class="form-control" id="supervisor_designation_text" name="supervisor_designation_text" value="{{ $user->supervisor_designation_text }}" disabled>
-                    </div>                    
+                    </div>           
+                    <div class="col-md-1 form-group">
+                        <label for="active">Active</label>
+                        <input type="checkbox" class="form-control" id="active" name="active" @if ($user->active == 1) checked @endif value="{{$user->active}}">
+                    </div>         
                 </div>
 
                 <button type="submit" class="btn btn-default">Submit</button>
@@ -128,6 +132,9 @@
         $('#gender').val("{{$user->gender}}");
         $('#marital_status_code').val("{{$user->marital_status_code ? $user->marital_status_code : ''}}");
         $('#designation_code').val("{{$user->designation_code ? $user->designation_code : ''}}");
+        $('#active').change(function(){
+            $(this).val($(this).prop('checked') ? 1 : 0);
+        })
         $('#reference_code').change(function() {
             $('#reference_name').val('');
             var ref_code = $(this).val().toLowerCase().replace('tnda', '');
@@ -148,6 +155,9 @@
                 }
             });
         })
+        // $('#submit').click(function(){
+        //     $('#active').val($('#active').prop('checked') ? 1 : 0);
+        // })
     })
 </script>
 @endsection

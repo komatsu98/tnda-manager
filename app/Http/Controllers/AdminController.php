@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\User;
-use App\Admin;
 use Auth;
 use App\Util;
 use Carbon\Carbon;
@@ -14,6 +12,15 @@ use Illuminate\Support\Facades\Validator;
 use Excel;
 use App\UsersImport;
 use Illuminate\Support\Facades\DB;
+
+use App\User;
+use App\Admin;
+use App\Contract;
+use App\Customer;
+use App\AppNews;
+use App\MonthlyIncome;
+use App\MonthlyMetric;
+
 
 class AdminController extends Controller
 {
@@ -316,24 +323,83 @@ class AdminController extends Controller
     public function updateUser(Request $request, $id)
     {
         // $userId = Auth::user()->id;
-        $request->validate();
+        // $request->validate();
         $user = User::find($id);
         if (!$user) {
             return redirect('admin/users')->with('error', 'Không tìm thấy thành viên.');
         }
         // echo "<pre>";
         $input = $request->input();
-        $input['status'] = $request->has('status');
-        // $input['user_id'] = $userId;
-        if($input['type'] == "active") {
-            $userStatus = $user->update(['status' => $input['status']]);
-        }
+        $userStatus = $user->update($input);
         if ($userStatus) {
             return back()->with('success', 'User successfully updated.');
         } else {
             return back()->with('error', 'Oops something went wrong. User not updated');
         }
     }
+
+    public function listContracts()
+    {
+        $contracts = Contract::orderBy('created_at', 'desc');
+        if (request()->has('id')) {
+            $id = request('id');
+            $contracts = $contracts->where('id', '=', $id);
+        }
+        if (request()->has('search')) {
+            $str = trim(strtolower(request('search')), ' ');
+            $contracts = $contracts->where('contract_code', 'LIKE', '%' . $str . '%')
+                ->orwhere('agent_code', 'LIKE', '%' . $str . '%');
+        }
+        $contracts = $contracts->paginate(25);
+        foreach ($contracts as $contract) {
+            $this->parseContractDetail($contract);
+        }
+        // echo "<pre>";
+        // print_r($contracts);
+        return view('contract.list', ['contracts' => $contracts]);
+    }
+
+    private function parseContractDetail($contract)
+    {
+        $list_contract_status_code = Util::get_contract_status_code();
+        $list_product_code = Util::get_product_code();
+        $list_contract_info_await_code = Util::get_contract_info_await_code();
+        $list_partners = Util::get_partners();
+        $list_contract_bg_color = Util::get_contract_bg_color();
+        $list_contract_term_code = Util::get_contract_term_code();
+        $contract->status_text = $list_contract_status_code[$contract->status_code];
+        $product_texts = [];
+        foreach(explode(",", $contract->product_code) as $pc) {
+            $product_texts[] = $list_product_code[trim($pc)];
+        }
+        $contract->product_text = implode(", ", $product_texts);
+        $sub_product_texts = [];
+        foreach(explode(",", $contract->sub_product_code) as $spc) {
+            if(trim($spc) == '') continue;
+            $sub_product_texts[] = $list_product_code[trim($spc)];
+        }
+        $contract->sub_product_text = implode(", ", $sub_product_texts);
+        $info_awaiting_text = [];
+        if ($contract->info_awaiting && strlen($contract->info_awaiting)) {
+            $await_codes = explode(",", $contract->info_awaiting);
+            if (count($await_codes)) {
+                foreach ($await_codes as $ac) {
+                    $info_awaiting_text[] = $list_contract_info_await_code[trim($ac)];
+                }
+            }
+        }
+        $contract->bg_color = $list_contract_bg_color[$contract->status_code];
+        $partner_index = array_search($contract->partner_code, array_column($list_partners, 'code'));
+        if ($partner_index !== false) {
+            $contract->partner_text = $list_partners[$partner_index]['name'];
+        } else $contract->partner_text = null;
+
+        $contract->term_text = $list_contract_term_code[$contract->term_code];
+        $contract->info_awaiting_text = $info_awaiting_text;
+        $contract->agent_name = $contract->agent()->pluck('fullname')[0];
+        $contract->customer_name = $contract->customer()->pluck('fullname')[0];
+    }
+
     // /**
     //  * Update the specified resource in storage.
     //  *

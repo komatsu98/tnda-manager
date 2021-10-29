@@ -31,7 +31,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin/user/{user}/edit', 'AdminController@editUser')->name('admin.user.edit');
     Route::put('/admin/user/{user}', 'AdminController@updateUser')->name('admin.user.update');
 
-    Route::get('/admin/user/{user}/group', 'AdminController@listUserGroups')->name('admin.user.group.list');
+    Route::get('/admin/contracts', 'AdminController@listContracts')->name('admin.contracts');
+    Route::get('/admin/user/{user}/contract', 'AdminController@listUserContracts')->name('admin.user.contracts');
+
+    Route::get('/admin/customers', 'AdminController@listCustomers')->name('admin.customers');
+    Route::get('/admin/customer/{customer}', 'AdminController@getCustomer')->name('admin.customer.detail');
     // Route::get('/admin/user/{user}/group/create', 'AdminController@createUserGroup')->name('admin.user.group.create');
     // Route::post('/admin/user/{user}/group', 'AdminController@storeUserGroup')->name('admin.user.group.store');
     // Route::get('/admin/user/{user}/group/edit', 'AdminController@editUserGroup')->name('admin.user.group.edit');

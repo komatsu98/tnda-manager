@@ -13,8 +13,6 @@
             <th>Điện thoại</th>
             <th>Tình trạng hôn nhân</th>
             <th>Ngày cấp code</th>
-            <!-- <th>Đơn vị</th>
-            <th>IFA</th> -->
             <th>Chức vụ</th>
             <th>Người giới thiệu</th>
             <th>Mã số người giới thiệu</th>
@@ -22,7 +20,6 @@
             <th>Mã số Quản lý trực tiếp</th>
             <th>Chức vụ Quản lý trực tiếp</th>
             <th>Giám đốc kinh doanh miền</th>
-            <!-- <th>Mã số Giám đốc kinh doanh miền</th> -->
             <th>Cập nhật</th>
         </tr>
     </thead>
@@ -41,8 +38,6 @@
             <td>{{ $user->mobile_phone }}</td>
             <td>{{ $user->marital_status_text }}</td>
             <td>{{ $user->alloc_code_date }}</td>
-            <!-- <td>{{ $user->IFA_branch }}</td>
-            <td>{{ $user->IFA }}</td> -->
             <td>{{ $user->designation_code }}</td>
             <td>{{ $user->ref_name }}</td>
             <td>{{ $user->ref_code }}</td>
@@ -50,7 +45,6 @@
             <td>{{ $user->supervisor_code }}</td>
             <td>{{ $user->supervisor_designation_code }}</td>
             <td>{{ $user->TD_name }}</td>
-            <!-- <td>{{ $user->TD_code }}</td> -->
             <td><a href="{{route('admin.user.edit', $user->agent_code)}}"><i class="fa fa-edit"></i></a></td>
         </tr>
         @empty

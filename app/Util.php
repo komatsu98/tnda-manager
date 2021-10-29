@@ -21,7 +21,8 @@ class Util
             'SRD' => 'Giám đốc phát triển kinh doanh vùng cấp cao',
             'TD' => 'Giám đốc phát triển kinh doanh miền',
             'PGD' => 'Phó Tổng Giám đốc',
-            'GD' => 'Tổng Giám đốc'
+            'GD' => 'Tổng Giám đốc',
+            'ADMIN' => 'Admin'
         ];
         return $designation_code;
     }
@@ -133,7 +134,7 @@ class Util
             // "HS03" => "Bảo Hiểm Hỗ Trợ Viện Phí do tai nạn",
             // "UL01" => "Linh Hoạt 3 Trong 1 - Quyền lợi cơ bản",
             // "AC02" => "Bảo Hiểm Tai Nạn Cá Nhân Toàn Diện",
-            // "CI04" => "FWD CARE Bảo hiểm bệnh hiểm nghèo 2.0",
+            "CI04" => "FWD CARE Bảo hiểm bệnh hiểm nghèo 2.0",
             // "HS01" => "Bảo hiểm trợ cấp viện phí và chi phí phẫu thuật",
             // "CI02" => "Bảo Hiểm Bổ Trợ Trợ Cấp Thu Nhập Khi Mắc Bệnh Hiểm Nghèo",
             // "HS02" => "Bảo Hiểm Trợ Cấp Viện Phí Và Phẫu Thuật",
@@ -594,6 +595,6 @@ class Util
 
 function get_designation_rank($d)
 {
-    $ranks = ['AG' => 1, 'DM' => 2, 'SDM' => 3, 'AM' => 4, 'RD' => 5, 'SRD' => 6, 'TD' => 7, 'PGD' => 8, 'GD' => 9];
+    $ranks = ['AG' => 1, 'DM' => 2, 'SDM' => 3, 'AM' => 4, 'RD' => 5, 'SRD' => 6, 'TD' => 7, 'PGD' => 8, 'GD' => 9, 'ADMIN' => 99];
     return $ranks[$d];
 }
