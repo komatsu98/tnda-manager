@@ -320,11 +320,11 @@ class AdminController extends Controller
         }
     }
 
-    public function updateUser(Request $request, $id)
+    public function updateUser(Request $request, $agent_code)
     {
         // $userId = Auth::user()->id;
         // $request->validate();
-        $user = User::find($id);
+        $user = User::where(['agent_code' => $agent_code])->first();
         if (!$user) {
             return redirect('admin/users')->with('error', 'Không tìm thấy thành viên.');
         }
@@ -398,6 +398,63 @@ class AdminController extends Controller
         $contract->info_awaiting_text = $info_awaiting_text;
         $contract->agent_name = $contract->agent()->pluck('fullname')[0];
         $contract->customer_name = $contract->customer()->pluck('fullname')[0];
+        $contract->agent_code = 'TNDA' . $contract->agent_code;
+    }
+
+    public function editContract($contract_code)
+    {
+        $contract = Contract::where(['contract_code' => $contract_code])->first();
+        if ($contract) {
+            $list_partners = Util::get_partners();
+            $list_product_code = Util::get_product_code();
+            $list_contract_status_code = Util::get_contract_status_code();
+            $list_contract_bg_color = Util::get_contract_bg_color();
+            $list_contract_term_code = Util::get_contract_term_code();
+            $list_contract_info_await_code = Util::get_contract_info_await_code();
+            $this->parseContractDetail($contract);
+            if($contract->product_code) $contract->product_code = explode(',', $contract->product_code);
+            else $contract->product_code = [];
+            if($contract->sub_product_code) $contract->sub_product_code = explode(',', $contract->sub_product_code);
+            else $contract->sub_product_code = [];
+            
+            return view('contract.edit', [
+                'contract' => $contract,
+                'list_partners' => $list_partners,
+                'list_product_code' => $list_product_code,
+                'list_contract_status_code' => $list_contract_status_code,
+            ]);
+        } else {
+            return redirect('admin/users')->with('error', 'Không tìm thấy thành viên.');
+        }
+    }
+
+    public function updateContract(Request $request, $agent_code)
+    {
+        // $userId = Auth::user()->id;
+        // $request->validate();
+        $user = User::where(['agent_code' => $agent_code])->first();
+        if (!$user) {
+            return redirect('admin/users')->with('error', 'Không tìm thấy thành viên.');
+        }
+        // echo "<pre>";
+        $input = $request->input();
+        $userStatus = $user->update($input);
+        if ($userStatus) {
+            return back()->with('success', 'User successfully updated.');
+        } else {
+            return back()->with('error', 'Oops something went wrong. User not updated');
+        }
+    }
+
+
+
+    public function getCustomerRaw(Request $request, $id)
+    {
+        $customer = Customer::where(['id' => $id])->first();
+        // ->with('beneficiaries')
+        if($customer) {
+        }
+        return $customer;
     }
 
     // /**

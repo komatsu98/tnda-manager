@@ -31,7 +31,7 @@
             <td><a href="{{route('admin.user.detail', $contract->agent_code)}}">{{ $contract->agent_name }}</a></td>
             <td>{{ $contract->release_date }}</td>
             <td>{{ $contract->ack_date }}</td>
-            <td>{{ $contract->status_text }}</td>
+            <td style="background-color:{{$contract->bg_color}}"><span class="" >{{ $contract->status_text }}</span></td>
             <td>{{ $contract->permium }}</td>
             <td>{{ $contract->premium_term }}</td>
             <td>{{ $contract->term_text }}</td>

@@ -5,9 +5,9 @@
 	<div class="row justify-content-center">
 		<div class="col-md-6">
 			<h2>
-			Danh sách thành viên
-			<!-- <a href="{{ route('admin.user.create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a> -->
-			<a href="{{ route('admin.user.bulk_create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a>
+				Danh sách thành viên
+				<!-- <a href="{{ route('admin.user.create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a> -->
+				<a href="{{ route('admin.user.bulk_create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a>
 			</h2>
 
 		</div>
@@ -44,6 +44,9 @@
 	</div>
 </div>
 
+@endsection
+
+@push('scripts')
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('#search_icon').click(function() {
@@ -51,4 +54,4 @@
 		})
 	});
 </script>
-@endsection
+@endpush

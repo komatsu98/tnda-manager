@@ -25,7 +25,7 @@
                 {{ session('error') }}
             </div>
             @endif
-            <form action="{{ route('admin.user.update', ['id' => $user->id]) }}" method="POST">
+            <form action="{{ route('admin.user.update', ['agent_code' => $user->agent_code]) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="row">
@@ -127,6 +127,7 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
     $(document).ready(function() {
         $('#gender').val("{{$user->gender}}");
@@ -138,7 +139,6 @@
         $('#reference_code').change(function() {
             $('#reference_name').val('');
             var ref_code = $(this).val().toLowerCase().replace('tnda', '');
-            console.log("ref_code", ref_code)
             $.get(`/admin/user/${ref_code}/raw`, function (data) {
                 if(data) $('#reference_name').val(data.fullname)
             });
@@ -147,7 +147,6 @@
             $('#supervisor_name').val('');
             $('#supervisor_designation_text').val('');
             var sup_code = $(this).val().toLowerCase().replace('tnda', '');
-            console.log("sup_code", sup_code)
             $.get(`/admin/user/${sup_code}/raw`, function (data) {
                 if(data) {
                     $('#supervisor_name').val(data.fullname)
@@ -160,4 +159,5 @@
         // })
     })
 </script>
+@endpush
 @endsection

@@ -15,4 +15,9 @@ class Customer extends Model
     {
         return $this->hasMany('App\Contract', 'customer_id', 'id');
     }
+
+    public function beneficiaries()
+    {
+        return $this->hasMany('App\Customer', 'beneficiary_from_id', 'id');
+    }
 }

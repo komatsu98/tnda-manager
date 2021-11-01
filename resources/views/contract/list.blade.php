@@ -41,6 +41,9 @@
 	</div>
 </div>
 
+@endsection
+
+@push('scripts')
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('#search_icon').click(function() {
@@ -48,4 +51,4 @@
 		})
 	});
 </script>
-@endsection
+@endpush
