@@ -574,6 +574,7 @@ class Util
             if ($score_a==$score_b) return 0;
             return ($score_a<$score_b)?1:-1;
         });
+        return $users;
     }
 
     public static function get_highest_contract_code()
