@@ -11,11 +11,12 @@
             <th>Ngày hiệu lực</th>
             <th>Ngày ACK</th>
             <th>Tình trạng</th>
-            <th>Phí bảo hiểm</th>
+            <th>Tổng số phí</th>
             <th>Phí định kỳ</th>
             <th>Định kỳ đóng phí</th>
             <th>Tổng số phí đã thu</th>
             <th>Ngày đáo hạn</th>
+            <th>Hồ sơ còn thiếu</th>
             <th>Cập nhật</th>
         </tr>
     </thead>
@@ -32,11 +33,12 @@
             <td>{{ $contract->release_date }}</td>
             <td>{{ $contract->ack_date }}</td>
             <td style="background-color:{{$contract->bg_color}}"><span class="" >{{ $contract->status_text }}</span></td>
-            <td>{{ $contract->permium }}</td>
+            <td>{{ $contract->premium }}</td>
             <td>{{ $contract->premium_term }}</td>
             <td>{{ $contract->term_text }}</td>
             <td>{{ $contract->premium_received }}</td>
             <td>{{ $contract->maturity_date }}</td>
+            <td>{{ $contract->info_awaiting_text }}</td>
             <td><a href="{{route('admin.contract.edit', $contract->contract_code)}}"><i class="fa fa-edit"></i></a></td>
         </tr>
         @empty

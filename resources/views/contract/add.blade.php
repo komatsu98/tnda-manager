@@ -5,8 +5,7 @@
     <br>
     <div class="row justify-content-center">
         <div class="col-md-6 mb-3">
-            <h2 class="mb-3">Cập nhật thông tin hợp đồng</h2>
-            <h4>Số TNDA{{ $contract->contract_code }} - {{ $contract->partner_contract_code }}</h4>
+            <h2 class="mb-3">Thêm hợp đồng</h2>
         </div>
         <div class="col-md-6">
             <div class="float-right">
@@ -25,21 +24,21 @@
                 {{ session('error') }}
             </div>
             @endif
-            <form action="{{ route('admin.contract.update', ['contract_code' => $contract->contract_code]) }}" method="POST">
+            <form action="{{ route('admin.contract.store') }}" method="POST">
                 @csrf
-                @method('PUT')
+                @method('POST')
                 <div class="row">
-                    <div class="col-md-4 form-group">
+                    <!-- <div class="col-md-4 form-group">
                         <label for="name">Số hợp đồng TNDA</label>
-                        <input type="text" class="form-control" id="contract_code" name="contract_code" value="{{ $contract->contract_code }}" required>
-                    </div>
+                        <input type="text" class="form-control" id="contract_code" name="contract_code" required>
+                    </div> -->
                     <div class="col-md-3 form-group">
                         <label for="customer_id">ID khách hàng</label>
-                        <input type="text" class="form-control" id="customer_id" name="customer_id" value="{{ $contract->customer_id }}" required>
+                        <input type="text" class="form-control" id="customer_id" name="customer_id" required>
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="customer_name">Tên khách hàng</label>
-                        <input type="text" class="form-control" id="customer_name" value="{{ $contract->customer_name }}" disabled>
+                        <input type="text" class="form-control" id="customer_name" disabled>
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="partner_code">Đối tác</label>
@@ -52,15 +51,15 @@
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="partner_contract_code">Số hợp đồng đối tác</label>
-                        <input type="text" class="form-control" id="partner_contract_code" name="partner_contract_code" value="{{ $contract->partner_contract_code }}" required>
+                        <input type="text" class="form-control" id="partner_contract_code" name="partner_contract_code" required>
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="agent_code">Mã số tư vấn viên</label>
-                        <input type="text" class="form-control" id="agent_code" name="agent_code" value="{{ $contract->agent_code }}">
+                        <input type="text" class="form-control" id="agent_code" name="agent_code" >
                     </div>
-                    <div class="col-md-3 form-group">
+                    <div class="col-md-4 form-group">
                         <label for="agent_name">Tư vấn viên</label>
-                        <input type="text" class="form-control" id="agent_name" value="{{ $contract->agent_name }}" disabled>
+                        <input type="text" class="form-control" id="agent_name" disabled>
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="product_code">Sản phẩm chính</label>
@@ -81,20 +80,24 @@
                         </select>
                     </div>
                     <div class="col-md-3 form-group">
+                        <label for="submit_date">Ngày nộp hợp đồng</label>
+                        <input type="date" class="form-control" id="submit_date" name="submit_date" required>
+                    </div>
+                    <div class="col-md-3 form-group">
                         <label for="release_date">Ngày hiệu lực</label>
-                        <input type="date" class="form-control" id="release_date" name="release_date" value="{{ $contract->release_date }}" >
+                        <input type="date" class="form-control" id="release_date" name="release_date" >
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="ack_date">Ngày ACK</label>
-                        <input type="date" class="form-control" id="ack_date" name="ack_date" value="{{ $contract->ack_date }}" >
+                        <input type="date" class="form-control" id="ack_date" name="ack_date" >
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="maturity_date">Ngày đáo hạn</label>
-                        <input type="date" class="form-control" id="maturity_date" name="maturity_date" value="{{ $contract->maturity_date }}" >
+                        <input type="date" class="form-control" id="maturity_date" name="maturity_date" >
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="premium">Tổng số phí phải đóng</label>
-                        <input type="number" class="form-control" id="premium" name="premium" value="{{ $contract->premium }}">
+                        <input type="number" class="form-control" id="premium" name="premium" >
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="term_code">Định kỳ đóng phí</label>
@@ -107,11 +110,11 @@
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="premium_term">Phí định kỳ</label>
-                        <input type="number" class="form-control" id="term_premium" name="premium_term" value="{{ $contract->premium_term }}" >
+                        <input type="number" class="form-control" id="term_premium" name="premium_term" >
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="premium_received">Tổng số phí đã đóng</label>
-                        <input type="number" class="form-control" id="premium_received" name="premium_received" value="{{ $contract->premium_received }}" >
+                        <input type="number" class="form-control" id="premium_received" name="premium_received" >
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="info_awaiting">Hồ sơ còn thiếu</label>
@@ -152,11 +155,6 @@
 
 <script>
     $(document).ready(function() {
-        $('#partner_code').val("{{$contract->partner_code}}");
-        $('#term_code').val("{{$contract->term_code}}");
-        $('#premium_term').val("{{$contract->premium_term}}");
-        $('#premium_received').val("{{$contract->premium_received}}");
-        $('#status_code').val("{{$contract->status_code}}");
         $('#agent_code').change(function() {
             $('#agent_name').val('');
             var agent_code = $(this).val().toLowerCase().replace('tnda', '');
@@ -172,21 +170,6 @@
                 if (data) $('#customer_name').val(data.fullname)
             });
         });
-        $('#product_code').val([
-            @foreach($contract->product_code as $pdc)
-            '{{ $pdc }}',
-            @endforeach
-        ]).trigger('change');
-        $('#sub_product_code').val([
-            @foreach($contract->sub_product_code as $sdc)
-            '{{ $sdc }}',
-            @endforeach
-        ]).trigger('change');
-        $('#info_awaiting').val([
-            @foreach($contract->info_awaiting as $sdc)
-            '{{ $sdc }}',
-            @endforeach
-        ]).trigger('change');
         $('.selectpicker').selectpicker();
     })
 </script>

@@ -235,7 +235,9 @@ class AdminController extends Controller
     public function getUser(Request $request, $agent_code)
     {
         $user = User::where(['agent_code' => $agent_code])->first();
-        // echo "<pre>";print_r(implode('","', array_keys($user->toArray())));exit;
+        if(!$user) {
+            return back()->with('error', 'Không tìm thấy thành viên!');
+        }
         $this->parseUserDetail($user);
 
         return view('user.detail', compact('user'));
@@ -330,11 +332,11 @@ class AdminController extends Controller
         }
         // echo "<pre>";
         $input = $request->input();
-        $userStatus = $user->update($input);
-        if ($userStatus) {
-            return back()->with('success', 'User successfully updated.');
+        $userUpdate = $user->update($input);
+        if ($userUpdate) {
+            return back()->with('success', 'Cập nhật thông tin thành viên thành công.');
         } else {
-            return back()->with('error', 'Oops something went wrong. User not updated');
+            return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại.');
         }
     }
 
@@ -354,9 +356,29 @@ class AdminController extends Controller
         foreach ($contracts as $contract) {
             $this->parseContractDetail($contract);
         }
-        // echo "<pre>";
-        // print_r($contracts);
         return view('contract.list', ['contracts' => $contracts]);
+    }
+
+    public function getContract(Request $request, $contract_code)
+    {
+        $contract = Contract::where(['contract_code' => $contract_code])->first();
+        if(!$contract) {
+            return back()->with('error', 'Không tìm thấy hợp đồng!');
+        }
+        $this->parseContractDetail($contract);
+
+        return view('contract.detail', compact('contract'));
+    }
+
+    public function getContractRaw(Request $request, $contract_code)
+    {
+        $contract = Contract::where(['contract_code' => $contract_code])->first();
+        // $this->parseContractDetail($contract);
+        // if($contract) {
+        //     $list_designation_code = Util::get_designation_code();
+        //     if($contract->designation_code) $contract->designation_text = $list_designation_code[$user->designation_code];
+        // }
+        return $contract;
     }
 
     private function parseContractDetail($contract)
@@ -372,13 +394,17 @@ class AdminController extends Controller
         foreach(explode(",", $contract->product_code) as $pc) {
             $product_texts[] = $list_product_code[trim($pc)];
         }
+
         $contract->product_text = implode(", ", $product_texts);
+
         $sub_product_texts = [];
         foreach(explode(",", $contract->sub_product_code) as $spc) {
             if(trim($spc) == '') continue;
             $sub_product_texts[] = $list_product_code[trim($spc)];
         }
+        
         $contract->sub_product_text = implode(", ", $sub_product_texts);
+
         $info_awaiting_text = [];
         if ($contract->info_awaiting && strlen($contract->info_awaiting)) {
             $await_codes = explode(",", $contract->info_awaiting);
@@ -388,6 +414,7 @@ class AdminController extends Controller
                 }
             }
         }
+
         $contract->bg_color = $list_contract_bg_color[$contract->status_code];
         $partner_index = array_search($contract->partner_code, array_column($list_partners, 'code'));
         if ($partner_index !== false) {
@@ -395,10 +422,73 @@ class AdminController extends Controller
         } else $contract->partner_text = null;
 
         $contract->term_text = $list_contract_term_code[$contract->term_code];
-        $contract->info_awaiting_text = $info_awaiting_text;
-        $contract->agent_name = $contract->agent()->pluck('fullname')[0];
-        $contract->customer_name = $contract->customer()->pluck('fullname')[0];
-        $contract->agent_code = 'TNDA' . $contract->agent_code;
+        $contract->info_awaiting_text = implode(", ", $info_awaiting_text);
+        $agent_name = $contract->agent()->pluck('fullname');
+        if(count($agent_name)) $contract->agent_name = $agent_name[0];
+        else $contract->agent_name = 'Người này chưa được cấp code';
+        $customer_name = $contract->customer()->pluck('fullname');
+        if(count($customer_name)) $contract->customer_name = $customer_name[0];
+        else $contract->customer_name = 'Khách hàng chưa được tạo';
+        $contract->agent_code = $contract->agent_code;
+    }
+
+    public function createContract(Request $requset)
+    {
+        $list_partners = Util::get_partners();
+        $list_product_code = Util::get_product_code();
+        $list_contract_status_code = Util::get_contract_status_code();
+        $list_contract_bg_color = Util::get_contract_bg_color();
+        $list_contract_term_code = Util::get_contract_term_code();
+        $list_contract_info_await_code = Util::get_contract_info_await_code();
+        
+        return view('contract.add', [
+            'list_partners' => $list_partners,
+            'list_product_code' => $list_product_code,
+            'list_contract_status_code' => $list_contract_status_code,
+            'list_contract_info_await_code' => $list_contract_info_await_code,
+            'list_contract_term_code' => $list_contract_term_code,
+        ]);
+    }
+
+    public function storeContract(Request $request)
+    {
+        $request->validate([
+            'customer_id' => 'required',
+            'partner_code' => 'required',
+            'partner_contract_code' => 'required',
+            'agent_code' => 'required',
+            'product_code' => 'required',
+            'term_code' => 'required',
+            'premium_term' => 'required',
+            'status_code' => 'required',
+        ]);
+        $input = $request->input();
+        // $check_exists = Contract::where(['identity_num' => $input['identity_num']])->first();
+        // if ($check_exists) {
+        //     return redirect('admin/users')->with('error', 'Số CMND đã tồn tại!');
+        // }
+        $highest_contract_code = Util::get_highest_contract_code();
+        $contract_code = str_pad($highest_contract_code + 1, 8, "0", STR_PAD_LEFT);
+        $input['contract_code'] = $contract_code;
+        $input['expire_date'] = $input['maturity_date'];
+        if(isset($input['product_code']) && is_array($input['product_code'])) {
+            $input['product_code'] = implode(",",$input['product_code']);
+        }
+        if(isset($input['sub_product_code']) && is_array($input['sub_product_code'])) {
+            $input['sub_product_code'] = implode(",",$input['sub_product_code']);
+        }
+        if(isset($input['info_awaiting']) && is_array($input['info_awaiting'])) {
+            $input['info_awaiting'] = implode(",",$input['info_awaiting']);
+        }
+        $input['agent_code'] = str_replace("tnda", "", strtolower($input['agent_code']));
+        
+        try {
+            $new_contract = Contract::create($input);
+        } catch (Exception $e) {
+            return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại!');
+        }
+
+        return redirect('admin/contract/' . $contract_code)->with('success', 'Thêm hợp đồng thành công');
     }
 
     public function editContract($contract_code)
@@ -416,36 +506,46 @@ class AdminController extends Controller
             else $contract->product_code = [];
             if($contract->sub_product_code) $contract->sub_product_code = explode(',', $contract->sub_product_code);
             else $contract->sub_product_code = [];
+            if($contract->info_awaiting) $contract->info_awaiting = explode(',', $contract->info_awaiting);
+            else $contract->info_awaiting = [];
             
             return view('contract.edit', [
                 'contract' => $contract,
                 'list_partners' => $list_partners,
                 'list_product_code' => $list_product_code,
                 'list_contract_status_code' => $list_contract_status_code,
+                'list_contract_info_await_code' => $list_contract_info_await_code,
+                'list_contract_term_code' => $list_contract_term_code,
             ]);
         } else {
-            return redirect('admin/users')->with('error', 'Không tìm thấy thành viên.');
+            return redirect('admin/contracts')->with('error', 'Không tìm thấy hợp đồng.');
         }
     }
 
-    public function updateContract(Request $request, $agent_code)
+    public function updateContract(Request $request, $contract_code)
     {
-        // $userId = Auth::user()->id;
-        // $request->validate();
-        $user = User::where(['agent_code' => $agent_code])->first();
-        if (!$user) {
-            return redirect('admin/users')->with('error', 'Không tìm thấy thành viên.');
+        $contract = Contract::where(['contract_code' => $contract_code])->first();
+        if (!$contract) {
+            return redirect('admin/contracts')->with('error', 'Không tìm thấy hợp đồng.');
         }
-        // echo "<pre>";
         $input = $request->input();
-        $userStatus = $user->update($input);
-        if ($userStatus) {
-            return back()->with('success', 'User successfully updated.');
+        if(isset($input['product_code']) && is_array($input['product_code'])) {
+            $input['product_code'] = implode(",",$input['product_code']);
+        }
+        if(isset($input['sub_product_code']) && is_array($input['sub_product_code'])) {
+            $input['sub_product_code'] = implode(",",$input['sub_product_code']);
+        }
+        if(isset($input['info_awaiting']) && is_array($input['info_awaiting'])) {
+            $input['info_awaiting'] = implode(",",$input['info_awaiting']);
+        }
+        $input['agent_code'] = str_replace("tnda", "", strtolower($input['agent_code']));
+        $contractUpdate = $contract->update($input);
+        if ($contractUpdate) {
+            return back()->with('success', 'Cập nhật thông tin hợp đồng thành công.');
         } else {
-            return back()->with('error', 'Oops something went wrong. User not updated');
+            return back()->with('error', 'Có lỗi xảy ra. Vui lòng thử lại.');
         }
     }
-
 
 
     public function getCustomerRaw(Request $request, $id)

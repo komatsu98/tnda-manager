@@ -54,7 +54,7 @@ class Util
         // success: '#22D69F',
         // fail: '#C7171B',
         $contract_bg_color = [
-            "SM" => "#F26A1",
+            "SM" => "#F26A11",
             "21" => "#F26A11",
             "RL" => "#22D69F",
             "MA" => "#F26A11",

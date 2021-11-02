@@ -147,6 +147,7 @@
             $('#supervisor_name').val('');
             $('#supervisor_designation_text').val('');
             var sup_code = $(this).val().toLowerCase().replace('tnda', '');
+            if(!sup_code) return;
             $.get(`/admin/user/${sup_code}/raw`, function (data) {
                 if(data) {
                     $('#supervisor_name').val(data.fullname)
@@ -154,9 +155,6 @@
                 }
             });
         })
-        // $('#submit').click(function(){
-        //     $('#active').val($('#active').prop('checked') ? 1 : 0);
-        // })
     })
 </script>
 @endpush
