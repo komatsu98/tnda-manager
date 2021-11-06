@@ -53,8 +53,6 @@ class AgentController extends Controller
 
     public function login(Request $request)
     {
-        // print_r(Hash::make('Tnda123456'));
-        // print_r(Hash::check('12345678', '$2y$10$u/g3raLlg5JxgVTOoMZtF.X5rgsOCkQLql9TmCTnw0TGZPgj8eAUe'));
         $respStatus = $respMsg = '';
         $data = [];
         if (!request()->has('username') || !request()->has('password') || !request()->has('device') || !request()->has('location') || !request()->has('app_version')) {
@@ -111,7 +109,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -187,7 +185,7 @@ class AgentController extends Controller
         return ['status' => $respStatus, 'message' => $respMsg];
     }
 
-    public function profile(Request $request)
+    public function changePassword2(Request $request)
     {
         $respStatus = $respMsg = '';
         if (!request()->has('access_token')) {
@@ -196,6 +194,82 @@ class AgentController extends Controller
             return ['status' => $respStatus, 'message' => $respMsg];
         }
         $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if (!request()->has('current_password2') || !request()->has('new_password2')) {
+            $respStatus = 'error';
+            $respMsg = 'Missing password2';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $agent = $check['session']->agent;
+        $current_password = request('current_password2');
+        $new_password = request('new_password2');
+        if(!Hash::check($current_password, $agent->password2)) {
+            $respStatus = 'error';
+            $respMsg = 'Incorrect password2';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if(strlen($new_password) > 32) {
+            $respStatus = 'error';
+            $respMsg = 'Password2 too long';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if(strlen($new_password) < 8) {
+            $respStatus = 'error';
+            $respMsg = 'Password2 too short';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $agent->password2 = Hash::make($new_password);
+        $agent->save();
+        $respStatus = 'success';
+        return ['status' => $respStatus, 'message' => $respMsg];
+    }
+
+    public function checkPassword2(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'));
+        if ($check['status'] == 'error') {
+            $respStatus = 'error';
+            $respMsg = $check['message'];
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if (!request()->has('password2')) {
+            $respStatus = 'error';
+            $respMsg = 'Missing password2';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $agent = $check['session']->agent;
+        $password2 = request('password2');
+        if(!Hash::check($password2, $agent->password2)) {
+            $respStatus = 'error';
+            $respMsg = 'Incorrect password2';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $session = $check['session'];
+        $session->password2_authenticated = true;
+        $session->save();
+        $respStatus = 'success';
+        return ['status' => $respStatus, 'message' => $respMsg];
+    }
+
+    public function profile(Request $request)
+    {
+        $respStatus = $respMsg = '';
+        if (!request()->has('access_token')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid token';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -323,7 +397,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -590,7 +664,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -667,7 +741,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -794,7 +868,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -822,6 +896,10 @@ class AgentController extends Controller
         $offset = ($page - 1) * $limit;
 
         $customers = Customer::where(['status' => 1])->offset($offset)->take($limit)->get();
+        foreach($customers as $customer) {
+            $customer->partner_text = 'tiềm năng';
+            $customer->image = Util::get_default_avatar();
+        }
         $data = [];
         $respStatus = 'success';
         $data['customers'] = $customers;
@@ -836,7 +914,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -895,6 +973,23 @@ class AgentController extends Controller
             })->offset($offset)->take($limit)->get();
         }
 
+        $list_partners = Util::get_partners();
+        foreach($customers as $customer) {
+            $customer->image = Util::get_default_avatar();
+            $partners = array_unique($customer->contracts()->pluck('partner_code')->all());
+            if(count($partners)) {
+                $partner_text = [];
+                foreach($partners as $partner_code) {
+                    $partner_index = array_search($partner_code, array_column($list_partners, 'code'));
+                    if ($partner_index !== false) {
+                        $partner_text[] = $list_partners[$partner_index]['name'];
+                    }
+                }
+                if(count($partner_text)) {
+                    $customer->partner_text = implode(", ", $partner_text);
+                }
+            }
+        }
         $data = [];
         $respStatus = 'success';
         $data['customers'] = $customers;
@@ -909,7 +1004,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -942,7 +1037,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -983,7 +1078,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -1099,7 +1194,7 @@ class AgentController extends Controller
             $respMsg = 'Invalid token';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $check = $this->checkSession(request('access_token'));
+        $check = $this->checkSession(request('access_token'), true);
         if ($check['status'] == 'error') {
             $respStatus = 'error';
             $respMsg = $check['message'];
@@ -1384,7 +1479,7 @@ class AgentController extends Controller
         }
     }
 
-    private function checkSession($access_token)
+    private function checkSession($access_token, $is_require_password2 = false)
     {
         $checkStatus = $checkMsg = '';
         $session = SessionLog::where([
@@ -1394,6 +1489,9 @@ class AgentController extends Controller
         if (!$session) {
             $checkStatus = 'error';
             $checkMsg = 'Expired token';
+        } else if ($is_require_password2 && !$session->password2_authenticated) {
+            $checkStatus = 'error';
+            $checkMsg = 'Password2 unauthenticated';
         } else {
             $checkStatus = 'success';
         }

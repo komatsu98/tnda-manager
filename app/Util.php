@@ -396,6 +396,12 @@ class Util
                 'name' => 'Bảo hiểm VietinBank',
                 'icon' => 'http://103.226.249.106/images/logo_vbi.png',
                 'url' => 'http://14.160.90.226:86/MyVBI/webview_tnd/bos-suc-khoe-tnd.html'
+            ],
+            [
+                'code' => 'FWD',
+                'name' => 'Bảo hiểm FWD',
+                'icon' => 'http://103.226.249.106/images/logo_fwd.png',
+                'url' => ''
             ]
         ];
         return $partners;

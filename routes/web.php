@@ -65,6 +65,8 @@ Route::prefix('api')->group(function () {
     Route::post('/login', 'AgentController@login')->name('api.login');
     Route::post('/require-update-contract', 'AgentController@requireUpdateContract')->name('api.require_update_contract');
     Route::post('/change-password', 'AgentController@changePassword')->name('api.change_password');
+    Route::post('/password2', 'AgentController@checkPassword2')->name('api.check_password2');
+    Route::post('/change-password2', 'AgentController@changePassword2')->name('api.change_password2');
 
     Route::get('/profile', 'AgentController@profile')->name('api.profile');
     Route::get('/contracts', 'AgentController@getAgentContracts')->name('api.contracts');

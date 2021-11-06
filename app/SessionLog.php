@@ -12,7 +12,6 @@ class SessionLog extends Model
         'access_token'
     ];
     protected $casts = [
-        'expired_at' => 'datetime',
     ];
 
     /**
