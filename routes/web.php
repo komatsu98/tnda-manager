@@ -89,6 +89,6 @@ Route::prefix('api')->group(function () {
     Route::post('/vbi-return', 'PartnerController@VBIReturn')->name('api.vbi_return');
     Route::post('/bidv-return', 'PartnerController@BIDVReturn')->name('api.bidv_return');
 
-    Route::get('/calc/{id}', 'ComissionCalculatorController@cal')->name('api.calc');
+    Route::get('/calc/{id}', 'ComissionCalculatorController@calc')->name('api.calc');
     Route::get('/test/{id}', 'PartnerController@VBICheckUpdateContract')->name('api.test');
 });

@@ -574,11 +574,11 @@ class Util
 
     public static function sortByDesDesc($users)
     {
-        usort($users, function($a,$b) {
-            $score_a = get_designation_rank($a['designation_code']);
-            $score_b = get_designation_rank($b['designation_code']);
-            if ($score_a==$score_b) return 0;
-            return ($score_a<$score_b)?1:-1;
+        usort($users, function ($a, $b) {
+            $score_a = $this->get_designation_rank($a['designation_code']);
+            $score_b = $this->get_designation_rank($b['designation_code']);
+            if ($score_a == $score_b) return 0;
+            return ($score_a < $score_b) ? 1 : -1;
         });
         return $users;
     }
@@ -596,12 +596,12 @@ class Util
 
     public static function get_saved_numbers()
     {
-        return [68,86,100,111,123,168,186,200,222,234,246];
+        return [68, 86, 100, 111, 123, 168, 186, 200, 222, 234, 246];
     }
-}
 
-function get_designation_rank($d)
-{
-    $ranks = ['AG' => 1, 'DM' => 2, 'SDM' => 3, 'AM' => 4, 'RD' => 5, 'SRD' => 6, 'TD' => 7, 'PGD' => 8, 'GD' => 9, 'ADMIN' => 99];
-    return $ranks[$d];
+    public static function get_designation_rank($d)
+    {
+        $ranks = ['AG' => 1, 'DM' => 2, 'SDM' => 3, 'AM' => 4, 'RD' => 5, 'SRD' => 6, 'TD' => 7, 'PGD' => 8, 'GD' => 9, 'ADMIN' => 99];
+        return $ranks[$d];
+    }
 }

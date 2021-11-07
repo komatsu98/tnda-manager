@@ -84,4 +84,8 @@ class User extends Authenticatable
         return $this->hasMany('App\MonthlyMetric', 'agent_code', 'agent_code');
     }
 
+    public function promotions() {
+        return $this->hasMany('App\Promotion', 'agent_code', 'agent_code');
+    }
+
 }
