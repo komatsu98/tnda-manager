@@ -1022,7 +1022,7 @@ class AgentController extends Controller
             $agent = User::where(['agent_code' => $view_as_code])->first();
         }
 
-        $promotions = [];
+        $promotions = Util::get_promotions();
         $data = [];
         $respStatus = 'success';
         $data['promotions'] = $promotions;
