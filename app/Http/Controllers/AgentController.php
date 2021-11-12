@@ -1489,10 +1489,12 @@ class AgentController extends Controller
         if (!$session) {
             $checkStatus = 'error';
             $checkMsg = 'Expired token';
-        } else if ($is_require_password2 && !$session->password2_authenticated) {
-            $checkStatus = 'error';
-            $checkMsg = 'Password2 unauthenticated';
-        } else {
+        }
+        //  else if ($is_require_password2 && !$session->password2_authenticated) {
+        //     $checkStatus = 'error';
+        //     $checkMsg = 'Password2 unauthenticated';
+        // } 
+        else {
             $checkStatus = 'success';
         }
         return ['status' => $checkStatus, 'message' => $checkMsg, 'session' => $session];
