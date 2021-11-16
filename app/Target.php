@@ -4,10 +4,10 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MonthlyMetric extends Model
+class Target extends Model
 {
-    protected $table = 'monthly_metrics';
-    protected $fillable = ['agent_code', 'FYC', 'FYP', 'RYP', 'IP', 'CC', 'K2', 'AA', 'month', 'AU'];
+    protected $table = 'targets';
+    protected $fillable = ['agent_code', 'term_code', 'name', 'amount', 'start_date', 'end_date'];
     // protected $guarded = ['id'];
     protected $casts = [
     ];

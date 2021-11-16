@@ -544,7 +544,7 @@ class AgentController extends Controller
             $view_by = request('view_by');
         }
         if ($view_by == "direct") {
-            $teamCodes = $agent->directAgents()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
+            $teamCodes = $agent->directUnders()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
             $contracts = Contract::whereIn('agent_code', $teamCodes);
         } else if ($view_by == "team") {
             $teamCodes = $this->getWholeTeamCodes($agent);
@@ -957,7 +957,7 @@ class AgentController extends Controller
             $view_by = request('view_by');
         }
         if ($view_by == "direct") {
-            $teamCodes = $agent->directAgents()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
+            $teamCodes = $agent->directUnders()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
             $customers = Customer::whereHas('contracts.agent', function ($query) use ($teamCodes) {
                 $query->whereIn('agent_code', $teamCodes);
             })->offset($offset)->take($limit)->get();
@@ -1057,14 +1057,14 @@ class AgentController extends Controller
 
         $data = [];
         $respStatus = 'success';
-        $team = $agent->directAgents;
+        $team = $agent->directUnders;
         foreach ($team as $dr_agent) {
             $dr_agent->designation_text = $this->designation_code[$dr_agent->designation_code];
             $dr_agent->marital_status_text = $dr_agent->marital_status_code != '' ? $this->marital_status_code[$dr_agent->marital_status_code] : '';
             if($dr_agent->image == '') {
                 $dr_agent->image = Util::get_default_avatar();
             }
-            $dr_agent->team_length = $dr_agent->directAgents()->count();
+            $dr_agent->team_length = $dr_agent->directUnders()->count();
         }
         $data['team'] = $team;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
@@ -1253,7 +1253,7 @@ class AgentController extends Controller
             $view_by = request('view_by');
         }
         if ($view_by == "direct") {
-            $teamCodes = $agent->directAgents()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
+            $teamCodes = $agent->directUnders()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
             $metrics = MonthlyMetric::whereIn('agent_code', $teamCodes);
         } else if ($view_by == "team") {
             $teamCodes = $this->getWholeTeamCodes($agent);
@@ -1467,7 +1467,7 @@ class AgentController extends Controller
     private function getWholeTeamCodes($supervisor)
     {
         $codes = [];
-        $direct_agents = $supervisor->directAgents;
+        $direct_agents = $supervisor->directUnders;
         if (!count($direct_agents)) {
             return [];
         } else {

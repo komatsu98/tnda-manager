@@ -69,7 +69,7 @@ class User extends Authenticatable
         return $this->belongsTo('App\User', 'reference_code', 'agent_code');
     }
 
-    public function directAgents()
+    public function directUnders()
     {
         return $this->hasMany('App\User', 'supervisor_code', 'agent_code');
     }
@@ -88,4 +88,8 @@ class User extends Authenticatable
         return $this->hasMany('App\Promotion', 'agent_code', 'agent_code');
     }
 
+    public function targets()
+    {
+        return $this->hasMany('App\Target', 'agent_code', 'agent_code');
+    }
 }

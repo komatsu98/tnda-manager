@@ -10,6 +10,7 @@ use Storage;
 use Illuminate\Http\Request;
 use App\Util;
 use App\MonthlyMetric;
+use App\MonthlyIncome;
 use App\Transaction;
 use App\Comission;
 use App\Promotion;
@@ -35,19 +36,27 @@ class ComissionCalculatorController extends Controller
         $data['pos'] = $this->getPos($agent);
         $data['hpos'] = $this->getHpos($agent);
         $data['npos'] = $this->getNpos($agent);
-        // $data['CC'] = $this->getCC($agent, 0, 3);
-        // $data['FYP'] = $this->getFYP($agent, 0, 3);
-        // $data['FYC'] = $this->getFYC($agent, 0, 3);
-        // $data['RYPp'] = $this->getRYP($agent, $status = "p", 0, 14);
-        // $data['RYPr'] = $this->getRYP($agent, $status = "r", 0, 14);
-        // $data['isAA'] = $this->getIsAA($agent, 2);
-        $data['K2'] = $this->getK2($agent);
-        // $data['cal_RYPp'] = $this->calcThisMonthRYPp($agent);
+        $data['thisMonthMetric'] = $this->updateThisMonthMetric($agent);
+        $data['dr'] = $this->getDr($agent);
+        $data['drCodes'] = $data['dr']->pluck('agent_code')->toArray();
         $data['depDr'] = $this->getDepDr($agent);
-        $data['depDrCodes'] = $this->getDepDrCodes($agent);
+        $data['depDrCodes'] = $data['depDr']->pluck('agent_code')->toArray();
+        $data['teamAGCodes'] = $this->getWholeTeamCodes($agent, true);
+        $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent, $data['dr']);
         // return $data;
         $rewards = $this->calcRewards($agent, $data);
         return $rewards;
+    }
+
+    public function updateThisMonthAllMetrics()
+    {
+        $designations = Util::get_designation_code();
+        foreach ($designations as $dc => $name) {
+            $agents = User::where(['designation_code' => $dc])->get();
+            foreach ($agents as $agent) {
+                $this->updateThisMonthMetric($agent);
+            }
+        }
     }
 
     private function getTwork($agent, $month_back = 0)
@@ -87,15 +96,56 @@ class ComissionCalculatorController extends Controller
         // return $pos_list[$cur_pos_index];
     }
 
-    private function getCC($agent, $month_back = 0, $month_range = 1)
+    private function updateThisMonthMetric($agent)
     {
-        $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-        $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
-        $CCs = $agent->monthlyMetrics()->where([
-            ['month', '>=', $from],
-            ['month', '<=', $to]
+        $metric = $this->calcThisMonthMetric($agent);
+        $month = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $metric['month'] = $month;
+        $old_metric = $agent->monthlyMetrics()->where(['month' => $month])->first();
+        if ($old_metric) $old_metric->update($metric);
+        else MonthlyMetric::create($metric);
+        return $metric;
+    }
+
+    private function calcThisMonthMetric($agent)
+    {
+        $data = [];
+        $data['agent_code'] = $agent->agent_code;
+        $data['FYC'] = $this->calcThisMonthFYC($agent);
+        $data['FYP'] = $this->calcThisMonthFYP($agent);
+        $data['RYP'] = $this->calcThisMonthRYPp($agent);
+        $data['RYPr'] = $this->calcThisMonthRYPr($agent);
+        $data['K2'] = $this->calcK2($agent, 0, $data['RYP'], $data['RYPr']);
+        $data['CC'] = $this->calcThisMonthCC($agent);
+        $data['AA'] = $this->calcIsAA($agent, 0, $data['FYP'], $data['CC']);
+        $data['AU'] = count($this->getWholeTeamCodes($agent, true));
+        return $data;
+    }
+
+    private function calcThisMonthFYC($agent)
+    {
+        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $FYCs = $agent->comissions()->where([
+            ['received_date', '>=', $from]
         ])
-            ->selectRaw('sum(CC) as count')
+            ->selectRaw('sum(amount) as count')
+            ->get();
+        $countFYC = 0;
+        if (count($FYCs)) {
+            $countFYC = intval($FYCs[0]->count);
+        }
+        return $countFYC;
+    }
+
+    private function calcThisMonthCC($agent)
+    {
+        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $CCs = $agent->contracts()->where([
+            ['release_date', '>=', $from]
+        ])
+            ->selectRaw('sum(1) as count')
             ->get();
         $countCC = 0;
         if (count($CCs)) {
@@ -104,13 +154,109 @@ class ComissionCalculatorController extends Controller
         return $countCC;
     }
 
-    private function calcThisMonthCC($agent)
+    private function calcThisMonthFYP($agent, $list_product = [], $list_sub_product = [])
     {
         $from = Carbon::now()->startOfMonth()->format('Y-m-d');
         $to = Carbon::now()->endOfMonth()->format('Y-m-d');
-        $CCs = Contract::where([
-            ['release_date', '>=', $from],
+        $FYPs = $agent->transactions()->where([
+            ['trans_date', '>=', $from]
+        ]);
+        if (count($list_product) || count($list_sub_product)) {
+            $FYPs = $FYPs->whereHas('contract', function ($query) use ($list_product, $list_sub_product) {
+                $query->where(function ($q) use ($list_product, $list_sub_product) {
+                    foreach ($list_product as $product_code) {
+                        $q->orWhere('product_code', 'like', '%' . $product_code . '%');
+                    }
+                    foreach ($list_sub_product as $sub_product_code) {
+                        $q->orWhere('sub_product_code', 'like', '%' . $sub_product_code . '%');
+                    }
+                });
+            });
+        }
+        // $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
+        // $query = vsprintf($query, $FYPs->getBindings());
+        // print_r($query);
+        $FYPs = $FYPs->selectRaw('sum(premium_received) as count')->get();
+        $countFYP = 0;
+        if (count($FYPs)) {
+            $countFYP = intval($FYPs[0]->count);
+        }
+        return $countFYP;
+    }
+
+    private function calcIsAA($agent, $month_back = 0, $FYP_month = null, $CC_month = null)
+    {
+        $month_start = Carbon::now()->subMonths($month_back)->startOfMonth()->format('Y-m-d');
+        $month_end = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+        $FYP_month = $FYP_month === null ? $this->getFYP($agent, $month_back) : $FYP_month;
+        $CC_month = $CC_month === null ? $this->getCC($agent, $month_back) : $CC_month;
+        $working_month = !$agent->terminate_date || $agent->terminate_date > $month_end;
+        $isAA = $working_month && $FYP_month >= 6000000 && $CC_month >= 1 ? 1 : 0;
+        return $isAA;
+    }
+
+    // thực thu
+    private function calcThisMonthRYPp($agent)
+    {
+        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $ack_from = Carbon::now()->subMonths(0)->subMonths(14)->format('Y-m-d');
+        $to_back_two = Carbon::now()->subMonths(2);
+        $RYPs = $agent->transactions()->where([
+            ['trans_date', '>=', $from],
             ['agent_code', '>=', $agent->agent_code],
+        ])
+            ->whereHas('contract', function ($query) use ($ack_from, $to_back_two) {
+                $query->where([
+                    ['maturity_date', '>=', $to_back_two],
+                    ['ack_date', '>=', $ack_from]
+                ])
+                    ->whereIn('status_code', ['MA']);
+            })
+            ->selectRaw('sum(premium_received) as count')
+            ->get();
+        $countRYP = 0;
+        if (count($RYPs)) {
+            $countRYP = intval($RYPs[0]->count);
+        }
+        return $countRYP;
+    }
+
+    // phải thu
+    private function calcThisMonthRYPr($agent)
+    {
+        $from = Carbon::now()->subMonths(0)->subMonths(14)->format('Y-m-d');
+        // $to = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $to_back_two = Carbon::now()->subMonths(2);
+        $mcontracts = $agent->contracts()->where([
+            ['maturity_date', '>=', $to_back_two],
+            ['ack_date', '>=', $from]
+        ])
+            ->whereIn('status_code', ['MA'])
+            ->selectRaw('sum(premium_term) as RYP')
+            ->get();
+        if (count($mcontracts)) {
+            $countRYP = intval($mcontracts[0]->RYP);
+        }
+        return $countRYP;
+    }
+
+    private function calcK2($agent, $month_back = 0, $RYPp_month = null, $RYPr_month = null)
+    {
+        $RYPp_month = $RYPp_month === null ? $this->getRYP($agent, $status = "p", $month_back, 14) : $RYPp_month;
+        $RYPr_month = $RYPr_month === null ? $this->getRYP($agent, $status = "r", $month_back, 14) : $RYPr_month;
+        if ($RYPr_month == 0) {
+            return 1;
+        }
+        return round($RYPp_month / $RYPr_month, 4);
+    }
+
+    private function getCC($agent, $month_back = 0, $month_range = 1)
+    {
+        $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+        $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+        $CCs = $agent->monthlyMetrics()->where([
+            ['month', '>=', $from],
+            ['month', '<=', $to]
         ])
             ->selectRaw('sum(CC) as count')
             ->get();
@@ -138,30 +284,19 @@ class ComissionCalculatorController extends Controller
         return $countFYP;
     }
 
-    private function calcThisMonthFYP($agent, $list_product = [], $list_sub_product = [])
+    private function getTotalFYPByCodes($codes, $month_back = 0, $month_range = 1)
     {
-        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
-        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
-        $FYPs = Transaction::where([
-            ['trans_date', '>=', $from],
-            ['agent_code', '=', $agent->agent_code],
-        ]);
-        if(count($list_product) || count($list_sub_product)) {
-            $FYPs = $FYPs->whereHas('contract', function ($query) use ($list_product, $list_sub_product) {
-                $query->where(function ($q) use ($list_product, $list_sub_product) {
-                    foreach($list_product as $product_code) {
-                        $q->orWhere('product_code', 'like', '%' . $product_code . '%');
-                    }
-                    foreach($list_sub_product as $sub_product_code) {
-                        $q->orWhere('sub_product_code', 'like', '%' . $sub_product_code . '%');
-                    }
-                });
-            });
-        }
-        $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
-        $query = vsprintf($query, $FYPs->getBindings());
-        print_r($query);
-        $FYPs = $FYPs->selectRaw('sum(premium_received) as count')->get();
+        $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+        $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+
+        $FYPs = MonthlyMetric::whereHas('agent', function ($query) use ($codes) {
+            $query->whereIn('agent_code', $codes);
+        })->where([
+            ['month', '>=', $from],
+            ['month', '<=', $to]
+        ])
+            ->selectRaw('sum(FYP) as count')
+            ->get();
         $countFYP = 0;
         if (count($FYPs)) {
             $countFYP = intval($FYPs[0]->count);
@@ -186,7 +321,8 @@ class ComissionCalculatorController extends Controller
         return $countFYC;
     }
 
-    private function getTotalFYCByCodes($codes, $month_back = 0, $month_range = 1) {
+    private function getTotalFYCByCodes($codes, $month_back = 0, $month_range = 1)
+    {
         $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
         $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
 
@@ -204,30 +340,6 @@ class ComissionCalculatorController extends Controller
         }
         return $countFYC;
     }
-
-    private function calcThisMonthFYC($agent)
-    {
-        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
-        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
-        $FYCs = Comission::where([
-            ['com_date', '>=', $from],
-            ['agent_code', '>=', $agent->agent_code],
-        ])
-            ->selectRaw('sum(amount) as count')
-            ->get();
-        $countFYC = 0;
-        if (count($FYCs)) {
-            $countFYC = intval($FYCs[0]->count);
-        }
-        return $countFYC;
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param status (r: phải thu, p: thực thu)
-     * @return 
-     */
 
     private function getRYP($agent, $status = "p", $month_back = 0, $month_range = 0)
     {
@@ -262,47 +374,16 @@ class ComissionCalculatorController extends Controller
         return $countRYP;
     }
 
-    // thực thu
-    private function calcThisMonthRYPp($agent)
+    private function getIsAA($agent, $month_back = 0, $month_range = 1)
     {
-        $from = Carbon::now()->startOfMonth()->format('Y-m-d');
-        $to = Carbon::now()->endOfMonth()->format('Y-m-d');
-        $RYPs = Transaction::where([
-            ['trans_date', '>=', $from],
-            ['agent_code', '>=', $agent->agent_code],
-        ])
-            ->whereHas('contract', function ($query) {
-                $query->whereIn('status_code', ['MA']);
-            })
-            ->selectRaw('sum(renewal_premium_received) as count')
-            ->get();
-        $countRYP = 0;
-        if (count($RYPs)) {
-            $countRYP = intval($RYPs[0]->count);
-        }
-        return $countRYP;
-    }
-
-    private function calcIsAA($agent, $month_back = 0, $FYP_month = null, $CC_month = null)
-    {
-        $month_start = Carbon::now()->subMonths($month_back)->startOfMonth()->format('Y-m-d');
-        $month_end = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-        $FYP_month = $FYP_month === null ? $this->getFYP($agent, $month_back) : $FYP_month;
-        $CC_month = $CC_month === null ? $this->getCC($agent, $month_back) : $CC_month;
-        $working_month = !$agent->terminate_date || $agent->terminate_date > $month_end;
-        $isAA = $working_month && $FYP_month >= 6000000 && $CC_month >= 1 ? 1 : 0;
-        return $isAA;
-    }
-
-    private function getIsaAA($agent, $month_back = 0, $month_range = 1) {
         $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
         $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         $AAs = $agent->monthlyMetrics()
-        ->where([
-            ['month', '>=', $from],
-            ['month', '<=', $to]
-        ])->selectRaw('sum(AA) as AA')
-        ->get();
+            ->where([
+                ['month', '>=', $from],
+                ['month', '<=', $to]
+            ])->selectRaw('sum(AA) as AA')
+            ->get();
         $countAA = 0;
         if (count($AAs)) {
             $countAA = intval($AAs[0]->AA);
@@ -310,23 +391,44 @@ class ComissionCalculatorController extends Controller
         return $countAA;
     }
 
-    private function getK2($agent, $month_back = 0, $month_range = 1) {
+    private function getTotalAAByCodes($codes, $month_back = 0, $month_range = 1)
+    {
+        $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+        $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+
+        $AAs = MonthlyMetric::whereHas('agent', function ($query) use ($codes) {
+            $query->whereIn('agent_code', $codes);
+        })->where([
+            ['month', '>=', $from],
+            ['month', '<=', $to]
+        ])->selectRaw('sum(AA) as count')
+            ->get();
+        $countAA = 0;
+        if (count($AAs)) {
+            $countAA = $AAs[0]->count;
+        }
+        return $countAA;
+    }
+
+    private function getK2($agent, $month_back = 0, $month_range = 1)
+    {
         $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
         $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         $K2s = $agent->monthlyMetrics()
-        ->where([
-            ['month', '>=', $from],
-            ['month', '<=', $to]
-        ])->selectRaw('sum(K2) as K2')
-        ->get();
+            ->where([
+                ['month', '>=', $from],
+                ['month', '<=', $to]
+            ])->selectRaw('sum(K2) as K2')
+            ->get();
         $countK2 = 0;
         if (count($K2s)) {
-            $countK2 = intval($K2s[0]->K2);
+            $countK2 = $K2s[0]->K2;
         }
         return $countK2;
     }
 
-    private function getTotalK2ByCodes($codes, $month_back = 0, $month_range = 1) {
+    private function getTotalK2ByCodes($codes, $month_back = 0, $month_range = 1)
+    {
         $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
         $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
 
@@ -335,37 +437,82 @@ class ComissionCalculatorController extends Controller
         })->where([
             ['month', '>=', $from],
             ['month', '<=', $to]
-        ])
-            ->selectRaw('sum(K2) as count')
+        ])->selectRaw('sum(K2) as count')
             ->get();
         $countK2 = 0;
         if (count($K2s)) {
-            $countK2 = intval($K2s[0]->count);
+            $countK2 = $K2s[0]->count;
         }
         return $countK2;
     }
 
-    private function calcK2($agent, $month_back = 0, $RYPp_month = null, $RYPr_month = null)
+    private function getDr($agent)
     {
-        $RYPp_month = $RYPp_month === null ? $this->getRYP($agent, $status = "p", $month_back, 14) : $RYPp_month;
-        $RYPr_month = $RYPr_month === null ? $this->getRYP($agent, $status = "r", $month_back, 14) : $RYPr_month;
-        if ($RYPr_month == 0) {
-            return 1;
-        }
-        return round($RYPp_month / $RYPr_month, 4);
+        $dr = $agent->directUnders();
+        return $dr;
     }
 
     private function getDepDr($agent)
     {
-        $depdr = $agent->directAgents();
+        $depdr = $agent->directUnders()->where(['designation_code' => 'AG']);
         return $depdr;
     }
 
-    private function getDepDrCodes($agent)
+    private function getWholeTeamCodes($supervisor, $isAGOnly = false)
     {
-        $depdrCodes = $agent->directAgents()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
-        return $depdrCodes;
+        $codes = [];
+        $direct_unders = $supervisor->directUnders;
+        if (!count($direct_unders)) {
+            return [];
+        } else {
+            foreach ($direct_unders as $dr_under) {
+                if (!$isAGOnly || $dr_under->designation_code == 'AG') array_push($codes, $dr_under->agent_code);
+                $codes = array_merge($codes, $this->getWholeTeamCodes($dr_under, true));
+            }
+            return $codes;
+        }
     }
+
+    private function getAU($agent, $month_back = 0)
+    {
+        $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+        $AU = $agent->monthlyMetrics()
+            ->where([
+                ['month', '=', $to]
+            ])->pluck('AU')->first();
+        $countAU = 0;
+        if ($AU) {
+            $countAU = $AU->AU;
+        }
+        return $countAU;
+    }
+
+    private function getIsDrAreaManager($agent, $drs = null)
+    {
+        if (!in_array($agent->designation_code, ['RD', 'TD', 'SRD'])) return false;
+        if (is_null($drs)) $drs = $agent->directUnders();
+        $exist_RD_plus = $drs->whereIn('designation_code', ['RD', 'TD', 'SRD'])->first();
+        return !$exist_RD_plus;
+    }
+
+    private function getTarget($agent, $term, $name, $date)
+    {
+        $target = $agent->targets()->where([
+            ['start_date', '<=', $date],
+            ['end_date', '>=', $date],
+            ['name', '=', $name],
+            ['term_code', '=', $term]
+        ])->first();
+        $amount = 0;
+        if ($target) $amount = $target->amount;
+        return $amount;
+    }
+
+    // private function getDepDrCodes($agent)
+    // {
+    //     $depdrCodes = $agent->directUnders()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
+    //     return $depdrCodes;
+    // }
 
     private function calcRewards($agent, $data)
     {
@@ -377,44 +524,77 @@ class ComissionCalculatorController extends Controller
         return $rewards;
     }
 
+    private function getRewardType($agent, $type, $month_back = 0, $month_range = 1)
+    {
+        $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+        $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+        $rewards = $agent->monthlyIncomes()
+            ->where([
+                ['month', '>=', $from],
+                ['month', '<=', $to]
+            ])->selectRaw('sum(' . $type . ') as ' . $type)
+            ->get();
+        $countReward = 0;
+        if (count($rewards)) {
+            $countReward = intval($rewards[0]->{$type});
+        }
+        return $countReward;
+    }
+
+    private function getTotalRewardTypeByCodes($codes, $type, $month_back = 0, $month_range = 1)
+    {
+        $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+        $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+
+        $rewards = MonthlyIncome::whereHas('agent', function ($query) use ($codes) {
+            $query->whereIn('agent_code', $codes);
+        })->where([
+            ['month', '>=', $from],
+            ['month', '<=', $to]
+        ]);
+        // $query = str_replace(array('?'), array('\'%s\''), $rewards->toSql());
+        // $query = vsprintf($query, $rewards->getBindings());
+        // print_r($query);
+        $rewards = $rewards->selectRaw('sum(' . $type . ') as ' . $type)
+            ->get();
+
+        $countReward = 0;
+        if (count($rewards)) {
+            $countReward = intval($rewards[0]->{$type});
+        }
+        return $countReward;
+    }
+
+    // private function 
+
     private function calcRewardType($agent, $data, $type)
     {
         $result = 0;
-        $month = '';
-        if(!isset($data['twork'])) $data['twork'] = $this->getTwork($agent);
-        if(!isset($data['K2'])) $data['K2'] = $this->getK2($agent);
-        if(!isset($data['npos'])) $data['npos'] = $this->getNpos($agent);
-        if(!isset($data['hpos'])) $data['hpos'] = $this->getHpos($agent);
+        $month = Carbon::now()->startOfMonth()->format('Y-m-d');;
+        $month_valid = $month;
+        if (!isset($data['twork'])) $data['twork'] = $this->getTwork($agent);
+        if (!isset($data['K2'])) $data['K2'] = $this->getK2($agent);
+        if (!isset($data['npos'])) $data['npos'] = $this->getNpos($agent);
+        if (!isset($data['hpos'])) $data['hpos'] = $this->getHpos($agent);
 
         switch ($type) {
             case 'ag_rwd_hldlth':
-                if (!in_array($agent->designation_code, ['AG', 'DM', 'SDM', 'AM'])) {
-                    break;
-                }
+                if (!in_array($agent->designation_code, ['AG', 'DM', 'SDM', 'AM']))  break;
                 if ($data['twork'] > 9) break;
-                $month = Carbon::now()->startOfMonth()->format('Y-m-d');
                 $fyc_check = $this->getFYC($agent, 0, 3);
                 $cc_check = $this->getCC($agent, 0, 3);
-                // echo $agent->agent_code . " fyc_check " . $fyc_check . "\n";
-                // echo $agent->agent_code . " cc_check " . $cc_check . "\n";
                 $result = $fyc_check >= 30000000 && $cc_check >= 3 ? 1 : 0;
                 break;
             case 'ag_hh_bhcn':
-                if (!in_array($agent->designation_code, ['AG', 'DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) {
-                    break;
-                }
-                $month = Carbon::now()->startOfMonth()->format('Y-m-d');
+                if (!in_array($agent->designation_code, ['AG', 'DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
                 $result = $this->getFYC($agent, 0, 1);
                 break;
             case 'ag_rwd_dscnhq':
                 if (!$this->checkValidTpay('q')) break;
-                if (!in_array($agent->designation_code, ['AG'])) {
-                    break;
-                }
-                $month = Carbon::now()->startOfMonth()->format('Y-m-d');
+                if (!in_array($agent->designation_code, ['AG'])) break;
                 $fyc_q_check = $this->getFYC($agent, 0, 3);
                 $twork_check = $data['twork'];
-                $k2_check = $data['K2'];
+                $k2_check = $data['thisMonthMetric']['K2'];
                 if ($fyc_q_check < 20000000) {
                     if ($twork_check < 6)
                         $result = 0.4 * $fyc_q_check;
@@ -438,7 +618,7 @@ class ComissionCalculatorController extends Controller
                         if ($k2_check < 0.75) break;
                         else if ($k2_check < 0.85)
                             $result = 0.35 * $fyc_q_check;
-                         else if ($k2_check <= 0.9)
+                        else if ($k2_check <= 0.9)
                             $result = 0.40 * $fyc_q_check;
                         else if ($k2_check > 0.9)
                             $result = 0.5 * $fyc_q_check;
@@ -447,99 +627,248 @@ class ComissionCalculatorController extends Controller
                 break;
             case 'ag_rwd_tndl':
                 if (!$this->checkValidTpay('y')) break;
-                if (!in_array($agent->designation_code, ['AG'])) {
-                    break;
-                }
-                $month = Carbon::now()->addMonths(6)->startOfMonth()->format('Y-m-d');
+                if (!in_array($agent->designation_code, ['AG'])) break;
                 $fyc_y = $this->getFYC($agent, 0, 12);
                 $result = 0.1 * $fyc_y;
+                $month_valid = Carbon::now()->addYears(1)->startOfMonth()->format('Y-06-d');
                 break;
             case 'ag_rwd_tcldt_dm':
-                if (!in_array($agent->designation_code, ['AG'])) {
-                    break;
-                }
+                if (!in_array($agent->designation_code, ['AG'])) break;
                 if ($data['npos'] != 'DM') break;
                 if (Util::get_designation_rank($data['hpos']) >= Util::get_designation_rank('DM')) break;
                 $result = 1;
                 break;
             case 'dm_rwd_hldlm':
-                $count_depdr_check = $data['depDr']->count();
-                if(!$count_depdr_check) break;
-                $depdr_hldlth_check = 0;
-                foreach($data['depDr']->get() as $dr_agent) {
-                    $depdr_hldlth_check += $this->calcRewardType($dr_agent, $data, 'ag_rwd_hldlth')[0];
-                }
+                $depdrCodes = $data['depDrCodes'];
+                $count_depdr_check = count($depdrCodes);
+                if ($count_depdr_check) break;
+                $depdr_hldlth_check = $this->getTotalRewardTypeByCodes($depdrCodes, 'ag_rwd_hldlth');
                 $result = $depdr_hldlth_check >= 3 ? 1 : 0;
                 break;
             case 'dm_rwd_dscnht':
-                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM'])) {
-                    break;
-                }
-                $count_depdr_check = $data['depDr']->count();
-                $count_depdr_aa_check = 0;
-                if($count_depdr_check) {
-                    foreach($data['depDr']->get() as $dr_agent) {
-                        $count_depdr_aa_check += $this->getIsAA($dr_agent);
-                    }
-                }
-                $perc_depdr_aa_check = $count_depdr_aa_check/$count_depdr_check;
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM'])) break;
+                $depdrCodes = $data['depDrCodes'];
+                $count_depdr_check = count($depdrCodes);
+                $count_depdr_aa_check = $this->getTotalAAByCodes($depdrCodes);
+                $perc_depdr_aa_check = $count_depdr_aa_check / $count_depdr_check;
                 // list products restrict for this reward
-                $fyp = $this->calcThisMonthFYP($agent, [], []);
-
-                if($count_depdr_aa_check < 3 || $perc_depdr_aa_check < 0.5) $result = 0.5 * $fyp;
-                else if($count_depdr_aa_check == 3) $result = 0.55 * $fyp;
-                else if($count_depdr_aa_check > 3) $result = 0.65 * $fyp;                
+                $fyp = $this->getFYP($agent);
+                if ($count_depdr_aa_check < 3 || $perc_depdr_aa_check < 0.5) $result = 0.5 * $fyp;
+                else if ($count_depdr_aa_check == 3) $result = 0.55 * $fyp;
+                else if ($count_depdr_aa_check > 3) $result = 0.65 * $fyp;
                 break;
             case 'dm_rwd_qlhtthhptt':
-                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD','TD'])) {
-                    break;
-                }
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
                 $depdrCodes = $data['depDrCodes'];
                 // $count_depdr_check = $data['depDr']->count();
                 $count_depdr_check = count($depdrCodes);
-                if(!count($depdrCodes)) break;
+                if (!count($depdrCodes)) break;
                 $count_depdr_fyc_check = $this->getTotalFYCByCodes($depdrCodes);
-                $count_depdr_k2_check = $this->getTotalK2ByCodes($depdrCodes)/count($depdrCodes);
-                $count_depdr_aa_check = 0;
-                foreach($data['depDr']->get() as $dr_agent) {
-                    $count_depdr_aa_check += $this->getIsAA($dr_agent);
+                $count_depdr_k2_check = $this->getTotalK2ByCodes($depdrCodes) / $count_depdr_check;
+                $count_depdr_aa_check = $this->getTotalAAByCodes($depdrCodes);
+                // echo "\ncount_depdr_check: " . implode(",", $depdrCodes);
+                // echo "\ncount_depdr_fyc_check: " . $count_depdr_fyc_check;
+                // echo "\ncount_depdr_k2_check: " . $count_depdr_k2_check;
+                // echo "\ncount_depdr_aa_check: " . $count_depdr_aa_check;
+
+                if ($count_depdr_k2_check < 0.75) break;
+                if ($count_depdr_fyc_check < 25000000) {
+                    if ($count_depdr_aa_check < 3) $result = 0.15 * $count_depdr_fyc_check;
+                    if ($count_depdr_aa_check >= 3) $result = 0.2 * $count_depdr_fyc_check;
+                } else if ($count_depdr_fyc_check >= 25000000) {
+                    if ($count_depdr_aa_check < 3) $result = 0.15 * $count_depdr_fyc_check;
+                    if ($count_depdr_aa_check == 3) $result = 0.2 * $count_depdr_fyc_check;
+                    if ($count_depdr_aa_check > 3) $result = 0.25 * $count_depdr_fyc_check;
                 }
-                
                 break;
             case 'dm_rwd_qlhqthhptt':
+                if (!$this->checkValidTpay('q')) break;
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
+                $depdrCodes = $data['depDrCodes'];
+                $count_depdr_check = count($depdrCodes);
+                if (!count($depdrCodes)) break;
+                $count_depdr_fyc_check = $this->getTotalFYCByCodes($depdrCodes, 0, 3);
+                $count_depdr_k2_check = $this->getTotalK2ByCodes($depdrCodes, 0, 3) / (3 * $count_depdr_check);
+                $count_depdr_aa_check = $this->getTotalAAByCodes($depdrCodes, 0, 3);
+
+                // echo "\ncount_depdr_check: " . implode(",", $depdrCodes);
+                // echo "\ncount_depdr_fyc_check: " . $count_depdr_fyc_check;
+                // echo "\ncount_depdr_k2_check: " . $count_depdr_k2_check;
+                // echo "\ncount_depdr_aa_check: " . $count_depdr_aa_check;
+
+                if ($count_depdr_k2_check < 0.75) break;
+                if ($count_depdr_fyc_check < 60000000) {
+                    if ($count_depdr_aa_check < 3) $result = 0.05 * $count_depdr_fyc_check;
+                    if ($count_depdr_aa_check >= 3) $result = 0.1 * $count_depdr_fyc_check;
+                } else if ($count_depdr_fyc_check >= 25000000) {
+                    if ($count_depdr_aa_check < 3) $result = 0.05 * $count_depdr_fyc_check;
+                    if ($count_depdr_aa_check == 3) $result = 0.1 * $count_depdr_fyc_check;
+                    if ($count_depdr_aa_check > 3) $result = 0.15 * $count_depdr_fyc_check;
+                }
                 break;
             case 'dm_rwd_tnql':
+                if (!$this->checkValidTpay('y')) break;
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
+                $depdrCodes = $data['depDrCodes'];
+                $count_depdr_check = count($depdrCodes);
+                if (!count($depdrCodes)) break;
+                $depdr_fyc = $this->getTotalFYCByCodes($depdrCodes, 0, 12);
+                $result = 0.06 * $depdr_fyc;
+                $month_valid = Carbon::now()->addYears(1)->startOfMonth()->format('Y-06-d');
                 break;
             case 'dm_rwd_ptptt':
+                //
                 break;
             case 'dm_rwd_gt':
+                $drCodes = $data['drCodes'];
+                $count_dr_check = count($drCodes);
+                if (!$count_dr_check) break;
+                $dr_qlhtthhptt_check = $this->getTotalRewardTypeByCodes($drCodes, 'dm_rwd_qlhtthhptt');
+                $result = 0.5 * $dr_qlhtthhptt_check;
                 break;
             case 'dm_rwd_tcldt_sdm':
+                if (!in_array($agent->designation_code, ['DM'])) break;
+                if ($data['npos'] != 'SDM') break;
+                if (Util::get_designation_rank($data['hpos']) >= Util::get_designation_rank('SDM')) break;
+                $result = 1;
                 break;
             case 'dm_rwd_tcldt_am':
+                if (!in_array($agent->designation_code, ['SDM'])) break;
+                if ($data['npos'] != 'AM') break;
+                if (Util::get_designation_rank($data['hpos']) >= Util::get_designation_rank('AM')) break;
+                $result = 1;
                 break;
             case 'dm_rwd_tcldt_rd':
+                if (!in_array($agent->designation_code, ['AM'])) break;
+                if ($data['npos'] != 'RD') break;
+                if (Util::get_designation_rank($data['hpos']) >= Util::get_designation_rank('RD')) break;
+                $result = 1;
                 break;
             case 'dm_rwd_dthdtptt':
+                //
                 break;
             case 'rd_rwd_dscnht':
+                if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
+                $fyp = $this->getFYP($agent);
+                $result = 0.65 * $fyp;
                 break;
             case 'rd_hh_nsht':
+                if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
+                if ($data['isDrAreaManager']) {
+                    $teamAGCodes = $data['teamAGCodes'];
+                    $count_teamAG_fyc_check = $this->getTotalFYCByCodes($teamAGCodes);
+                    if ($count_teamAG_fyc_check < 100000000) $result = 0.15 * $count_teamAG_fyc_check;
+                    else if ($count_teamAG_fyc_check >= 100000000) $result = 0.2 * $count_teamAG_fyc_check;
+                }
+                if (in_array($agent->designation_code, ['SRD', 'TD'])) {
+                    $drCodes = $data['drCodes'];
+                    $count_dr_check = count($drCodes);
+                    if (!$count_dr_check) break;
+                    $rd_hh_nsht_check = $this->getTotalRewardTypeByCodes($drCodes, 'rd_hh_nsht');
+                    $result += 0.5 * $rd_hh_nsht_check;
+                }
                 break;
             case 'rd_rwd_dctkdq':
+                if (!$this->checkValidTpay('q')) break;
+                if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
+                $qTargetFYC = $this->getTarget($agent, 'q', 'FYC', date('Y-m-d'));
+                if (!$qTargetFYC) $percFYC_check = 1;
+                else {
+                    $fyc_check = $this->getFYC($agent, 0, 3);  // FYC check là check theo FYC cá nhân hay toàn vùng?
+                    $percFYC_check = $fyc_check / $qTargetFYC;
+                }
+                if ($percFYC_check < 1) break;
+                $k2_check = $this->getK2($agent, 0, 3) / 3;
+                if ($k2_check < 0.75) break;
+                $last_quater_HC = $this->getAU($agent, 3);
+                $then_quater_HC = $this->getAU($agent);
+                $incHC_check = $then_quater_HC / $last_quater_HC - 1;
+                $teamAGCodes = $data['teamAGCodes'];
+                $count_teamAG_fyc_check = $this->getTotalFYCByCodes($teamAGCodes);
+                if ($data['isDrAreaManager']) {
+                    if ($incHC_check < 0.2) $result = 0.05 * $count_teamAG_fyc_check;
+                    else if ($incHC_check >= 0.2) $result = 0.1 * $count_teamAG_fyc_check;
+                }
+                if (in_array($agent->designation_code, ['SRD', 'TD'])) {
+                    $drCodes = $data['drCodes'];
+                    $count_dr_check = count($drCodes);
+                    if (!$count_dr_check) break;
+                    $rd_hh_nsht_check = $this->getTotalRewardTypeByCodes($drCodes, 'rd_rwd_dctkdq');
+                    $result += 0.5 * $rd_hh_nsht_check;
+                }
                 break;
             case 'rd_rwd_tndhkd':
+                if (!$this->checkValidTpay('y')) break;
+                if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
+                // $k2_check = $this->getK2($agent, 0, 12) / 12; // K2 này lấy cả năm hay tháng đó
+                // if($k2_check < 0.75) break;
+                $month_in_position = $data['tp'];
+                $yTargetFYC = $this->getTarget($agent, 'y', 'FYC', date('Y-m-d'));
+                if (!$yTargetFYC) $percFYC_check = 1;
+                else {
+                    $fyc_check = $this->getFYC($agent, 0, 12);  // FYC check là check theo FYC cá nhân hay toàn vùng?
+                    $percFYC_check = $fyc_check / $yTargetFYC;
+                }
+                if ($percFYC_check < 1) break;
+                if ($data['isDrAreaManager']) {
+                    $teamAGCodes = $data['teamAGCodes'];
+                    $count_teamAG_fyc_check = $this->getTotalFYCByCodes($teamAGCodes);
+                    if ($month_in_position <= 12) $result = 0.035 * $count_teamAG_fyc_check;
+                    if ($month_in_position <= 24) $result = 0.05 * $count_teamAG_fyc_check;
+                    if ($month_in_position <= 36) $result = 0.07 * $count_teamAG_fyc_check;
+                }
+                if (in_array($agent->designation_code, ['SRD', 'TD'])) {
+                    $drCodes = $data['drCodes'];
+                    $count_dr_check = count($drCodes);
+                    if (!$count_dr_check) break;
+                    $rd_hh_nsht_check = $this->getTotalRewardTypeByCodes($drCodes, 'rd_rwd_tndhkd');
+                    $result += 0.5 * $rd_hh_nsht_check;
+                }
+                $month_valid = Carbon::now()->addYears(1)->startOfMonth()->format('Y-03-d');
                 break;
             case 'rd_rwd_dbgdmht':
+                if (!in_array($agent->designation_code, ['TD'])) break;
+                $teamAGCodes = $data['teamAGCodes'];
+                $count_teamAG_fyc_check = $this->getTotalFYCByCodes($teamAGCodes);
+                $result = 0.05 * $count_teamAG_fyc_check;
                 break;
             case 'rd_rwd_tcldt_srd':
+                if (!in_array($agent->designation_code, ['RD'])) break;
+                if ($data['npos'] != 'SRD') break;
+                if (Util::get_designation_rank($data['hpos']) >= Util::get_designation_rank('SRD')) break;
+                $result = 1;
                 break;
             case 'rd_rwd_tcldt_td':
+                if (!in_array($agent->designation_code, ['SRD'])) break;
+                if ($data['npos'] != 'TD') break;
+                if (Util::get_designation_rank($data['hpos']) >= Util::get_designation_rank('TD')) break;
+                $result = 1;
                 break;
             case 'rd_rwd_dthdtvtt':
+                if (!$this->checkValidTpay('q')) break;
+                if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
+                if (!$data['isDrAreaManager']) break;
+                $teamAGCodes = $data['teamAGCodes'];
+                $count_teamAG_check = count($teamAGCodes);
+                $count_teamAG_k2_check = $this->getTotalK2ByCodes($teamAGCodes, 0, 3) / (3 * $count_teamAG_check);  // K2 toàn vùng theo quý hay theo tháng hiện tại
+                $count_teamAG_fyp_check = $this->getTotalFYPByCodes($teamAGCodes);
+                if($count_teamAG_k2_check < 0.75) break;
+                if ($data['isDrAreaManager']) {
+                    if($count_teamAG_k2_check < 0.8) $result = 0.015 * $count_teamAG_fyp_check;
+                    else if($count_teamAG_k2_check < 0.9) $result = 0.02 * $count_teamAG_fyp_check;
+                    else if($count_teamAG_k2_check >= 0.9) $result = 0.03 * $count_teamAG_fyp_check;
+                }
+
+                if (in_array($agent->designation_code, ['SRD', 'TD'])) {
+                    $drCodes = $data['drCodes'];
+                    $count_dr_check = count($drCodes);
+                    if (!$count_dr_check) break;
+                    $rd_rwd_dthdtvtt_check = $this->getTotalRewardTypeByCodes($drCodes, 'rd_rwd_dthdtvtt');
+                    $result += 0.5 * $rd_rwd_dthdtvtt_check;
+                }
                 break;
         }
-        return [$result, $month];
+        return [$result, $month, $month_valid];
     }
 
     private function checkValidTpay($tpay)
