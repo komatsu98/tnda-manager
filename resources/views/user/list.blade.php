@@ -8,6 +8,7 @@
 				Danh sách thành viên
 				<!-- <a href="{{ route('admin.user.create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a> -->
 				<a href="{{ route('admin.user.bulk_create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a>
+				<a href="{{ route('admin.user.export_structure')}}"><span style="font-size: 24px;"><i class="fas fa-download text-grey" aria-hidden="true"></i></span></a>
 			</h2>
 
 		</div>

@@ -30,6 +30,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/admin/users', 'AdminController@importUsers')->name('admin.user.import');
     Route::get('/admin/user/{user}/edit', 'AdminController@editUser')->name('admin.user.edit');
     Route::put('/admin/user/{user}', 'AdminController@updateUser')->name('admin.user.update');
+    Route::get('/admin/users/structure', 'AdminController@exportUsersStructure')->name('admin.user.export_structure');
 
     Route::get('/admin/contracts', 'AdminController@listContracts')->name('admin.contracts');
     Route::get('/admin/user/{user}/contract', 'AdminController@listUserContracts')->name('admin.user.contracts');

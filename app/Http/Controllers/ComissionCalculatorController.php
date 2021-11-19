@@ -445,8 +445,6 @@ class ComissionCalculatorController extends Controller
         return $countK2;
     }
 
-    // private function getDrValidFor
-
     private function getDr($agent)
     {
         $dr = $agent->directUnders();
@@ -509,12 +507,6 @@ class ComissionCalculatorController extends Controller
         if ($target) $amount = $target->amount;
         return $amount;
     }
-
-    // private function getDepDrCodes($agent)
-    // {
-    //     $depdrCodes = $agent->directUnders()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
-    //     return $depdrCodes;
-    // }
 
     private function updateThisMonthReward($agent, $data)
     {
@@ -938,6 +930,10 @@ class ComissionCalculatorController extends Controller
                 break;
         }
         return $list_result;
+    }
+
+    private function getThisMonthFinalIncome($agent) {
+        
     }
 
     private function checkValidTpay($tpay)
