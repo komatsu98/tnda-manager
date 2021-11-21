@@ -95,6 +95,6 @@ Route::prefix('api')->group(function () {
     Route::get('/test/{id}', 'PartnerController@VBICheckUpdateContract')->name('api.test');
 });
 
-Route::prefix('guess')->group(function () {
+Route::prefix('guest')->group(function () {
     Route::get('/users/structure', 'AdminController@exportUsersStructure')->name('admin.user.export_structure');
 });
