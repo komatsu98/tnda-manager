@@ -6,7 +6,8 @@
 		<div class="col-md-6">
 			<h2>
 			Danh sách hợp đồng
-			<a href="{{ route('admin.contract.create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a>
+			<!-- <a href="{{ route('admin.contract.create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a> -->
+			<a href="{{ route('admin.contract.bulk_create')}}"><span style="font-size: 24px;"><i class="fas fa-plus text-grey" aria-hidden="true"></i></span></a>
 			</h2>
 		</div>
 		<div class="col-md-6">

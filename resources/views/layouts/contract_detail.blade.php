@@ -39,7 +39,7 @@
             <td>{{ $contract->premium_received }}</td>
             <td>{{ $contract->maturity_date }}</td>
             <td>{{ $contract->info_awaiting_text }}</td>
-            <td><a href="{{route('admin.contract.edit', $contract->contract_code)}}"><i class="fa fa-edit"></i></a></td>
+            <td><a href="{{route('admin.contract.edit', $contract->id)}}"><i class="fa fa-edit"></i></a></td>
         </tr>
         @empty
         <tr>

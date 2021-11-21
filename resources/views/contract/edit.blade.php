@@ -6,7 +6,7 @@
     <div class="row justify-content-center">
         <div class="col-md-6 mb-3">
             <h2 class="mb-3">Cập nhật thông tin hợp đồng</h2>
-            <h4>Số TNDA{{ $contract->contract_code }} - {{ $contract->partner_contract_code }}</h4>
+            <h4>Số {{$contract->partner_code}} - {{ $contract->partner_contract_code }}</h4>
         </div>
         <div class="col-md-6">
             <div class="float-right">
@@ -25,14 +25,11 @@
                 {{ session('error') }}
             </div>
             @endif
-            <form action="{{ route('admin.contract.update', ['contract_code' => $contract->contract_code]) }}" method="POST">
+            <form action="{{ route('admin.contract.update', $contract->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="row">
-                    <div class="col-md-4 form-group">
-                        <label for="name">Số hợp đồng TNDA</label>
-                        <input type="text" class="form-control" id="contract_code" name="contract_code" value="{{ $contract->contract_code }}" required>
-                    </div>
+                    
                     <div class="col-md-3 form-group">
                         <label for="customer_id">ID khách hàng</label>
                         <input type="text" class="form-control" id="customer_id" name="customer_id" value="{{ $contract->customer_id }}" required>

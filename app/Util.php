@@ -130,11 +130,11 @@ class Util
             // "UX02" => "Khoản Đầu Tư Thêm Dự Kiến",
             // "QWP1" => "Embedded Waiver",
             // "UL04" => "FWD Đón đầu thay đổi 2.0",
-            "AC03" => "FWD CARE Bảo hiểm tai nạn",
+            // "AC03" => "FWD CARE Bảo hiểm tai nạn",
             // "HS03" => "Bảo Hiểm Hỗ Trợ Viện Phí do tai nạn",
             // "UL01" => "Linh Hoạt 3 Trong 1 - Quyền lợi cơ bản",
             // "AC02" => "Bảo Hiểm Tai Nạn Cá Nhân Toàn Diện",
-            "CI04" => "FWD CARE Bảo hiểm bệnh hiểm nghèo 2.0",
+            // "CI04" => "FWD CARE Bảo hiểm bệnh hiểm nghèo 2.0",
             // "HS01" => "Bảo hiểm trợ cấp viện phí và chi phí phẫu thuật",
             // "CI02" => "Bảo Hiểm Bổ Trợ Trợ Cấp Thu Nhập Khi Mắc Bệnh Hiểm Nghèo",
             // "HS02" => "Bảo Hiểm Trợ Cấp Viện Phí Và Phẫu Thuật",
@@ -154,10 +154,50 @@ class Util
             // "IX01" => "Khoản Đầu Tư Thêm",
             // "IL01" => "FWD Bộ đôi tài sản",
             // "EF02" => "FWD Cả nhà vui khỏe - Kế hoạch B",
-            "BAN_LE_TITAN" => "VBIcare gói Titan",
-            "BAN_LE_BAC" => "VBIcare gói Bạc"
+            "CN.6" => "Bảo hiểm sức khỏe",
+            "XC.1.1" => "Bảo hiểm xe máy",
+            "XE" => "Bảo hiểm ô tô",
+            "CORONA" => "Vi Cong Dong",
+            "VBI.8" => "Bảo hiểm tai nạn",
+            "VBI.9" => "Bảo hiểm sức khỏe",
+            "VBI.10" => "Bảo hiểm ung thư",
+            "VBI.11" => "Bảo hiểm ung thư vú",
+            "VBI.12" => "Bảo hiểm bệnh hiểm nghèo",
+            "VBI.13" => "Bảo hiểm du lịch nội địa",
+            "VBI.14" => "Bảo hiểm du lịch quốc tế",
+            "VBI.15" => "Bảo hiểm vật chất xe ô tô",
+            "VBI.16" => "Bảo hiểm TNDS xe ô tô",
+            "VBI.17" => "Bảo hiểm TNDS xe máy",
+            "VBI.18" => "Bảo hiểm nhà tư nhân"
         ];
         return $product_code;
+    }
+
+    public static function get_comission_perc($product_code)
+    {
+        $com = 0;
+        switch ($product_code) {
+            case 'CN.6':
+            case 'XC.1.1':
+            case 'XE':
+            case 'CORONA': // ???????????
+            case 'VBI.8':
+            case 'VBI.9':
+            case 'VBI.10':
+            case 'VBI.11':
+            case 'VBI.12':
+            case 'VBI.13':
+            case 'VBI.14':
+            case 'VBI.15':
+            case 'VBI.16':
+            case 'VBI.17':
+                $com = 0.07;
+                break;
+            case 'VBI.18':
+                $com = 0.03;
+                break;
+        }
+        return $com;
     }
 
     public static function get_income_code()
@@ -545,6 +585,17 @@ class Util
         return $documents;
     }
 
+    public static function get_customer_type()
+    {
+        $customer_types = [
+            [
+                '1' => 'Cá nhân',
+                '2' => 'Doanh nghiệp'
+            ]
+        ];
+        return $customer_types;
+    }
+
     public static function get_highest_agent_code($is_special = false)
     {
         $ha = User::select('agent_code');
@@ -581,17 +632,6 @@ class Util
             return ($score_a < $score_b) ? 1 : -1;
         });
         return $users;
-    }
-
-    public static function get_highest_contract_code()
-    {
-        $ha = Contract::select('contract_code')->orderBy('contract_code', 'desc')
-            ->limit(1)
-            ->first();
-        if (!$ha) {
-            return 0;
-        }
-        return $ha['contract_code'];
     }
 
     public static function get_saved_numbers()

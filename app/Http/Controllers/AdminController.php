@@ -11,6 +11,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Illuminate\Support\Facades\Validator;
 use Excel;
 use App\UsersImport;
+use App\ContractsImportVBI;
 use Illuminate\Support\Facades\DB;
 
 use App\User;
@@ -349,7 +350,7 @@ class AdminController extends Controller
         }
         if (request()->has('search')) {
             $str = trim(strtolower(request('search')), ' ');
-            $contracts = $contracts->where('contract_code', 'LIKE', '%' . $str . '%')
+            $contracts = $contracts->where('partner_contract_code', 'LIKE', '%' . $str . '%')
                 ->orwhere('agent_code', 'LIKE', '%' . $str . '%');
         }
         $contracts = $contracts->paginate(25);
@@ -359,9 +360,9 @@ class AdminController extends Controller
         return view('contract.list', ['contracts' => $contracts]);
     }
 
-    public function getContract(Request $request, $contract_code)
+    public function getContract(Request $request, $contract_id)
     {
-        $contract = Contract::where(['contract_code' => $contract_code])->first();
+        $contract = Contract::find($contract_id);
         if(!$contract) {
             return back()->with('error', 'Không tìm thấy hợp đồng!');
         }
@@ -370,9 +371,9 @@ class AdminController extends Controller
         return view('contract.detail', compact('contract'));
     }
 
-    public function getContractRaw(Request $request, $contract_code)
+    public function getContractRaw(Request $request, $contract_id)
     {
-        $contract = Contract::where(['contract_code' => $contract_code])->first();
+        $contract = Contract::find($contract_id);
         // $this->parseContractDetail($contract);
         // if($contract) {
         //     $list_designation_code = Util::get_designation_code();
@@ -467,9 +468,7 @@ class AdminController extends Controller
         // if ($check_exists) {
         //     return redirect('admin/users')->with('error', 'Số CMND đã tồn tại!');
         // }
-        $highest_contract_code = Util::get_highest_contract_code();
-        $contract_code = str_pad($highest_contract_code + 1, 8, "0", STR_PAD_LEFT);
-        $input['contract_code'] = $contract_code;
+        
         $input['expire_date'] = $input['maturity_date'];
         if(isset($input['product_code']) && is_array($input['product_code'])) {
             $input['product_code'] = implode(",",$input['product_code']);
@@ -488,12 +487,12 @@ class AdminController extends Controller
             return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại!');
         }
 
-        return redirect('admin/contract/' . $contract_code)->with('success', 'Thêm hợp đồng thành công');
+        return redirect('admin/contract/' . $new_contract->id)->with('success', 'Thêm hợp đồng thành công');
     }
 
-    public function editContract($contract_code)
+    public function editContract($contract_id)
     {
-        $contract = Contract::where(['contract_code' => $contract_code])->first();
+        $contract = Contract::find($contract_id);
         if ($contract) {
             $list_partners = Util::get_partners();
             $list_product_code = Util::get_product_code();
@@ -522,9 +521,9 @@ class AdminController extends Controller
         }
     }
 
-    public function updateContract(Request $request, $contract_code)
+    public function updateContract(Request $request, $contract_id)
     {
-        $contract = Contract::where(['contract_code' => $contract_code])->first();
+        $contract = Contract::find($contract_id);
         if (!$contract) {
             return redirect('admin/contracts')->with('error', 'Không tìm thấy hợp đồng.');
         }
@@ -547,7 +546,89 @@ class AdminController extends Controller
         }
     }
 
+    public function createBulkContracts()
+    {
+        $list_partners = Util::get_partners();
+        return view('contract.import', ['list_partners' => $list_partners]);
+    }
 
+    public function importContracts(Request $request)
+    {       
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:xlsx',
+            'partner_code' => 'required'
+        ]);
+        // process the form
+        if ($validator->fails()) {
+            return redirect()->to(route('admin.contract.bulk_create'))->withErrors($validator);
+        } else {
+            switch($request->partner_code) {
+                case 'VBI':
+                    $import = new ContractsImportVBI;
+                    break;
+                default:
+                    $import = null;
+            }
+            if(!$import) return back()->with('error', 'Có lỗi xảy ra. Vui lòng thử lại.');
+
+            Excel::import($import, $request->file('file'));
+            $errors = [];
+            $success = [];
+            $final = [];
+            dd($import->data); exit;
+            foreach($import->data as $user) {
+                try 
+                {
+                    $reference = User::where(['username' => $user['IFA_ref_code']])->orWhere(['identity_num' => $user['IFA_ref_code']])->first();
+                    if ($reference) {
+                        $user['reference_code'] = $reference->agent_code;
+                    }
+                    $supervisor = User::where(['username' => $user['IFA_supervisor_code']])->orWhere(['identity_num' => $user['IFA_supervisor_code']])->first();
+                    if ($supervisor) {
+                        $user['supervisor_code'] = $supervisor->agent_code;
+                    }
+                    $highest_agent_code = $user['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(true)) : intval(Util::get_highest_agent_code());
+                    $saved_numbers = Util::get_saved_numbers();
+                    while(in_array($highest_agent_code + 1, $saved_numbers)) {
+                        $highest_agent_code++;
+                    }
+                    $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
+                    $user['agent_code'] = $agent_code;
+                    $user['username'] = 'TNDA' . $agent_code;
+                    $user['reference_r'] = [];
+                    $user['supervisor_r'] = [];
+
+
+                    User::create($user);
+                    $reference_r = User::where(['IFA_ref_code' => $user['identity_num']])->orWhere(['IFA_ref_code' => $user['username']])->get();
+                    foreach($reference_r as $rf) {
+                        $rf->reference_code = $user['agent_code'];
+                        $user['reference_r'][] = $rf->agent_code;
+                        $rf->save();
+                    }
+                    $supervisor_r = User::where(['IFA_supervisor_code' => $user['identity_num']])->orWhere(['IFA_supervisor_code' => $user['username']])->get();
+                    foreach($supervisor_r as $sf) {
+                        $sf->supervisor_code = $user['agent_code'];
+                        $sf->save();
+                        $user['supervisor_r'][] = $sf->agent_code;
+                    }
+                    // $final[] = $user;
+                    $success[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . "\r\n";
+                }
+                catch(\Illuminate\Database\QueryException $e){
+                    $errors[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . " FAILED:" .$e->getMessage() . "\r\n";
+                }
+            }
+            // dd($final); exit;
+
+            if(count($errors)) {
+                return back()->with('error', "SUCCESS ". json_encode($success) . "\r\n===============\r\nERROR " . json_encode($errors));
+            } else {
+                return back()->with('success', 'Thêm mới hợp đồng thành công' . json_encode($success));
+            }
+        }
+        return back();
+    }
     public function getCustomerRaw(Request $request, $id)
     {
         $customer = Customer::where(['id' => $id])->first();
@@ -562,8 +643,10 @@ class AdminController extends Controller
         $agent = User::where(['agent_code' => $start_agent_code])->first();
         $structure = [];
         $structure[$agent->designation_code . " - " . $agent->fullname . " - TNDA" . $agent->agent_code] = getStructure($structure, $agent);
-        echo '<pre>';
-        print_r(json_encode($structure));
+        // echo '<pre>';
+        // print_r();
+
+        return view('user.structure', ['data' => json_encode($structure)]);
     }
 }
 function getStructure($structure, $agent) {

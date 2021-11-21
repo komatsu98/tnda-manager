@@ -122,7 +122,7 @@ class AgentController extends Controller
         }
         $contract_code = request('contract_code');
         $agent = $check['session']->agent;
-        $contract = $agent->contracts()->where(['contract_code' => $contract_code])->first();
+        $contract = $agent->contracts()->where(['partner_contract_code' => $contract_code])->first();
         $data = [];
         if (!$contract) {
             $respStatus = 'error';
@@ -606,7 +606,7 @@ class AgentController extends Controller
         }
         if ($search != '') {
             $contracts = $contracts->where(function ($q) use ($search) {
-                $q->where('contract_code', 'like', '%' . $search . '%')
+                $q->where('partner_contract_code', 'like', '%' . $search . '%')
                     ->orWhereHas('customer', function ($query) use ($search) {
                         $query->where('fullname', 'like', '%' . $search . '%');
                     });
@@ -649,6 +649,7 @@ class AgentController extends Controller
             $contract->term_text = $this->contract_term_code[$contract->term_code];
             $contract->info_awaiting_text = $info_awaiting_text;
             $contract->agent_name = $contract->agent()->pluck('fullname')[0];
+            $contract->contract_code = $contract->partner_contract_code;
         }
         $data = [];
         $respStatus = 'success';
@@ -808,7 +809,7 @@ class AgentController extends Controller
             $transactions = $transactions->where('trans_date', '<=', $trans_to);
         }
         if ($contract_code !== '') {
-            $transactions = $transactions->where('contract_code', '=', $contract_code);
+            $transactions = $transactions->where('partner_contract_code', '=', $contract_code);
         }
 
         $transactions = $transactions->orderBy('created_at', 'desc')->offset($offset)->take($limit)->get();

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $table = 'transactions';
-    protected $fillable = ['agent_code', 'contract_code', 'premium_received', 'trans_date'];
+    protected $fillable = ['agent_code', 'contract_id', 'premium_received', 'trans_date'];
     protected $casts = [
     ];
 
@@ -21,6 +21,6 @@ class Transaction extends Model
 
     public function contract()
     {
-        return $this->belongsTo('App\Contract', 'contract_code', 'contract_code');
+        return $this->belongsTo('App\Contract', 'contract_id', 'id');
     }
 }

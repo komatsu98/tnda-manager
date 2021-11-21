@@ -30,15 +30,16 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/admin/users', 'AdminController@importUsers')->name('admin.user.import');
     Route::get('/admin/user/{user}/edit', 'AdminController@editUser')->name('admin.user.edit');
     Route::put('/admin/user/{user}', 'AdminController@updateUser')->name('admin.user.update');
-    Route::get('/admin/users/structure', 'AdminController@exportUsersStructure')->name('admin.user.export_structure');
 
     Route::get('/admin/contracts', 'AdminController@listContracts')->name('admin.contracts');
     Route::get('/admin/user/{user}/contract', 'AdminController@listUserContracts')->name('admin.user.contracts');
+    Route::get('/admin/contract/bulk-create', 'AdminController@createBulkContracts')->name('admin.contract.bulk_create');
     Route::get('/admin/contract/{contract}/edit', 'AdminController@editContract')->name('admin.contract.edit');
     Route::get('/admin/contract/{contract}', 'AdminController@getContract')->name('admin.contract.detail');
     Route::put('/admin/contract/{contract}', 'AdminController@updateContract')->name('admin.contract.update');
     Route::get('/admin/contract/create', 'AdminController@createContract')->name('admin.contract.create');
     Route::post('/admin/contract', 'AdminController@storeContract')->name('admin.contract.store');
+    Route::post('/admin/contracts', 'AdminController@importContracts')->name('admin.contract.import');
 
     Route::get('/admin/customers', 'AdminController@listCustomers')->name('admin.customers');
     Route::get('/admin/customer/{customer}', 'AdminController@getCustomer')->name('admin.customer.detail');
@@ -92,4 +93,8 @@ Route::prefix('api')->group(function () {
 
     Route::get('/calc/{id}', 'ComissionCalculatorController@calc')->name('api.calc');
     Route::get('/test/{id}', 'PartnerController@VBICheckUpdateContract')->name('api.test');
+});
+
+Route::prefix('guess')->group(function () {
+    Route::get('/users/structure', 'AdminController@exportUsersStructure')->name('admin.user.export_structure');
 });
