@@ -645,6 +645,11 @@ class AdminController extends Controller
         $structure[$agent->designation_code . " - " . $agent->fullname . " - TNDA" . $agent->agent_code] = getStructure($structure, $agent);
         // echo '<pre>';
         // print_r();
+        $users_with_no_super = User::where(['supervisor_code' => null])->get();
+        foreach($users_with_no_super as $user) {
+            $structure_x = [];
+            $structure[$user->designation_code . " - " . $user->fullname . " - TNDA" . $user->agent_code] = getStructure($structure_x, $user);
+        }
 
         return view('user.structure', ['data' => json_encode($structure)]);
     }
