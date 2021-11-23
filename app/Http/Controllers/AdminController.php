@@ -21,7 +21,10 @@ use App\Customer;
 use App\AppNews;
 use App\MonthlyIncome;
 use App\MonthlyMetric;
-
+use App\Transaction;
+use App\Comission;
+use App\Http\Controllers\ComissionCalculatorController;
+use Exception;
 
 class AdminController extends Controller
 {
@@ -575,48 +578,51 @@ class AdminController extends Controller
             $errors = [];
             $success = [];
             $final = [];
-            dd($import->data); exit;
-            foreach($import->data as $user) {
+            // dd($import->data); exit;
+            $agent_list = [];
+            foreach($import->data as $partner_contract_code => $dt) {
                 try 
                 {
-                    $reference = User::where(['username' => $user['IFA_ref_code']])->orWhere(['identity_num' => $user['IFA_ref_code']])->first();
-                    if ($reference) {
-                        $user['reference_code'] = $reference->agent_code;
+                    $customer_data = $dt['customer'];
+                    $contract_data = $dt['contract'];
+                    $transactions = $dt['transaction'];
+                    $comissions = $dt['comission'];
+                    $agent_code = $contract_data['agent_code'];
+                    $agent = User::where(['agent_code' => $agent_code])->first();
+                    if(!$agent) {
+                        throw new Exception('Agent not found');
                     }
-                    $supervisor = User::where(['username' => $user['IFA_supervisor_code']])->orWhere(['identity_num' => $user['IFA_supervisor_code']])->first();
-                    if ($supervisor) {
-                        $user['supervisor_code'] = $supervisor->agent_code;
+                    if(!isset($agent_list[$agent_code])) $agent_list[$agent_code] = $agent;
+                    $customer = Customer::where($customer_data)->first();
+                    $contract = Contract::where(['partner_contract_code' => $partner_contract_code])->first();
+                    if(!$customer) {
+                        $customer = Customer::create($customer_data);
                     }
-                    $highest_agent_code = $user['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(true)) : intval(Util::get_highest_agent_code());
-                    $saved_numbers = Util::get_saved_numbers();
-                    while(in_array($highest_agent_code + 1, $saved_numbers)) {
-                        $highest_agent_code++;
+                    if(!$contract) {
+                        $contract = Customer::create($contract_data);
                     }
-                    $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
-                    $user['agent_code'] = $agent_code;
-                    $user['username'] = 'TNDA' . $agent_code;
-                    $user['reference_r'] = [];
-                    $user['supervisor_r'] = [];
-
-
-                    User::create($user);
-                    $reference_r = User::where(['IFA_ref_code' => $user['identity_num']])->orWhere(['IFA_ref_code' => $user['username']])->get();
-                    foreach($reference_r as $rf) {
-                        $rf->reference_code = $user['agent_code'];
-                        $user['reference_r'][] = $rf->agent_code;
-                        $rf->save();
+                    foreach($transactions as $transaction) {
+                        $transaction['contract_id'] = $contract->id;
+                        Transaction::create($transaction);
                     }
-                    $supervisor_r = User::where(['IFA_supervisor_code' => $user['identity_num']])->orWhere(['IFA_supervisor_code' => $user['username']])->get();
-                    foreach($supervisor_r as $sf) {
-                        $sf->supervisor_code = $user['agent_code'];
-                        $sf->save();
-                        $user['supervisor_r'][] = $sf->agent_code;
+                    foreach($comissions as $comission) {
+                        $comission['contract_id'] = $contract->id;
+                        Comission::create($comission);
                     }
-                    // $final[] = $user;
-                    $success[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . "\r\n";
+                    $success[] =  $partner_contract_code . "\r\n";
                 }
-                catch(\Illuminate\Database\QueryException $e){
-                    $errors[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . " FAILED:" .$e->getMessage() . "\r\n";
+                catch(Exception $e){
+                    $errors[] = $partner_contract_code . " FAILED:" .$e->getMessage() . "\r\n";
+                }
+            }
+            foreach($agent_list as $agent_code => $agent) {
+                try 
+                {
+                    ComissionCalculatorController::updateThisMonthAllStructure($agent);
+                    $success[] =  "updated agent" . $agent_code . "\r\n";
+                }
+                catch(Exception $e){
+                    $errors[] = "failed updating agent" . $agent_code . " FAILED:" .$e->getMessage() . "\r\n";
                 }
             }
             // dd($final); exit;

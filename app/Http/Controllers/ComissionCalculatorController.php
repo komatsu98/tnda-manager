@@ -45,6 +45,36 @@ class ComissionCalculatorController extends Controller
         $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
         $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data);
         return $data;
+    }    
+
+    public function updateThisMonthAllStructure($agent) {
+        $this->updateThisMonthAgent($agent);
+        while($supervisor = $agent->supervisor) {
+            $this->updateThisMonthAgent($supervisor);
+            $agent = $supervisor;
+        }
+    }
+
+    public function updateThisMonthAgent($agent) {
+        $data = [];
+        $data['twork'] = $this->getTwork($agent);
+        $data['tp'] = $this->getTp($agent);
+        $data['pos'] = $this->getPos($agent);
+        $data['hpos'] = $this->getHpos($agent);
+        $data['npos'] = $this->getNpos($agent);
+        $data['thisMonthMetric'] = $this->updateThisMonthMetric($agent);
+        $data['dr'] = $this->getDr($agent);
+        $data['drCodes'] = $this->getDr($agent)->pluck('agent_code')->toArray();
+        $data['depDr'] = $this->getDepDr($agent);
+        $data['depDrCodes'] = $data['depDr']->pluck('agent_code')->toArray();
+        $data['teamAGCodes'] = $this->getWholeTeamCodes($agent, true);
+        $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
+        $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data);
+        $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotion($agent, $data);
+    }
+
+    public function updateThisMonthPromotionReq($agent, $data) {
+
     }
 
     public function updateThisMonthAllMetrics()
@@ -95,7 +125,7 @@ class ComissionCalculatorController extends Controller
         // return $pos_list[$cur_pos_index];
     }
 
-    private function updateThisMonthMetric($agent)
+    public function updateThisMonthMetric($agent)
     {
         $metric = $this->calcThisMonthMetric($agent);
         $month = Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -508,7 +538,7 @@ class ComissionCalculatorController extends Controller
         return $amount;
     }
 
-    private function updateThisMonthReward($agent, $data)
+    public function updateThisMonthReward($agent, $data)
     {
         $month = Carbon::now()->startOfMonth()->format('Y-m-d');
         // clear
@@ -582,6 +612,15 @@ class ComissionCalculatorController extends Controller
             $countReward = intval($rewards[0]->{$type});
         }
         return $countReward;
+    }
+
+    private function calcThisMonthPromotionReqType($agent, $data, $type) {
+        $list_result = [];
+        switch($type) {
+            case 'PRO_AM_DM':
+                
+                break;
+        }
     }
 
     private function calcThisMonthRewardType($agent, $data, $type)
