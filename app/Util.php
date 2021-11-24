@@ -3,6 +3,7 @@
 namespace App;
 
 use App\User;
+use Illuminate\Support\Carbon;
 
 class Util
 {
@@ -717,5 +718,13 @@ class Util
     {
         $ranks = ['AG' => 1, 'DM' => 2, 'SDM' => 3, 'AM' => 4, 'RD' => 5, 'SRD' => 6, 'TD' => 7, 'PGD' => 8, 'GD' => 9, 'ADMIN' => 99];
         return $ranks[$d];
+    }
+
+    public static function parseDateExcel($d = '', $format = 'd/m/Y', $target_format = '') {
+        $d = trim($d);
+        if(!$d || $d == '') return null;
+        $date = Carbon::createFromFormat($format, is_numeric($d) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($d)->format($format) : $d);
+        if($target_format != '') $date = $date->format('Y-m-d');
+        return $date;
     }
 }

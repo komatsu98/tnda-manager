@@ -1,7 +1,6 @@
 <table class="table table-bordered">
     <thead class="thead-light">
         <tr>
-            <th>Số hợp đồng TNDA</th>
             <th>Tên khách hàng</th>
             <th>Đối tác</th>
             <th>Số hợp đồng đối tác</th>
@@ -23,7 +22,6 @@
     <tbody>
         @forelse ($contracts as $contract)
         <tr>
-            <td>{{ $contract->contract_code }}</td>
             <td><a href="{{route('admin.customer.detail', $contract->customer_id)}}">{{ $contract->customer_name }}</a></td>
             <td>{{ $contract->partner_text }}</td>
             <td>{{ $contract->partner_contract_code }}</td>

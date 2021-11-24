@@ -19,20 +19,25 @@ class ContractsImportVBI implements ToCollection
     public function collection(Collection $rows)
     {
         $data = [];
+        // dd($rows); exit;
         foreach($rows as $row) {
             if($row[0] == "STT") {
                 continue;
             }
+            foreach($row as $key => $field) {
+                $row[$key] = trim($field);
+            }
             $product_code = $row[7];
-            $partner_product_code = $row[8];
-            $submit_date = Carbon::createFromFormat('m/d/Y', is_numeric($row[10]) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[10])->format('m/d/Y') : $row[10])->format('Y-m-d');
-            $release_date = $row[11];
-            $expire_date = Carbon::createFromFormat('m/d/Y', is_numeric($row[12]) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[12])->format('m/d/Y') : $row[12])->format('Y-m-d');
+            $partner_contract_code = $row[8];
+            $GCN = $row[9];
+            $submit_date = Util::parseDateExcel($row[10], 'd/m/Y', 'Y-m-d');
+            $release_date = Util::parseDateExcel($row[11], 'd/m/Y', 'Y-m-d');
+            $expire_date = Util::parseDateExcel($row[12], 'd/m/Y', 'Y-m-d');
             $maturity_date = Carbon::createFromFormat('Y-m-d', $expire_date)->addYear()->format('Y-m-d');
             $customer_type = $row[14] == 'Cá nhân' ? 1 : 2;
             $customer_identity_num = $row[17];
             $customer_name = $row[18];
-            $customer_day_of_birth = $row[19];
+            $customer_day_of_birth = Util::parseDateExcel($row[19], 'd/m/Y', 'Y-m-d');
             $customer_address = $row[20];
             $customer_phone = $row[21];
             $customer_email = $row[23];
@@ -40,20 +45,20 @@ class ContractsImportVBI implements ToCollection
             $status_code = $this->getStatusCodeFromText($row[30]);
             $agent_code = str_replace(['TND', 'TNDA'], '', $row[38]);
             $comisison = round(Util::get_comission_perc($product_code) * $premium);
-            if(!isset($data[$partner_product_code])) {
-                $data[$partner_product_code] = [];
-                $data[$partner_product_code] = [
+            $term_code = 'y'; // year
+            if(!isset($data[$partner_contract_code])) {
+                $data[$partner_contract_code] = [];
+                $data[$partner_contract_code] = [
                     'contract' => [
                         'agent_code' => $agent_code,
-                        'customer_id' => '',
-                        'partner_product_code' => $partner_product_code,
+                        'partner_contract_code' => $partner_contract_code,
                         'submit_date' => $submit_date,
                         'release_date' => $release_date,
                         'expire_date' => $expire_date,
                         'maturity_date' => $maturity_date,
                         'status_code' => $status_code,
-                        'premium' => $premium,
-                        'total_premium_received' => $premium,
+                        'term_code' => $term_code,
+                        'contract_year' => 1,
                         'partner_code' => 'VBI'
                     ],
                     'customer' => [
@@ -65,22 +70,22 @@ class ContractsImportVBI implements ToCollection
                         'email' => $customer_email,
                         'type' => $customer_type
                     ],
-                    'transaction' => [],
-                    'comission' => [],
+                    'products' => []
                 ];
             }
-            $data[$partner_product_code]['transaction'][] = [
-                'agent_code' => $agent_code,
-                'contract_id' => '',
+            if(!isset($data[$partner_contract_code]['products'][$product_code])) {
+                $data[$partner_contract_code]['products'][$product_code] = [
+                    'premium' => $premium,
+                    'premium_term' => $premium,
+                    'confirmation' => $GCN,
+                    'transactions' => []
+                ];
+            }
+            $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
                 'premium_received' => $premium,
-                'product_code' => $product_code,
-                'trans_date' => $submit_date
-            ];
-            $data[$partner_product_code]['comission'][] =[
-                'agent_code' => $agent_code,
-                'contract_id' => '',
-                'amount' => $comisison,
-                'received_date' => $submit_date
+                'confirmation' => $GCN,
+                'trans_date' => $submit_date,
+                'comission' => $comisison
             ];
         }
         

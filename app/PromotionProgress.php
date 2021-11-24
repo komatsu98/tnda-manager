@@ -4,10 +4,10 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Comission extends Model
+class PromotionProgress extends Model
 {
-    protected $table = 'comissions';
-    protected $fillable = ['agent_code', 'amount', 'contract_id', 'transaction_id', 'received_date'];
+    protected $table = 'promotion_orogress';
+    protected $fillable = ['agent_code', 'pro_code', 'req_id', 'month', 'is_done'];
     protected $casts = [
     ];
 
@@ -17,10 +17,5 @@ class Comission extends Model
     public function agent()
     {
         return $this->belongsTo('App\User', 'agent_code', 'agent_code');
-    }
-
-    public function contract()
-    {
-        return $this->belongsTo('App\Contract');
     }
 }

@@ -4,21 +4,16 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Transaction extends Model
+class ContractProduct extends Model
 {
-    protected $table = 'transactions';
-    protected $fillable = ['agent_code', 'contract_id', 'premium_received', 'trans_date', 'product_code'];
+    protected $table = 'contract_products';
+    protected $fillable = ['contract_id', 'product_code', 'premium', 'premium_term', 'premium_received', 'term_code', 'confirmation'];
     protected $casts = [
     ];
 
     /**
      * The user that history belonged to.
      */
-    public function agent()
-    {
-        return $this->belongsTo('App\User');
-    }
-
     public function contract()
     {
         return $this->belongsTo('App\Contract', 'contract_id', 'id');
