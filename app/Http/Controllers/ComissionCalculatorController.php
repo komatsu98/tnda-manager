@@ -468,9 +468,9 @@ class ComissionCalculatorController extends Controller
                 $query->whereIn('product_code', $list_product);
             });
         }
-        $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
-        $query = vsprintf($query, $FYPs->getBindings());
-        print_r($query);
+        // $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
+        // $query = vsprintf($query, $FYPs->getBindings());
+        // print_r($query);
         $FYPs = $FYPs->selectRaw('sum(premium_received) as count')->get();
         $countFYP = 0;
         if (count($FYPs)) {
@@ -814,7 +814,8 @@ class ComissionCalculatorController extends Controller
                                 $refencee_AG_codes = $agent->referencee()->where([
                                     ['designation_code', '=', 'AG']
                                 ])->pluck('agent_code')->toArray();
-                                $FYC_check = $this->getTotalFYCByCodes($refencee_AG_codes, 0, 6, $month, 1);
+                                $refencee_AG_codes[] = $agent->agent_code;
+                                $FYC_check = $this->getTotalFYCByCodes($refencee_AG_codes, 0, 6, $month);
                                 $r['progress_text'] = round($FYC_check/1000000, 2) . " triệu đồng";
                                 if ($FYC_check >= $r['requirement_value']*1000000) $r['is_done'] = 1;
                                 break;
