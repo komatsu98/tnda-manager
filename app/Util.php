@@ -237,8 +237,8 @@ class Util
     {
         $promotions = [
             [
-                'code' => 'PRO_AM_DM',
-                'designation_code' => 'AM',
+                'code' => 'PRO_DM',
+                'designation_code' => 'AG',
                 'title' => 'Thăng cấp Trưởng phòng kinh doanh',
                 'requiment_count' => 8,
                 'gained_count' => 0,
@@ -311,7 +311,7 @@ class Util
                 ]
             ],
             [
-                'code' => 'STAY_AM',
+                'code' => 'STAY_AG',
                 'designation_code' => 'AM',
                 'title' => 'Duy trì cấp Trưởng phòng kinh doanh',
                 'requiment_count' => 8,

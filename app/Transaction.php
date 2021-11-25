@@ -23,4 +23,9 @@ class Transaction extends Model
     {
         return $this->belongsTo('App\Contract', 'contract_id', 'id');
     }
+
+    public function contract_product()
+    {
+        return $this->belongsTo('App\ContractProduct', 'contract_product_id', 'id');
+    }
 }

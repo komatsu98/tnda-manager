@@ -33,7 +33,7 @@ class ContractsImportVBI implements ToCollection
             $submit_date = Util::parseDateExcel($row[10], 'd/m/Y', 'Y-m-d');
             $release_date = Util::parseDateExcel($row[11], 'd/m/Y', 'Y-m-d');
             $expire_date = Util::parseDateExcel($row[12], 'd/m/Y', 'Y-m-d');
-            $maturity_date = Carbon::createFromFormat('Y-m-d', $expire_date)->addYear()->format('Y-m-d');
+            $maturity_date = $expire_date;
             $customer_type = $row[14] == 'Cá nhân' ? 1 : 2;
             $customer_identity_num = $row[17];
             $customer_name = $row[18];

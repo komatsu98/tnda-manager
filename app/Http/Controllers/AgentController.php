@@ -1035,7 +1035,33 @@ class AgentController extends Controller
             $agent = User::where(['agent_code' => $view_as_code])->first();
         }
 
-        $promotions = Util::get_promotions();
+        $promotions = Util::get_promotions($agent->designation_code);
+        $month = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $eval_date = Carbon::now()->endOfMonth()->format('Y-m-d');
+        foreach($promotions as $i => $p) {
+            $metrics = $agent->promotionProgress()
+            ->where([
+                'agent_code' => $agent->agent_code,
+                'month' => $month,
+                'pro_code' => $p['code']
+            ])->get();
+            foreach($p['requirements'] as $j => $r) {
+                $metric = null;
+                foreach($metrics as $om) {
+                    if($om->req_id == $r['id']) {
+                        $metric = $om;
+                        break;
+                    }
+                }
+                $r['progress_text'] = $metric->progress_text;
+                $r['is_done'] = $metric->is_done;
+                $p['requirements'][$j] = $r;
+                if($r['is_done']) $p['gained_count']++;
+            }
+            $p['evaluation_date'] = $eval_date;
+            $promotions[$i] = $p;
+        }
+        
         $data = [];
         $respStatus = 'success';
         $data['promotions'] = $promotions;

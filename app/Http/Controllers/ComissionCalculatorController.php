@@ -15,6 +15,7 @@ use App\Transaction;
 use App\Comission;
 use App\ContractProduct;
 use App\Promotion;
+use App\PromotionProgress;
 
 class ComissionCalculatorController extends Controller
 {
@@ -46,8 +47,9 @@ class ComissionCalculatorController extends Controller
         $data['depDrCodes'] = $data['depDr']->pluck('agent_code')->toArray();
         $data['teamAGCodes'] = $this->getWholeTeamCodes($agent, true);
         $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
-        $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data);
-        return $data;
+        // $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data, $month);
+        $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data, $month);
+        return $data['thisMonthPromotionReq'];
     }
 
     public function updateThisMonthAllStructure($agent, $month = null)
@@ -76,11 +78,44 @@ class ComissionCalculatorController extends Controller
         $data['teamAGCodes'] = $this->getWholeTeamCodes($agent, true);
         $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
         $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data, $month);
-        $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data);
+        $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data, $month);
     }
 
-    public function updateThisMonthPromotionReq($agent, $data)
+    public function updateThisMonthPromotionReq($agent, $data, $month = null)
     {
+        $progress = $this->calcThisMonthPromotionReqType($agent, $data, $month);
+        if (!$month) {
+            $month = Carbon::now()->startOfMonth()->format('Y-m-d');
+        } else {
+            $month = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
+        }
+        foreach($progress as $p) {
+            $old_metrics = $agent->promotionProgress()
+            ->where([
+                'agent_code' => $agent->agent_code,
+                'month' => $month,
+                'pro_code' => $p['code']
+            ])->get();
+            foreach($p['requirements'] as $r) {
+                $metric = null;
+                foreach($old_metrics as $om) {
+                    if($om->req_id == $r['id']) {
+                        $metric = $om;
+                        break;
+                    }
+                }
+                if(!$metric) $metric = PromotionProgress::create([
+                    'pro_code' => $p['code'],
+                    'agent_code' => $agent->agent_code,
+                    'month' => $month,
+                    'req_id' => $r['id'],
+                    'progress_text' => $r['progress_text'],
+                    'is_done' => $r['is_done']
+                ]);
+                $metric->update($r);
+            }
+        }
+        return $progress;
     }
 
     public function updateThisMonthAllMetrics()
@@ -231,15 +266,8 @@ class ComissionCalculatorController extends Controller
             ['trans_date', '<=', $to]
         ]);
         if (count($list_product) || count($list_sub_product)) {
-            $FYPs = $FYPs->whereHas('contract', function ($query) use ($list_product, $list_sub_product) {
-                $query->where(function ($q) use ($list_product, $list_sub_product) {
-                    foreach ($list_product as $product_code) {
-                        $q->orWhere('product_code', 'like', '%' . $product_code . '%');
-                    }
-                    foreach ($list_sub_product as $sub_product_code) {
-                        $q->orWhere('sub_product_code', 'like', '%' . $sub_product_code . '%');
-                    }
-                });
+            $FYPs = $FYPs->whereHas('contract_product', function ($query) use ($list_product, $list_sub_product) {
+                $query->whereIn('product_code', array_merge($list_product, $list_sub_product));
             });
         }
         // $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
@@ -691,14 +719,88 @@ class ComissionCalculatorController extends Controller
         return $countReward;
     }
 
-    private function calcThisMonthPromotionReqType($agent, $data, $type)
+    private function calcThisMonthPromotionReqType($agent, $data, $month = null)
     {
-        $list_result = [];
-        switch ($type) {
-            case 'PRO_AM_DM':
-
-                break;
+        if (!$month) {
+            $eval_date = Carbon::now()->endOfMonth()->format('Y-m-d');
+        } else {
+            $eval_date = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
         }
+        $pro_reqs = Util::get_promotions($agent->designation_code);
+        foreach ($pro_reqs as $i => $pro_req) {
+            switch ($pro_req['code']) {
+                case 'PRO_DM':
+                    foreach ($pro_req['requirements'] as $j => $r) {
+                        switch ($r['id']) {
+                            case 1:
+                                $r['progress_text'] = $data['twork'] . " tháng";
+                                if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 2:
+                                $referencee_count = $agent->referencee()->where([
+                                    ['designation_code', '=', 'AG']
+                                ])->where(function ($q) use ($eval_date) {
+                                    $q->whereNull('terminate_date')
+                                        ->orWhere('terminate_date', '>=', $eval_date);
+                                })->count();
+                                $referencee_count += 1; // bản thân đại lý
+                                $r['progress_text'] = $referencee_count . " nhân sự";
+                                if ($referencee_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 3:
+                                if (!$month) {
+                                    $backto = Carbon::now()->subMonths(6)->endOfMonth()->format('Y-m-d');
+                                    $startMonth = Carbon::now()->startOfMonth();
+                                } else {
+                                    $backto = Carbon::createFromFormat('Y-m-d', $month)->subMonths(6)->endOfMonth()->format('Y-m-d');
+                                    $startMonth = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth();
+                                }
+                                $referencee_AA_count = $agent->referencee()->where([
+                                    ['designation_code', '=', 'AG'],
+                                    ['alloc_code_date', '>=', $backto],
+                                ])->where(function ($q) use ($eval_date) {
+                                    $q->whereNull('terminate_date')
+                                        ->orWhere('terminate_date', '>=', $eval_date);
+                                })->whereHas('monthlyMetrics', function ($query) use ($startMonth) {
+                                    $query->where([
+                                        ['month', '=', $startMonth],
+                                        ['AA', '=', 1]
+                                    ]);
+                                })->count();
+                                $r['progress_text'] = $referencee_AA_count . " đại lý";
+                                if ($referencee_AA_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 4:
+                                $refencee_AG_codes = $agent->referencee()->where([
+                                    ['designation_code', '=', 'AG']
+                                ])->pluck('agent_code')->toArray();
+                                $FYC_check = $this->getTotalFYCByCodes($refencee_AG_codes, 0, 6, $month, 1);
+                                $r['progress_text'] = round($FYC_check/1000000, 2) . " triệu đồng";
+                                if ($FYC_check >= $r['requirement_value']*1000000) $r['is_done'] = 1;
+                                break;
+                            case 5:
+                                break;
+                            case 6:
+                                $k2_check = $data['thisMonthMetric']['K2'];
+                                $r['progress_text'] = round($k2_check*100, 2) . "%";
+                                if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 7:
+                                // huấn luyện
+                                break;
+                            case 8:
+                                // quy chế
+                                break;
+                        }
+                        $pro_req['requirements'][$j] = $r;
+                    }
+                    break;
+            }
+            $pro_req['evaluation_date'] = $eval_date;
+            $pro_reqs[$i] = $pro_req;
+        }
+
+        return $pro_reqs;
     }
 
     private function calcThisMonthRewardType($agent, $data, $type, $month = null)
@@ -796,7 +898,7 @@ class ComissionCalculatorController extends Controller
                 $count_depdr_aa_check = $this->getTotalAAByCodes($depdrCodes);
                 $perc_depdr_aa_check = $count_depdr_check ? $count_depdr_aa_check / $count_depdr_check : 0;
                 // list products restrict for this reward
-                $fyp = $this->calcThisMonthFYP($agent, $month, ['x']);
+                $fyp = $this->calcThisMonthFYP($agent, $month, [''], ['']);
                 if ($count_depdr_aa_check < 3 || $perc_depdr_aa_check < 0.5) $result = 0.5 * $fyp;
                 else if ($count_depdr_aa_check == 3) $result = 0.55 * $fyp;
                 else if ($count_depdr_aa_check > 3) $result = 0.65 * $fyp;
