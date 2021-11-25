@@ -1053,8 +1053,11 @@ class AgentController extends Controller
                         break;
                     }
                 }
-                $r['progress_text'] = $metric->progress_text;
-                $r['is_done'] = $metric->is_done;
+                if($metric) {
+                    $r['progress_text'] = $metric->progress_text;
+                    $r['is_done'] = $metric->is_done;
+                }
+                
                 $p['requirements'][$j] = $r;
                 if($r['is_done']) $p['gained_count']++;
             }

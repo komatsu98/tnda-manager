@@ -102,7 +102,7 @@ class ComissionCalculatorController extends Controller
                 'pro_code' => $p['code']
             ])->get();
             foreach($p['requirements'] as $r) {
-                if($r['progress_text'] = null) continue; // manually
+                if($r['progress_text'] == null) continue; // manually
                 $metric = null;
                 foreach($old_metrics as $om) {
                     if($om->req_id == $r['id']) {
@@ -823,8 +823,8 @@ class ComissionCalculatorController extends Controller
                                 $teamCodes = $data['teamCodes'];
                                 $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 6, $month, $list_sub_product_code);
                                 $FYP_total = $this->getTotalFYPByCodes($teamCodes, 0, 6, $month);
-                                $r['progress_text'] = round($FYP_sub*100/$FYP_total, 2) . "%";
-                                if ($FYP_sub/$FYP_total >= $r['requirement_value']) $r['is_done'] = 1;
+                                $r['progress_text'] = ($FYP_total ? round($FYP_sub*100/$FYP_total, 2) : 0) . "%";
+                                if ($FYP_total ? $FYP_sub/$FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
                                 break;
                             case 6:
                                 $k2_check = $data['thisMonthMetric']['K2'];
