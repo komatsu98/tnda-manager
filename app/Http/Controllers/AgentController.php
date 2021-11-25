@@ -627,8 +627,11 @@ class AgentController extends Controller
         foreach ($contracts as $contract) {
             $contract->status_text = $this->contract_status_code[$contract->status_code];
             $product_texts = [];
-            foreach(explode(",", $contract->product_code) as $pc) {
-                $product_texts[] = $this->product_code[trim($pc)];
+            $sub_product_texts = [];
+            $contract_products = $contract->products;
+            foreach($contract_products as $pc) {
+                $product_texts[] = $this->product_code[trim($pc->product_code)];
+                // list sub => sub_product_texts[] =...
             }
             $contract->product_text = implode(", ", $product_texts);
             $info_awaiting_text = [];
