@@ -13,6 +13,7 @@ use App\MonthlyMetric;
 use App\MonthlyIncome;
 use App\Transaction;
 use App\Comission;
+use App\ContractProduct;
 use App\Promotion;
 
 class ComissionCalculatorController extends Controller
@@ -47,17 +48,19 @@ class ComissionCalculatorController extends Controller
         $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
         $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data);
         return $data;
-    }    
+    }
 
-    public function updateThisMonthAllStructure($agent, $month = null) {
+    public function updateThisMonthAllStructure($agent, $month = null)
+    {
         $this->updateThisMonthAgent($agent, $month);
-        while($supervisor = $agent->supervisor) {
+        while ($supervisor = $agent->supervisor) {
             $this->updateThisMonthAgent($supervisor, $month);
             $agent = $supervisor;
         }
     }
 
-    public function updateThisMonthAgent($agent, $month = null) {
+    public function updateThisMonthAgent($agent, $month = null)
+    {
         $data = [];
         $data['month'] = $month;
         $data['twork'] = $this->getTwork($agent, $month);
@@ -76,8 +79,8 @@ class ComissionCalculatorController extends Controller
         $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data);
     }
 
-    public function updateThisMonthPromotionReq($agent, $data) {
-
+    public function updateThisMonthPromotionReq($agent, $data)
+    {
     }
 
     public function updateThisMonthAllMetrics()
@@ -93,12 +96,12 @@ class ComissionCalculatorController extends Controller
 
     private function getTwork($agent, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now();
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth();
         }
-        
+
         $from = Carbon::createFromFormat('Y-m-d', $agent->alloc_code_date);
         $twork = $to->diffInMonths($from);
         return $twork;
@@ -106,7 +109,7 @@ class ComissionCalculatorController extends Controller
 
     private function getTp($agent, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now();
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth();
@@ -128,12 +131,12 @@ class ComissionCalculatorController extends Controller
 
     private function getNpos($agent, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $valid_month = Carbon::now()->addMonths(1)->startOfMonth()->format('Y-m-d');
         } else {
             $valid_month = Carbon::createFromFormat('Y-m-d', $month)->addMonths(1)->startOfMonth()->format('Y-m-d');
         }
-        
+
         $promotion = $agent->promotions()->where(['valid_month' => $valid_month])->first();
         if ($promotion) return $promotion->new_designation_code;
         return null;
@@ -142,7 +145,7 @@ class ComissionCalculatorController extends Controller
     public function updateThisMonthMetric($agent, $month = null)
     {
         $metric = $this->calcThisMonthMetric($agent, $month);
-        if(!$month) {
+        if (!$month) {
             $month = Carbon::now()->startOfMonth()->format('Y-m-d');
         } else {
             $month = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
@@ -171,7 +174,7 @@ class ComissionCalculatorController extends Controller
 
     private function calcThisMonthFYC($agent, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $from = Carbon::now()->startOfMonth()->format('Y-m-d');
             $to = Carbon::now()->endOfMonth()->format('Y-m-d');
         } else {
@@ -193,7 +196,7 @@ class ComissionCalculatorController extends Controller
 
     private function calcThisMonthCC($agent, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $from = Carbon::now()->startOfMonth()->format('Y-m-d');
             $to = Carbon::now()->endOfMonth()->format('Y-m-d');
         } else {
@@ -215,14 +218,14 @@ class ComissionCalculatorController extends Controller
 
     private function calcThisMonthFYP($agent, $month = null, $list_product = [], $list_sub_product = [])
     {
-        if(!$month) {
+        if (!$month) {
             $from = Carbon::now()->startOfMonth()->format('Y-m-d');
             $to = Carbon::now()->endOfMonth()->format('Y-m-d');
         } else {
             $from = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
         }
-        
+
         $FYPs = $agent->transactions()->where([
             ['trans_date', '>=', $from],
             ['trans_date', '<=', $to]
@@ -252,12 +255,12 @@ class ComissionCalculatorController extends Controller
 
     private function calcIsAA($agent, $month_back = 0, $FYP_month, $CC_month, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $month_end = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
         } else {
             $month_end = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
         }
-        
+
         $working_month = !$agent->terminate_date || $agent->terminate_date > $month_end;
         $isAA = $working_month && $FYP_month >= 6000000 && $CC_month >= 1 ? 1 : 0;
         return $isAA;
@@ -266,7 +269,7 @@ class ComissionCalculatorController extends Controller
     // thực thu
     private function calcThisMonthRYPp($agent, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $from = Carbon::now()->startOfMonth()->format('Y-m-d');
             $to = Carbon::now()->endOfMonth()->format('Y-m-d');
             $ack_from = Carbon::now()->subMonths(14)->format('Y-m-d');
@@ -277,18 +280,21 @@ class ComissionCalculatorController extends Controller
             $ack_from = Carbon::createFromFormat('Y-m-d', $month)->subMonths(14)->format('Y-m-d');
             $to_back_two = Carbon::createFromFormat('Y-m-d', $month)->subMonths(2);
         }
-        
+
         $RYPs = $agent->transactions()->where([
             ['trans_date', '>=', $from],
             ['trans_date', '<=', $to],
             ['agent_code', '=', $agent->agent_code],
         ])
             ->whereHas('contract', function ($query) use ($ack_from, $to_back_two) {
-                $query->where([
-                    ['maturity_date', '>=', $to_back_two],
-                    ['ack_date', '>=', $ack_from]
-                ])
-                    ->whereIn('status_code', ['MA']);
+                $query->whereIn('status_code', ['MA'])
+                    ->where([
+                        ['maturity_date', '>=', $to_back_two]
+                    ])
+                    ->where(function ($q) use ($ack_from) {
+                        $q->whereNull('ack_date')
+                            ->orWhere('ack_date', '>=', $ack_from);
+                    });
             })
             ->selectRaw('sum(premium_received) as count')
             ->get();
@@ -302,18 +308,21 @@ class ComissionCalculatorController extends Controller
     // phải thu
     private function calcThisMonthRYPr($agent, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $ack_from = Carbon::now()->subMonths(14)->format('Y-m-d');
             $to_back_two = Carbon::now()->subMonths(2);
         } else {
             $ack_from = Carbon::createFromFormat('Y-m-d', $month)->subMonths(14)->format('Y-m-d');
             $to_back_two = Carbon::createFromFormat('Y-m-d', $month)->subMonths(2);
         }
-        $mcontracts = $agent->transactions()->whereHas('contract', function ($query) use ($ack_from, $to_back_two) {
+        $mcontracts = ContractProduct::whereHas('contract', function ($query) use ($agent, $ack_from, $to_back_two) {
             $query->where([
+                ['agent_code', '=', $agent->agent_code],
                 ['maturity_date', '>=', $to_back_two],
-                ['ack_date', '>=', $ack_from]
-            ])
+            ])->where(function ($q) use ($ack_from) {
+                $q->whereNull('ack_date')
+                    ->orWhere('ack_date', '>=', $ack_from);
+            })
                 ->whereIn('status_code', ['MA']);
         })
             ->selectRaw('sum(premium_term) as RYP')
@@ -334,14 +343,14 @@ class ComissionCalculatorController extends Controller
 
     private function getCC($agent, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
-        
+
         $CCs = $agent->monthlyMetrics()->where([
             ['month', '>=', $from],
             ['month', '<=', $to]
@@ -357,14 +366,14 @@ class ComissionCalculatorController extends Controller
 
     private function getFYP($agent, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
             $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
-        
+
         $FYPs = $agent->monthlyMetrics()->where([
             ['month', '>=', $from],
             ['month', '<=', $to]
@@ -380,14 +389,14 @@ class ComissionCalculatorController extends Controller
 
     private function getTotalFYPByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
-        
+
         $FYPs = MonthlyMetric::whereHas('agent', function ($query) use ($codes) {
             $query->whereIn('agent_code', $codes);
         })->where([
@@ -405,14 +414,14 @@ class ComissionCalculatorController extends Controller
 
     private function getFYC($agent, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
-        
+
         $FYCs = $agent->monthlyMetrics()->where([
             ['month', '>=', $from],
             ['month', '<=', $to]
@@ -428,7 +437,7 @@ class ComissionCalculatorController extends Controller
 
     private function getTotalFYCByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
@@ -451,59 +460,9 @@ class ComissionCalculatorController extends Controller
         return $countFYC;
     }
 
-    // private function getRYP($agent, $status = "p", $month_back = 0, $month_range = 0)
-    // {
-    //     $to = Carbon::now()->subMonths($month_back)->format('Y-m-d');
-    //     $to_back_two = Carbon::now()->subMonths($month_back + 2);
-    //     $from = Carbon::now()->subMonths($month_back)->subMonths($month_range)->format('Y-m-d');
-    //     $countRYP = 0;
-    //     if ($status == "p") {
-    //         $RYPs = $agent->monthlyMetrics()->where([
-    //             ['month', '>=', $from],
-    //             ['month', '<=', $to]
-    //         ])
-    //             ->selectRaw('sum(RYP) as count')
-    //             ->get();
-    //         if (count($RYPs)) {
-    //             $countRYP = intval($RYPs[0]->count);
-    //         }
-    //     } else if ($status == "r") {
-    //         $mcontracts = $agent->contracts()->where([
-    //             ['maturity_date', '<=', $to],
-    //             ['maturity_date', '>=', $to_back_two],
-    //             ['ack_date', '>=', $from]
-    //         ])
-    //             ->whereIn('status_code', ['RL', 'IF'])
-    //             ->selectRaw('sum(premium_term) as RYP')
-    //             ->get();
-    //         if (count($mcontracts)) {
-    //             $countRYP = intval($mcontracts[0]->RYP);
-    //         }
-    //     }
-
-    //     return $countRYP;
-    // }
-
-    // private function getIsAA($agent, $month_back = 0, $month_range = 1)
-    // {
-    //     $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-    //     $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
-    //     $AAs = $agent->monthlyMetrics()
-    //         ->where([
-    //             ['month', '>=', $from],
-    //             ['month', '<=', $to]
-    //         ])->selectRaw('sum(AA) as AA')
-    //         ->get();
-    //     $countAA = 0;
-    //     if (count($AAs)) {
-    //         $countAA = intval($AAs[0]->AA);
-    //     }
-    //     return $countAA;
-    // }
-
     private function getTotalAAByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
@@ -527,14 +486,14 @@ class ComissionCalculatorController extends Controller
 
     private function getK2($agent, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
-    
+
         $K2s = $agent->monthlyMetrics()
             ->where([
                 ['month', '>=', $from],
@@ -550,14 +509,14 @@ class ComissionCalculatorController extends Controller
 
     private function getTotalK2ByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
-    
+
         $K2s = MonthlyMetric::whereHas('agent', function ($query) use ($codes) {
             $query->whereIn('agent_code', $codes);
         })->where([
@@ -601,12 +560,12 @@ class ComissionCalculatorController extends Controller
 
     private function getAU($agent, $month_back = 0, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
         }
-        
+
         $AU = $agent->monthlyMetrics()
             ->where([
                 ['month', '=', $to]
@@ -642,15 +601,15 @@ class ComissionCalculatorController extends Controller
 
     public function updateThisMonthReward($agent, $data, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $month = Carbon::now()->startOfMonth()->format('Y-m-d');
         } else {
             $month = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
         }
-        
+
         // clear
         $agent->monthlyIncomes()->where(['month' => $month])->delete();
-        
+
         // insert
         $list_reward_type = Util::get_income_code();
         $rewards = [];
@@ -658,18 +617,18 @@ class ComissionCalculatorController extends Controller
             $rewards[$type] = $this->calcThisMonthRewardType($agent, $data, $type, $month);
         }
         $list_reward_to_insert = [];
-        foreach($rewards as $key => $list_result) {
-            foreach($list_result as $result){
+        foreach ($rewards as $key => $list_result) {
+            foreach ($list_result as $result) {
                 $amount = $result[0];
-                if(!$amount) continue;
+                if (!$amount) continue;
                 $valid_month = $result[1];
                 $ref_agent_code = isset($result[2]) ? $result[2] : null;
-                if(!isset($list_reward_to_insert[$valid_month])) $list_reward_to_insert[$valid_month] = [];
+                if (!isset($list_reward_to_insert[$valid_month])) $list_reward_to_insert[$valid_month] = [];
                 $list_reward_to_insert[$valid_month][$key] = $amount;
-                if($ref_agent_code) $list_reward_to_insert[$valid_month]['ref_agent_code'] = $ref_agent_code; 
+                if ($ref_agent_code) $list_reward_to_insert[$valid_month]['ref_agent_code'] = $ref_agent_code;
             }
         }
-        foreach($list_reward_to_insert as $valid_month => $reward) {
+        foreach ($list_reward_to_insert as $valid_month => $reward) {
             $reward['month'] = $month;
             $reward['valid_month'] = $valid_month;
             $reward['agent_code'] = $agent->agent_code;
@@ -682,14 +641,14 @@ class ComissionCalculatorController extends Controller
 
     private function getRewardType($agent, $type, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
-    
+
         $rewards = $agent->monthlyIncomes()
             ->where([
                 ['valid_month', '>=', $from],
@@ -705,7 +664,7 @@ class ComissionCalculatorController extends Controller
 
     private function getTotalRewardTypeByCodes($codes, $type, $month_back = 0, $month_range = 1, $month = null)
     {
-        if(!$month) {
+        if (!$month) {
             $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
             $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
@@ -732,11 +691,12 @@ class ComissionCalculatorController extends Controller
         return $countReward;
     }
 
-    private function calcThisMonthPromotionReqType($agent, $data, $type) {
+    private function calcThisMonthPromotionReqType($agent, $data, $type)
+    {
         $list_result = [];
-        switch($type) {
+        switch ($type) {
             case 'PRO_AM_DM':
-                
+
                 break;
         }
     }
@@ -745,12 +705,12 @@ class ComissionCalculatorController extends Controller
     {
         $list_result = [];
         $result = 0;
-        if(!$month) {
+        if (!$month) {
             $valid_month = Carbon::now()->startOfMonth()->format('Y-m-d');
         } else {
             $valid_month = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
         }
-        
+
         switch ($type) {
             case 'ag_rwd_hldlth':
                 if (!in_array($agent->designation_code, ['AG', 'DM', 'SDM', 'AM']))  break;
@@ -807,7 +767,7 @@ class ComissionCalculatorController extends Controller
                 if (!in_array($agent->designation_code, ['AG'])) break;
                 $fyc_y = $this->getFYC($agent, 0, 12, $month);
                 $result = 0.1 * $fyc_y;
-                if(!$month) {
+                if (!$month) {
                     $valid_month = Carbon::now()->addYears(1)->startOfMonth()->format('Y-06-d');
                 } else {
                     $valid_month = Carbon::createFromFormat('Y-m-d', $month)->addYears(1)->startOfMonth()->format('Y-06-d');
@@ -901,7 +861,7 @@ class ComissionCalculatorController extends Controller
                 if (!count($depdrCodes)) break;
                 $depdr_fyc = $this->getTotalFYCByCodes($depdrCodes, 0, 12, $month);
                 $result = 0.06 * $depdr_fyc;
-                if(!$month) {
+                if (!$month) {
                     $valid_month = Carbon::now()->addYears(1)->startOfMonth()->format('Y-06-d');
                 } else {
                     $valid_month = Carbon::createFromFormat('Y-m-d', $month)->addYears(1)->startOfMonth()->format('Y-06-d');
@@ -911,34 +871,34 @@ class ComissionCalculatorController extends Controller
             case 'dm_rwd_ptptt':
                 if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
                 $drs = $data['dr'];
-                if(!$month) {
+                if (!$month) {
                     $to = Carbon::now()->endOfMonth()->format('Y-m-d');
                     $from = Carbon::now()->subMonths(12)->startOfMonth()->format('Y-m-d');
                 } else {
                     $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
                     $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths(12)->startOfMonth()->format('Y-m-d');
                 }
-                
+
                 $list_designation = Util::get_designation_code();
                 $valid_designation_codes = [];
-                foreach($list_designation as $dc => $name) {
+                foreach ($list_designation as $dc => $name) {
                     $valid_designation_codes[] = $dc;
-                    if($dc == $agent->designation_code) break;
+                    if ($dc == $agent->designation_code) break;
                 }
                 $validDMs = $drs->whereIn('designation_code', $valid_designation_codes)
-                ->whereHas('promotions', function ($query) use ($from, $to) {
-                    $query->where([
-                        ['new_designation_code', '=', 'DM'],
-                        ['valid_month', '>=', $from],
-                        ['valid_month', '<=', $to]
-                    ]);
-                })->get();
-                if(!count($validDMs)) break;
-                foreach($validDMs as $dm) {
+                    ->whereHas('promotions', function ($query) use ($from, $to) {
+                        $query->where([
+                            ['new_designation_code', '=', 'DM'],
+                            ['valid_month', '>=', $from],
+                            ['valid_month', '<=', $to]
+                        ]);
+                    })->get();
+                if (!count($validDMs)) break;
+                foreach ($validDMs as $dm) {
                     $dm_rwd_qlhtthhptt = $this->getRewardType($dm, 'dm_rwd_qlhtthhptt');
-                    if(!$dm_rwd_qlhtthhptt) continue;
+                    if (!$dm_rwd_qlhtthhptt) continue;
                     $list_result[] = [0.5 * $dm_rwd_qlhtthhptt, $valid_month];
-                    if(!$month) {
+                    if (!$month) {
                         $list_result[] = [0.25 * $dm_rwd_qlhtthhptt, Carbon::now()->addMonths(6)->startOfMonth()->format('Y-m-d'), $dm->agent_code];
                         $list_result[] = [0.25 * $dm_rwd_qlhtthhptt, Carbon::now()->addMonths(14)->startOfMonth()->format('Y-m-d'), $dm->agent_code];
                     } else {
@@ -1006,7 +966,7 @@ class ComissionCalculatorController extends Controller
             case 'rd_rwd_dctkdq':
                 if (!$this->checkValidTpay('q', $month)) break;
                 if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
-                if(!$month) {
+                if (!$month) {
                     $target_date = date('Y-m-d');
                 } else {
                     $target_date = Carbon::createFromFormat('Y-m-d', $month)->format('Y-m-d');
@@ -1045,7 +1005,7 @@ class ComissionCalculatorController extends Controller
                 // $k2_check = $this->getK2($agent, 0, 12) / 12; // K2 này lấy cả năm hay tháng đó
                 // if($k2_check < 0.75) break;
                 $month_in_position = $data['tp'];
-                if(!$month) {
+                if (!$month) {
                     $target_date = date('Y-m-d');
                 } else {
                     $target_date = Carbon::createFromFormat('Y-m-d', $month)->format('Y-m-d');
@@ -1072,7 +1032,7 @@ class ComissionCalculatorController extends Controller
                         $result += 0.5 * $rd_hh_nsht_check;
                     }
                 }
-                if(!$month) {
+                if (!$month) {
                     $valid_month = Carbon::now()->addYears(1)->startOfMonth()->format('Y-03-d');
                 } else {
                     $valid_month = Carbon::createFromFormat('Y-m-d', $month)->addYears(1)->startOfMonth()->format('Y-03-d');
@@ -1128,19 +1088,19 @@ class ComissionCalculatorController extends Controller
         return $list_result;
     }
 
-    private function getThisMonthFinalIncome($agent) {
-        
+    private function getThisMonthFinalIncome($agent)
+    {
     }
 
     private function checkValidTpay($tpay, $month = null)
     {
         // return true;
-        if(!$month) {
+        if (!$month) {
             $current_month = Carbon::now()->format('m');
         } else {
-            $current_month = Carbon::createFromFormat('Y-m-d', $month)->format('m'); 
+            $current_month = Carbon::createFromFormat('Y-m-d', $month)->format('m');
         }
-        
+
         if ($tpay == 'm') return true;
         if ($tpay == 'q') return in_array($current_month, [3, 6, 9, 12]);
         if ($tpay == 'y') return in_array($current_month, [12]);

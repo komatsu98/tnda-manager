@@ -52,6 +52,7 @@ class ContractsImportVBI implements ToCollection
                     'contract' => [
                         'agent_code' => $agent_code,
                         'partner_contract_code' => $partner_contract_code,
+                        // 'ack_date' => $release_date,
                         'submit_date' => $submit_date,
                         'release_date' => $release_date,
                         'expire_date' => $expire_date,

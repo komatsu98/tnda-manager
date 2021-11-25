@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Contract extends Model
 {
     protected $table = 'contracts';
-    protected $fillable = ['customer_type', 'agent_code', 'customer_id', 'contract_code', 'partner_contract_code', 'partner_code', 'submit_date', 'ack_date', 'status_code', 'info_awaiting', 'contract_year', 'product_code', 'sub_product_code', 'premium', 'premium_term', 'premium_received', 'term_code', 'release_date', 'expire_date', 'maturity_date', 'renewal_premium_required', 'active_require_update_time'];
+    protected $fillable = ['customer_type', 'agent_code', 'customer_id', 'contract_code', 'partner_contract_code', 'partner_code', 'submit_date', 'ack_date', 'status_code', 'info_awaiting', 'contract_year', 'term_code', 'release_date', 'expire_date', 'maturity_date', 'active_require_update_time'];
+    // 'product_code', 'sub_product_code', 'premium', 'premium_term', 'premium_received', 'renewal_premium_required'
+    
     protected $casts = [
     ];
 
@@ -26,7 +28,7 @@ class Contract extends Model
 
     public function products()
     {
-        return $this->hasMany('App\ContractProduct', 'contract_id', 'id');
+        return $this->hasMany('App\ContractProduct', 'id', 'contract_id');
     }
 
 }
