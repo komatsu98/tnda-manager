@@ -18,4 +18,9 @@ class ContractProduct extends Model
     {
         return $this->belongsTo('App\Contract', 'contract_id', 'id');
     }
+
+    public function transactions()
+    {
+        return $this->hasMany('App\Transaction', 'contract_product_id', 'id');
+    }
 }

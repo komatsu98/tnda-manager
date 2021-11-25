@@ -622,6 +622,7 @@ class AdminController extends Controller
                             ]);
                         }
                         foreach($product_data['transactions'] as $transaction_data) {
+                            $transaction_data['contract_product_id'] = $contract_product->id;
                             $transaction_data['contract_id'] = $contract->id;
                             $transaction_data['agent_code'] = $agent_code;
                             $transaction_data['product_code'] = $product_code;

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $table = 'transactions';
-    protected $fillable = ['agent_code', 'contract_id', 'premium_received', 'trans_date', 'product_code'];
+    protected $fillable = ['agent_code', 'contract_id', 'premium_received', 'trans_date', 'product_code', 'contract_product_id'];
     protected $casts = [
     ];
 

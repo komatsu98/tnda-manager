@@ -28,7 +28,7 @@ class Contract extends Model
 
     public function products()
     {
-        return $this->hasMany('App\ContractProduct', 'id', 'contract_id');
+        return $this->hasMany('App\ContractProduct', 'contract_id', 'id');
     }
 
 }

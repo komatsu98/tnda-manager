@@ -554,37 +554,37 @@ class AgentController extends Controller
             $contracts = $agent->contracts();
         }
 
-        if ($submit_from !== '') {
-            $contracts = $contracts->where('submit_date', '>=', $submit_from);
-        }
-        if ($submit_to !== '') {
-            $contracts = $contracts->where('submit_date', '<=', $submit_to);
-        }
-        if ($release_from !== '') {
-            $contracts = $contracts->where('release_date', '>=', $release_from);
-        }
-        if ($release_to !== '') {
-            $contracts = $contracts->where('release_date', '<=', $release_to);
-        }
-        if ($ack_from !== '') {
-            $contracts = $contracts->where('ack_date', '>=', $ack_from);
-        }
-        if ($ack_to !== '') {
-            $contracts = $contracts->where('ack_date', '<=', $ack_to);
-        }
-        if ($maturity_from !== '') {
-            $contracts = $contracts->where('maturity_date', '>=', $maturity_from);
-        }
-        if ($maturity_to !== '') {
-            $contracts = $contracts->where('maturity_date', '<=', $maturity_to);
-        }
-        if ($contract_code != '') {
-            $contracts = $contracts->where('contract_code', '=', $contract_code);
-        }
-        if ($status_code != '') {
-            $status_codes = explode(",", $status_code);
-            $contracts = $contracts->whereIN('status_code', $status_codes);
-        }
+        // if ($submit_from !== '') {
+        //     $contracts = $contracts->where('submit_date', '>=', $submit_from);
+        // }
+        // if ($submit_to !== '') {
+        //     $contracts = $contracts->where('submit_date', '<=', $submit_to);
+        // }
+        // if ($release_from !== '') {
+        //     $contracts = $contracts->where('release_date', '>=', $release_from);
+        // }
+        // if ($release_to !== '') {
+        //     $contracts = $contracts->where('release_date', '<=', $release_to);
+        // }
+        // if ($ack_from !== '') {
+        //     $contracts = $contracts->where('ack_date', '>=', $ack_from);
+        // }
+        // if ($ack_to !== '') {
+        //     $contracts = $contracts->where('ack_date', '<=', $ack_to);
+        // }
+        // if ($maturity_from !== '') {
+        //     $contracts = $contracts->where('maturity_date', '>=', $maturity_from);
+        // }
+        // if ($maturity_to !== '') {
+        //     $contracts = $contracts->where('maturity_date', '<=', $maturity_to);
+        // }
+        // if ($contract_code != '') {
+        //     $contracts = $contracts->where('contract_code', '=', $contract_code);
+        // }
+        // if ($status_code != '') {
+        //     $status_codes = explode(",", $status_code);
+        //     $contracts = $contracts->whereIN('status_code', $status_codes);
+        // }
         ////////////////////////////////////
         if ($search_type != '') {
             $search_type_codes = explode(",", $search_type);
@@ -612,27 +612,35 @@ class AgentController extends Controller
                     });
             });
         }
-        if ($customer_birthday_from !== '') {
-            $contracts = $contracts->whereHas('customer', function ($query) use ($customer_birthday_from) {
-                $query->whereRaw("DATE_FORMAT(day_of_birth, '%m-%d') >= DATE_FORMAT('" . $customer_birthday_from . "', '%m-%d')");
-            });
-        }
-        if ($customer_birthday_to !== '') {
-            $contracts = $contracts->whereHas('customer', function ($query) use ($customer_birthday_to) {
-                $query->whereRaw("DATE_FORMAT(day_of_birth, '%m-%d') <= DATE_FORMAT('" . $customer_birthday_to . "', '%m-%d')");
-            });
-        }
+        // if ($customer_birthday_from !== '') {
+        //     $contracts = $contracts->whereHas('customer', function ($query) use ($customer_birthday_from) {
+        //         $query->whereRaw("DATE_FORMAT(day_of_birth, '%m-%d') >= DATE_FORMAT('" . $customer_birthday_from . "', '%m-%d')");
+        //     });
+        // }
+        // if ($customer_birthday_to !== '') {
+        //     $contracts = $contracts->whereHas('customer', function ($query) use ($customer_birthday_to) {
+        //         $query->whereRaw("DATE_FORMAT(day_of_birth, '%m-%d') <= DATE_FORMAT('" . $customer_birthday_to . "', '%m-%d')");
+        //     });
+        // }
         $partners = $this->partners;
         $contracts = $contracts->orderBy('created_at', 'desc')->offset($offset)->take($limit)->with('customer')->get();
         foreach ($contracts as $contract) {
             $contract->status_text = $this->contract_status_code[$contract->status_code];
             $product_texts = [];
             $sub_product_texts = [];
-            $contract_products = $contract->products;
-            foreach($contract_products as $pc) {
+            $contract->premium = 0;
+            $contract->premium_term = 0;
+            $contract->premium_received = 0;
+            foreach($contract->products as $pc) {
                 $product_texts[] = $this->product_code[trim($pc->product_code)];
                 // list sub => sub_product_texts[] =...
+                $contract->premium += $pc->premium;
+                $contract->premium_term += $pc->premium_term;
+                foreach($pc->transactions as $tc) {
+                    $contract->premium_received += $tc->premium_received;
+                }
             }
+            
             $contract->product_text = implode(", ", $product_texts);
             $info_awaiting_text = [];
             if ($contract->info_awaiting && strlen($contract->info_awaiting)) {
@@ -643,6 +651,7 @@ class AgentController extends Controller
                     }
                 }
             }
+
             $contract->bg_color = $this->contract_bg_color[$contract->status_code];
             $partner_index = array_search($contract->partner_code, array_column($partners, 'code'));
             if ($partner_index !== false) {
