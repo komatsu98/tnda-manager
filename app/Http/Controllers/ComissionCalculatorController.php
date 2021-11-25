@@ -46,6 +46,7 @@ class ComissionCalculatorController extends Controller
         $data['depDr'] = $this->getDepDr($agent);
         $data['depDrCodes'] = $data['depDr']->pluck('agent_code')->toArray();
         $data['teamAGCodes'] = $this->getWholeTeamCodes($agent, true);
+        $data['teamCodes'] = $this->getWholeTeamCodes($agent);
         $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
         // $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data, $month);
         $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data, $month);
@@ -79,6 +80,7 @@ class ComissionCalculatorController extends Controller
         $data['depDr'] = $this->getDepDr($agent);
         $data['depDrCodes'] = $data['depDr']->pluck('agent_code')->toArray();
         $data['teamAGCodes'] = $this->getWholeTeamCodes($agent, true);
+        $data['teamCodes'] = $this->getWholeTeamCodes($agent);
         $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
         $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data, $month);
         $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data, $month);
@@ -100,7 +102,7 @@ class ComissionCalculatorController extends Controller
                 'pro_code' => $p['code']
             ])->get();
             foreach($p['requirements'] as $r) {
-                if($r['id'] == 7 || $r['id'] == 8) continue; // manually
+                if($r['progress_text'] = null) continue; // manually
                 $metric = null;
                 foreach($old_metrics as $om) {
                     if($om->req_id == $r['id']) {
@@ -256,7 +258,7 @@ class ComissionCalculatorController extends Controller
         return $countCC;
     }
 
-    private function calcThisMonthFYP($agent, $month = null, $list_product = [], $list_sub_product = [])
+    private function calcThisMonthFYP($agent, $month = null, $list_product = null)
     {
         if (!$month) {
             $from = Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -270,9 +272,9 @@ class ComissionCalculatorController extends Controller
             ['trans_date', '>=', $from],
             ['trans_date', '<=', $to]
         ]);
-        if (count($list_product) || count($list_sub_product)) {
-            $FYPs = $FYPs->whereHas('contract_product', function ($query) use ($list_product, $list_sub_product) {
-                $query->whereIn('product_code', array_merge($list_product, $list_sub_product));
+        if (!is_null($list_product)) {
+            $FYPs = $FYPs->whereHas('contract_product', function ($query) use ($list_product) {
+                $query->whereIn('product_code', $list_product);
             });
         }
         // $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
@@ -438,6 +440,38 @@ class ComissionCalculatorController extends Controller
         ])
             ->selectRaw('sum(FYP) as count')
             ->get();
+        $countFYP = 0;
+        if (count($FYPs)) {
+            $countFYP = intval($FYPs[0]->count);
+        }
+        return $countFYP;
+    }
+
+    private function calcTotalFYPByCodes($codes, $month_back = 0, $month_range = 1, $month = null, $list_product = null)
+    {
+        if (!$month) {
+            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+        } else {
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+        }
+
+        $FYPs = Transaction::whereHas('contract_product.contract.agent', function ($query) use ($codes) {
+            $query->whereIn('agent_code', $codes);
+        })->where([
+            ['trans_date', '>=', $from],
+            ['trans_date', '<=', $to]
+        ]);
+        if (!is_null($list_product)) {
+            $FYPs = $FYPs->whereHas('contract_product', function ($query) use ($list_product) {
+                $query->whereIn('product_code', $list_product);
+            });
+        }
+        $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
+        $query = vsprintf($query, $FYPs->getBindings());
+        print_r($query);
+        $FYPs = $FYPs->selectRaw('sum(premium_received) as count')->get();
         $countFYP = 0;
         if (count($FYPs)) {
             $countFYP = intval($FYPs[0]->count);
@@ -736,6 +770,7 @@ class ComissionCalculatorController extends Controller
             switch ($pro_req['code']) {
                 case 'PRO_DM':
                     foreach ($pro_req['requirements'] as $j => $r) {
+                        $r['progress_text'] = null;
                         switch ($r['id']) {
                             case 1:
                                 $r['progress_text'] = $data['twork'] . " tháng";
@@ -784,6 +819,12 @@ class ComissionCalculatorController extends Controller
                                 if ($FYC_check >= $r['requirement_value']*1000000) $r['is_done'] = 1;
                                 break;
                             case 5:
+                                $list_sub_product_code = Util::get_sub_product_code();
+                                $teamCodes = $data['teamCodes'];
+                                $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 6, $month, $list_sub_product_code);
+                                $FYP_total = $this->getTotalFYPByCodes($teamCodes, 0, 6, $month);
+                                $r['progress_text'] = round($FYP_sub*100/$FYP_total, 2) . "%";
+                                if ($FYP_sub/$FYP_total >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 6:
                                 $k2_check = $data['thisMonthMetric']['K2'];

@@ -174,6 +174,13 @@ class Util
         return $product_code;
     }
 
+    public static function get_sub_product_code()
+    {
+        $sub_product_code = [
+        ];
+        return $sub_product_code;
+    }
+
     public static function get_comission_perc($product_code)
     {
         $com = 0;
@@ -240,80 +247,6 @@ class Util
                 'code' => 'PRO_DM',
                 'designation_code' => 'AG',
                 'title' => 'Thăng cấp Trưởng phòng kinh doanh',
-                'requiment_count' => 8,
-                'gained_count' => 0,
-                'evaluation_date' => '',
-                'requirements' => [
-                    [
-                        'id' => 1,
-                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (AG)',
-                        'requirement_value' => 6,
-                        'requirement_text' => '6 tháng',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 2,
-                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
-                        'requirement_value' => 6,
-                        'requirement_text' => '06 nhân sự',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 3,
-                        'title' => 'Tổng số đại lý hoạt động (AA) trực tiếp GIỚI THIỆU trong 06 tháng vừa qua và còn làm việc tại thời điểm xét (mỗi AA chỉ được tính 1 lần)',
-                        'requirement_value' => 4,
-                        'requirement_text' => '04 đại lý',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 4,
-                        'title' => 'Tổng FYC trong 06 tháng vừa qua (bao gồm kết quả của cá nhân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
-                        'requirement_value' => 50,
-                        'requirement_text' => '50 triệu đồng',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 5,
-                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
-                        'requirement_value' => 0.3,
-                        'requirement_text' => '30%',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 6,
-                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của cá nhân đại lý tại thời điểm xét',
-                        'requirement_value' => 0.75,
-                        'requirement_text' => '75%',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 7,
-                        'title' => 'Hoàn thành khóa huấn luyện “Nền tảng quản lý và trả bài bằng Video”',
-                        'requirement_value' => 1,
-                        'requirement_text' => 'Bắt buộc',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 8,
-                        'title' => 'Không vi phạm quy chế Công ty',
-                        'requirement_value' => 1,
-                        'requirement_text' => '75%',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ]
-                ]
-            ],
-            [
-                'code' => 'STAY_AG',
-                'designation_code' => 'AM',
-                'title' => 'Duy trì cấp Trưởng phòng kinh doanh',
                 'requiment_count' => 8,
                 'gained_count' => 0,
                 'evaluation_date' => '',
