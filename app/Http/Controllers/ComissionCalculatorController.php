@@ -55,14 +55,17 @@ class ComissionCalculatorController extends Controller
     public function updateThisMonthAllStructure($agent, $month = null)
     {
         $this->updateThisMonthAgent($agent, $month);
+        $this->updateThisMonthAgent($agent->reference, $month);
         while ($supervisor = $agent->supervisor) {
             $this->updateThisMonthAgent($supervisor, $month);
+            $this->updateThisMonthAgent($supervisor->reference, $month);
             $agent = $supervisor;
         }
     }
 
     public function updateThisMonthAgent($agent, $month = null)
     {
+        if(!$agent) return;
         $data = [];
         $data['month'] = $month;
         $data['twork'] = $this->getTwork($agent, $month);
@@ -97,6 +100,7 @@ class ComissionCalculatorController extends Controller
                 'pro_code' => $p['code']
             ])->get();
             foreach($p['requirements'] as $r) {
+                if($r['id'] == 7 || $r['id'] == 8) continue; // manually
                 $metric = null;
                 foreach($old_metrics as $om) {
                     if($om->req_id == $r['id']) {
@@ -104,15 +108,16 @@ class ComissionCalculatorController extends Controller
                         break;
                     }
                 }
-                if(!$metric) $metric = PromotionProgress::create([
-                    'pro_code' => $p['code'],
-                    'agent_code' => $agent->agent_code,
-                    'month' => $month,
-                    'req_id' => $r['id'],
-                    'progress_text' => $r['progress_text'],
-                    'is_done' => $r['is_done']
-                ]);
-                $metric->update($r);
+                if(!$metric) {
+                    $metric = PromotionProgress::create([
+                        'pro_code' => $p['code'],
+                        'agent_code' => $agent->agent_code,
+                        'month' => $month,
+                        'req_id' => $r['id'],
+                        'progress_text' => $r['progress_text'],
+                        'is_done' => $r['is_done']
+                    ]);
+                } else $metric->update($r);
             }
         }
         return $progress;
