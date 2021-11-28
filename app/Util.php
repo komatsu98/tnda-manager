@@ -244,40 +244,6 @@ class Util
     {
         $promotions = [
             [
-                'code' => 'STAY_AG',
-                'designation_code' => 'AG',
-                'title' => 'Duy trì cấp Đại lý',
-                'requiment_count' => 3,
-                'gained_count' => 0,
-                'evaluation_date' => '',
-                'requirements' => [
-                    [
-                        'id' => 1,
-                        'title' => 'Số lượng hợp đồng (CC) thực cấp trong 5 tháng vừa qua',
-                        'requirement_value' => 1,
-                        'requirement_text' => '01 CC',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 2,
-                        'title' => 'Tổng FYC thực cấp trong 5 tháng vừa qua',
-                        'requirement_value' => 0,
-                        'requirement_text' => 'triệu đồng',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ],
-                    [
-                        'id' => 3,
-                        'title' => 'Tỷ lệ duy trì hợp đồng K2 tại thời điểm xét',
-                        'requirement_value' => 0,
-                        'requirement_text' => '%',
-                        'progress_text' => '',
-                        'is_done' => 0
-                    ]
-                ]
-            ],
-            [
                 'code' => 'PRO_DM',
                 'designation_code' => 'AG',
                 'title' => 'Thăng cấp Trưởng phòng kinh doanh',
@@ -312,7 +278,7 @@ class Util
                     [
                         'id' => 4,
                         'title' => 'Tổng FYC trong 06 tháng vừa qua (bao gồm kết quả của cá nhân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
-                        'requirement_value' => 50,
+                        'requirement_value' => 50000000,
                         'requirement_text' => '50 triệu đồng',
                         'progress_text' => '',
                         'is_done' => 0
@@ -352,10 +318,10 @@ class Util
                 ]
             ],
             [
-                'code' => 'PRO_DM_SDM',
+                'code' => 'PRO_SDM',
                 'designation_code' => 'DM',
                 'title' => 'Thăng cấp Trưởng phòng kinh doanh cấp cao',
-                'requiment_count' => 8,
+                'requiment_count' => 10,
                 'gained_count' => 0,
                 'evaluation_date' => '',
                 'requirements' => [
@@ -363,7 +329,7 @@ class Util
                         'id' => 1,
                         'title' => 'Thời gian tối thiểu ở vị trí hiện tại (DM)',
                         'requirement_value' => 6,
-                        'requirement_text' => '6 tháng',
+                        'requirement_text' => '06 tháng',
                         'progress_text' => '',
                         'is_done' => 0
                     ],
@@ -420,6 +386,788 @@ class Util
                         'title' => 'Hoàn thành khóa huấn luyện “Nền tảng quản lý”',
                         'requirement_value' => 1,
                         'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 9,
+                        'title' => 'Hoàn thành khóa huấn luyện',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 10,
+                        'title' => 'Không vi phạm quy chế Công ty',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'PRO_AM',
+                'designation_code' => 'SDM',
+                'title' => 'Thăng cấp Trưởng khu vực kinh doanh',
+                'requiment_count' => 12,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (SDM)',
+                        'requirement_value' => 6,
+                        'requirement_text' => '06 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số SDM báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 3,
+                        'requirement_text' => '03 SDM',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số DM, SDM trong toàn hệ thống (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 3,
+                        'requirement_text' => '06 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 60,
+                        'requirement_text' => '60 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tổng số đại lý hoạt động (AA) trực tiếp tuyển trong 06 tháng vừa qua và còn làm việc tại thời điểm xét (mỗi AA chỉ được tính 1 lần)',
+                        'requirement_value' => 4,
+                        'requirement_text' => '04 AA',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 300000000,
+                        'requirement_text' => '300 triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.3,
+                        'requirement_text' => '30%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 8,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 9,
+                        'title' => 'Hoàn thành khóa huấn luyện “Nền tảng quản lý”',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 10,
+                        'title' => 'Hoàn thành khóa huấn luyện',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 11,
+                        'title' => 'Hoàn thành khóa huấn luyện',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 12,
+                        'title' => 'Không vi phạm quy chế Công ty',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'PRO_RD',
+                'designation_code' => 'AM',
+                'title' => 'Thăng cấp Trưởng khu vực kinh doanh',
+                'requiment_count' => 9,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (AM)',
+                        'requirement_value' => 12,
+                        'requirement_text' => '12 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số SDM, AM báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 3,
+                        'requirement_text' => '03 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số DM, SDM, AM trong toàn hệ thống (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 18,
+                        'requirement_text' => '18 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 120,
+                        'requirement_text' => '120 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 900000000,
+                        'requirement_text' => '900 triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.3,
+                        'requirement_text' => '30%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 8,
+                        'title' => 'Đạt kỳ phỏng vấn thăng cấp',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 9,
+                        'title' => 'Không vi phạm quy chế Công ty',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'PRO_SRD',
+                'designation_code' => 'RD',
+                'title' => 'Thăng cấp Giám đốc phát triển kinh doanh vùng cấp cao',
+                'requiment_count' => 10,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (RD)',
+                        'requirement_value' => 12,
+                        'requirement_text' => '12 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số RD báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 3,
+                        'requirement_text' => '03 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số DM, SDM trong toàn hệ thống (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 36,
+                        'requirement_text' => '36 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 300,
+                        'requirement_text' => '300 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 2700000000,
+                        'requirement_text' => '2,7 tỷ đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.3,
+                        'requirement_text' => '30%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Tỷ lệ hoạt động trung bình 03 tháng gần nhất tính đến thời điểm xét',
+                        'requirement_value' => 0.3,
+                        'requirement_text' => '30%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 8,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 9,
+                        'title' => 'Đạt kỳ phỏng vấn thăng cấp',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 10,
+                        'title' => 'Không vi phạm quy chế Công ty',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'PRO_TD',
+                'designation_code' => 'SRD',
+                'title' => 'Thăng cấp Trưởng miền kinh doanh',
+                'requiment_count' => 9,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (SRD)',
+                        'requirement_value' => 12,
+                        'requirement_text' => '12 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số RD, SRD báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 3,
+                        'requirement_text' => '03 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 750,
+                        'requirement_text' => '750 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 8100000000,
+                        'requirement_text' => '8,1 tỷ đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.3,
+                        'requirement_text' => '30%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỷ lệ hoạt động trung bình 03 tháng gần nhất tính đến thời điểm xét',
+                        'requirement_value' => 0.25,
+                        'requirement_text' => '25%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.70,
+                        'requirement_text' => '70%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 8,
+                        'title' => 'Đạt kỳ phỏng vấn thăng cấp',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 9,
+                        'title' => 'Không vi phạm quy chế Công ty',
+                        'requirement_value' => 1,
+                        'requirement_text' => 'Bắt buộc',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'STAY_AG',
+                'designation_code' => 'AG',
+                'title' => 'Duy trì cấp Đại lý',
+                'requiment_count' => 3,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Số lượng hợp đồng (CC) thực cấp trong 5 tháng vừa qua',
+                        'requirement_value' => 1,
+                        'requirement_text' => '01 CC',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng FYC thực cấp trong 5 tháng vừa qua',
+                        'requirement_value' => 0,
+                        'requirement_text' => 'triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 tại thời điểm xét',
+                        'requirement_value' => 0,
+                        'requirement_text' => '%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'STAY_DM',
+                'designation_code' => 'DM',
+                'title' => 'Duy trì chức danh Quản lý (DM)',
+                'requiment_count' => 6,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (DM)',
+                        'requirement_value' => 6,
+                        'requirement_text' => '06 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số DM+ báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 0,
+                        'requirement_text' => '0 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 5,
+                        'requirement_text' => '05 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 45000000,
+                        'requirement_text' => '45 triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.2,
+                        'requirement_text' => '20%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'STAY_SDM',
+                'designation_code' => 'SDM',
+                'title' => 'Duy trì chức danh Quản lý (SDM)',
+                'requiment_count' => 6,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (SDM)',
+                        'requirement_value' => 6,
+                        'requirement_text' => '06 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số DM+ báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 2,
+                        'requirement_text' => '02 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 15,
+                        'requirement_text' => '15 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 90000000,
+                        'requirement_text' => '90 triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.2,
+                        'requirement_text' => '20%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'STAY_AM',
+                'designation_code' => 'AM',
+                'title' => 'Duy trì chức danh Quản lý (AM)',
+                'requiment_count' => 6,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (AM)',
+                        'requirement_value' => 6,
+                        'requirement_text' => '06 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số DM+ báo cáo TRỰC TIẾP cho quản lý này (không bao gồm bản thân quản lý được xét thăng cấp)',
+                        'requirement_value' => 4,
+                        'requirement_text' => '04 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 40,
+                        'requirement_text' => '40 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 180000000,
+                        'requirement_text' => '180 triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.2,
+                        'requirement_text' => '20%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'STAY_RD',
+                'designation_code' => 'RD',
+                'title' => 'Duy trì chức danh cấp điều hành kinh doanh (RD)',
+                'requiment_count' => 7,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (RD)',
+                        'requirement_value' => 24,
+                        'requirement_text' => '24 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số DM+ báo cáo TRỰC TIẾP cho RD+ được đánh giá',
+                        'requirement_value' => 3,
+                        'requirement_text' => '03 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số RD+ báo cáo TRỰC TIẾP cho RD+ được đánh giá',
+                        'requirement_value' => 0,
+                        'requirement_text' => '0 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 75,
+                        'requirement_text' => '75 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 900000000,
+                        'requirement_text' => '900 triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.2,
+                        'requirement_text' => '20%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'STAY_SRD',
+                'designation_code' => 'SRD',
+                'title' => 'Duy trì chức danh cấp điều hành kinh doanh (SRD)',
+                'requiment_count' => 7,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (SRD)',
+                        'requirement_value' => 24,
+                        'requirement_text' => '24 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số DM+ báo cáo TRỰC TIẾP cho RD+ được đánh giá',
+                        'requirement_value' => 0,
+                        'requirement_text' => '00 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số RD+ báo cáo TRỰC TIẾP cho RD+ được đánh giá',
+                        'requirement_value' => 2,
+                        'requirement_text' => '02 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 150,
+                        'requirement_text' => '150 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 1800000000,
+                        'requirement_text' => '1,8 tỷ đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.2,
+                        'requirement_text' => '20%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
+                'code' => 'STAY_TD',
+                'designation_code' => 'TD',
+                'title' => 'Duy trì chức danh cấp điều hành kinh doanh (TD)',
+                'requiment_count' => 7,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Thời gian tối thiểu ở vị trí hiện tại (SRD)',
+                        'requirement_value' => 24,
+                        'requirement_text' => '24 tháng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng số DM+ báo cáo TRỰC TIẾP cho RD+ được đánh giá',
+                        'requirement_value' => 0,
+                        'requirement_text' => '00 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tổng số RD+ báo cáo TRỰC TIẾP cho RD+ được đánh giá',
+                        'requirement_value' => 4,
+                        'requirement_text' => '04 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 4,
+                        'title' => 'Tổng số nhân sự (HC) còn làm việc tại thời điểm xét (bao gồm bản thân đại lý được xét thăng cấp và các đại lý được giới thiệu)',
+                        'requirement_value' => 300,
+                        'requirement_text' => '300 nhân sự',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 5,
+                        'title' => 'Tổng FYC của toàn bộ đội ngũ trong 12 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 3600000000,
+                        'requirement_text' => '3,6 tỷ đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 6,
+                        'title' => 'Tỉ lệ FYP sản phẩm bổ sung bổ trợ/ Tổng FYP của toàn bộ đội ngũ trong 06 tháng vừa qua (bao gồm kết quả nhóm trực tiếp và gián tiếp)',
+                        'requirement_value' => 0.2,
+                        'requirement_text' => '20%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 7,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 của toàn bộ đội ngũ (trực tiếp và gián tiếp) tại thời điểm xét',
+                        'requirement_value' => 0.75,
+                        'requirement_text' => '75%',
                         'progress_text' => '',
                         'is_done' => 0
                     ]
