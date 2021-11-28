@@ -244,6 +244,40 @@ class Util
     {
         $promotions = [
             [
+                'code' => 'STAY_AG',
+                'designation_code' => 'AG',
+                'title' => 'Duy trì cấp Đại lý',
+                'requiment_count' => 3,
+                'gained_count' => 0,
+                'evaluation_date' => '',
+                'requirements' => [
+                    [
+                        'id' => 1,
+                        'title' => 'Số lượng hợp đồng (CC) thực cấp trong 5 tháng vừa qua',
+                        'requirement_value' => 1,
+                        'requirement_text' => '01 CC',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 2,
+                        'title' => 'Tổng FYC thực cấp trong 5 tháng vừa qua',
+                        'requirement_value' => 0,
+                        'requirement_text' => 'triệu đồng',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ],
+                    [
+                        'id' => 3,
+                        'title' => 'Tỷ lệ duy trì hợp đồng K2 tại thời điểm xét',
+                        'requirement_value' => 0,
+                        'requirement_text' => '%',
+                        'progress_text' => '',
+                        'is_done' => 0
+                    ]
+                ]
+            ],
+            [
                 'code' => 'PRO_DM',
                 'designation_code' => 'AG',
                 'title' => 'Thăng cấp Trưởng phòng kinh doanh',

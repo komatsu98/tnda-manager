@@ -784,7 +784,7 @@ class ComissionCalculatorController extends Controller
                                         ->orWhere('terminate_date', '>=', $eval_date);
                                 })->count();
                                 $referencee_count += 1; // bản thân đại lý
-                                $r['progress_text'] = $referencee_count . " nhân sự";
+                                $r['progress_text'] = str_pad($referencee_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
                                 if ($referencee_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 3:
@@ -807,7 +807,7 @@ class ComissionCalculatorController extends Controller
                                         ['AA', '=', 1]
                                     ]);
                                 })->count();
-                                $r['progress_text'] = $referencee_AA_count . " đại lý";
+                                $r['progress_text'] = str_pad($referencee_AA_count, 2, "0", STR_PAD_LEFT) . " đại lý";
                                 if ($referencee_AA_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 4:
@@ -840,6 +840,17 @@ class ComissionCalculatorController extends Controller
                                 break;
                         }
                         $pro_req['requirements'][$j] = $r;
+                    }
+                    break;
+                case 'STAY_AG':
+                    foreach ($pro_req['requirements'] as $j => $r) {
+                        $r['progress_text'] = null;
+                        switch ($r['id']) {
+                            case 1:
+                                
+                                break;
+
+                        }
                     }
                     break;
             }
