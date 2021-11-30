@@ -48,7 +48,7 @@ class ComissionCalculatorController extends Controller
         $data['teamAGCodes'] = $this->getWholeTeamCodes($agent, true);
         $data['teamCodes'] = $this->getWholeTeamCodes($agent);
         $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
-        // $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data, $month);
+        $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data, $month);
         $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data, $month);
         return $data['thisMonthPromotionReq'];
     }
@@ -904,7 +904,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month);
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -983,7 +983,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month);
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1039,7 +1039,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month);
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1102,7 +1102,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 8:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month);
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1125,17 +1125,11 @@ class ComissionCalculatorController extends Controller
                                 if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 2:
-                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD'])->count();
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD', 'SRD'])->count();
                                 $r['progress_text'] = $direct_dm_count;
                                 if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 3:
-                                $teamCodes = $data['teamCodes'];
-                                $dm_plus_count = User::whereIn('agent_code', $teamCodes)->whereIn('designation_code', ['DM', 'SDM'])->count();
-                                $r['progress_text'] = $dm_plus_count;
-                                if ($dm_plus_count >= $r['requirement_value']) $r['is_done'] = 1;
-                                break;
-                            case 4:
                                 $referencee_count = $agent->referencee()->where([
                                     ['designation_code', '=', 'AG']
                                 ])->where(function ($q) use ($eval_date) {
@@ -1145,13 +1139,13 @@ class ComissionCalculatorController extends Controller
                                 $r['progress_text'] = str_pad($referencee_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
                                 if ($referencee_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
-                            case 5:
+                            case 4:
                                 $teamCodes = $data['teamCodes'];
                                 $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
                                 $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
                                 if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
-                            case 6:
+                            case 5:
                                 $list_sub_product_code = Util::get_sub_product_code();
                                 $teamCodes = $data['teamCodes'];
                                 $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 12, $month, $list_sub_product_code);
@@ -1159,23 +1153,23 @@ class ComissionCalculatorController extends Controller
                                 $r['progress_text'] = ($FYP_total ? round($FYP_sub * 100 / $FYP_total, 2) : 0) . "%";
                                 if ($FYP_total ? $FYP_sub / $FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
                                 break;
-                            case 7: // tỉ lệ hoạt động đại lý hay cả đội ngũ?
+                            case 6: // tỉ lệ hoạt động đại lý hay cả đội ngũ?
                                 $teamAGCodes = $data['teamAGCodes'];
                                 $aa_check = $this->getTotalAAByCodes($teamAGCodes, 0, 3, $month);
                                 $perc_aa_check = $teamAGCodes ? $aa_check / count($teamAGCodes) : 0;
                                 $r['progress_text'] = round($perc_aa_check, 2) . "%";
                                 if ($perc_aa_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
-                            case 8:
+                            case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month);
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
-                            case 9:
+                            case 8:
                                 // phỏng vấn
                                 break;
-                            case 10:
+                            case 9:
                                 // quy chế
                                 break;
                         }
@@ -1206,6 +1200,303 @@ class ComissionCalculatorController extends Controller
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                         }
+                    }
+                    break;
+                case 'STAY_DM':
+                    foreach ($pro_req['requirements'] as $j => $r) {
+                        $r['progress_text'] = null;
+                        switch ($r['id']) {
+                            case 1:
+                                $r['progress_text'] = $data['twork'] . " tháng";
+                                if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 2:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['DM'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 3:
+                                $referencee_count = $agent->referencee()->where([
+                                    ['designation_code', '=', 'AG']
+                                ])->where(function ($q) use ($eval_date) {
+                                    $q->whereNull('terminate_date')
+                                        ->orWhere('terminate_date', '>=', $eval_date);
+                                })->count();
+                                $r['progress_text'] = str_pad($referencee_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
+                                if ($referencee_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 4:
+                                $teamCodes = $data['teamCodes'];
+                                $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 5:
+                                $list_sub_product_code = Util::get_sub_product_code();
+                                $teamCodes = $data['teamCodes'];
+                                $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 12, $month, $list_sub_product_code);
+                                $FYP_total = $this->getTotalFYPByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = ($FYP_total ? round($FYP_sub * 100 / $FYP_total, 2) : 0) . "%";
+                                if ($FYP_total ? $FYP_sub / $FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
+                                break;
+                            case 6:
+                                $teamCodes = $data['teamCodes'];
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $r['progress_text'] = round($k2_check * 100, 2) . "%";
+                                if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                        }
+                        $pro_req['requirements'][$j] = $r;
+                    }
+                    break;
+                case 'STAY_SDM':
+                    foreach ($pro_req['requirements'] as $j => $r) {
+                        $r['progress_text'] = null;
+                        switch ($r['id']) {
+                            case 1:
+                                $r['progress_text'] = $data['twork'] . " tháng";
+                                if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 2:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['DM', 'SDM'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 3:
+                                $referencee_count = $agent->referencee()->where([
+                                    ['designation_code', '=', 'AG']
+                                ])->where(function ($q) use ($eval_date) {
+                                    $q->whereNull('terminate_date')
+                                        ->orWhere('terminate_date', '>=', $eval_date);
+                                })->count();
+                                $r['progress_text'] = str_pad($referencee_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
+                                if ($referencee_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 4:
+                                $teamCodes = $data['teamCodes'];
+                                $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 5:
+                                $list_sub_product_code = Util::get_sub_product_code();
+                                $teamCodes = $data['teamCodes'];
+                                $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 12, $month, $list_sub_product_code);
+                                $FYP_total = $this->getTotalFYPByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = ($FYP_total ? round($FYP_sub * 100 / $FYP_total, 2) : 0) . "%";
+                                if ($FYP_total ? $FYP_sub / $FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
+                                break;
+                            case 6:
+                                $teamCodes = $data['teamCodes'];
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $r['progress_text'] = round($k2_check * 100, 2) . "%";
+                                if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                        }
+                        $pro_req['requirements'][$j] = $r;
+                    }
+                    break;
+                case 'STAY_AM':
+                    foreach ($pro_req['requirements'] as $j => $r) {
+                        $r['progress_text'] = null;
+                        switch ($r['id']) {
+                            case 1:
+                                $r['progress_text'] = $data['twork'] . " tháng";
+                                if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 2:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['DM', 'SDM', 'AM'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 3:
+                                $referencee_count = $agent->referencee()->where([
+                                    ['designation_code', '=', 'AG']
+                                ])->where(function ($q) use ($eval_date) {
+                                    $q->whereNull('terminate_date')
+                                        ->orWhere('terminate_date', '>=', $eval_date);
+                                })->count();
+                                $r['progress_text'] = str_pad($referencee_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
+                                if ($referencee_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 4:
+                                $teamCodes = $data['teamCodes'];
+                                $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 5:
+                                $list_sub_product_code = Util::get_sub_product_code();
+                                $teamCodes = $data['teamCodes'];
+                                $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 12, $month, $list_sub_product_code);
+                                $FYP_total = $this->getTotalFYPByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = ($FYP_total ? round($FYP_sub * 100 / $FYP_total, 2) : 0) . "%";
+                                if ($FYP_total ? $FYP_sub / $FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
+                                break;
+                            case 6:
+                                $teamCodes = $data['teamCodes'];
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $r['progress_text'] = round($k2_check * 100, 2) . "%";
+                                if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                        }
+                        $pro_req['requirements'][$j] = $r;
+                    }
+                    break;
+                case 'STAY_RD':
+                    foreach ($pro_req['requirements'] as $j => $r) {
+                        $r['progress_text'] = null;
+                        switch ($r['id']) {
+                            case 1:
+                                $r['progress_text'] = $data['twork'] . " tháng";
+                                if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 2:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['DM', 'SDM', 'AM'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 3:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 4:
+                                $teamCodes = $data['teamCodes'];
+                                $under_count = User::whereIn('agent_code', $teamCodes)
+                                    ->where(function ($q) use ($eval_date) {
+                                        $q->whereNull('terminate_date')
+                                            ->orWhere('terminate_date', '>=', $eval_date);
+                                    })->count();
+                                $r['progress_text'] = str_pad($under_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
+                                if ($under_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 5:
+                                $teamCodes = $data['teamCodes'];
+                                $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 6:
+                                $list_sub_product_code = Util::get_sub_product_code();
+                                $teamCodes = $data['teamCodes'];
+                                $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 12, $month, $list_sub_product_code);
+                                $FYP_total = $this->getTotalFYPByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = ($FYP_total ? round($FYP_sub * 100 / $FYP_total, 2) : 0) . "%";
+                                if ($FYP_total ? $FYP_sub / $FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
+                                break;
+                            case 7:
+                                $teamCodes = $data['teamCodes'];
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $r['progress_text'] = round($k2_check * 100, 2) . "%";
+                                if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                        }
+                        $pro_req['requirements'][$j] = $r;
+                    }
+                    break;
+                case 'STAY_SRD':
+                    foreach ($pro_req['requirements'] as $j => $r) {
+                        $r['progress_text'] = null;
+                        switch ($r['id']) {
+                            case 1:
+                                $r['progress_text'] = $data['twork'] . " tháng";
+                                if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 2:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['DM', 'SDM', 'AM'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 3:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD','SRD'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 4:
+                                $teamCodes = $data['teamCodes'];
+                                $under_count = User::whereIn('agent_code', $teamCodes)
+                                    ->where(function ($q) use ($eval_date) {
+                                        $q->whereNull('terminate_date')
+                                            ->orWhere('terminate_date', '>=', $eval_date);
+                                    })->count();
+                                $r['progress_text'] = str_pad($under_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
+                                if ($under_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 5:
+                                $teamCodes = $data['teamCodes'];
+                                $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 6:
+                                $list_sub_product_code = Util::get_sub_product_code();
+                                $teamCodes = $data['teamCodes'];
+                                $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 12, $month, $list_sub_product_code);
+                                $FYP_total = $this->getTotalFYPByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = ($FYP_total ? round($FYP_sub * 100 / $FYP_total, 2) : 0) . "%";
+                                if ($FYP_total ? $FYP_sub / $FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
+                                break;
+                            case 7:
+                                $teamCodes = $data['teamCodes'];
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $r['progress_text'] = round($k2_check * 100, 2) . "%";
+                                if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                        }
+                        $pro_req['requirements'][$j] = $r;
+                    }
+                    break;
+                case 'STAY_TD':
+                    foreach ($pro_req['requirements'] as $j => $r) {
+                        $r['progress_text'] = null;
+                        switch ($r['id']) {
+                            case 1:
+                                $r['progress_text'] = $data['twork'] . " tháng";
+                                if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 2:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['DM', 'SDM', 'AM'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 3:
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD','SRD','TD'])->count();
+                                $r['progress_text'] = $direct_dm_count;
+                                if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 4:
+                                $teamCodes = $data['teamCodes'];
+                                $under_count = User::whereIn('agent_code', $teamCodes)
+                                    ->where(function ($q) use ($eval_date) {
+                                        $q->whereNull('terminate_date')
+                                            ->orWhere('terminate_date', '>=', $eval_date);
+                                    })->count();
+                                $r['progress_text'] = str_pad($under_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
+                                if ($under_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 5:
+                                $teamCodes = $data['teamCodes'];
+                                $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 6:
+                                $list_sub_product_code = Util::get_sub_product_code();
+                                $teamCodes = $data['teamCodes'];
+                                $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 12, $month, $list_sub_product_code);
+                                $FYP_total = $this->getTotalFYPByCodes($teamCodes, 0, 12, $month);
+                                $r['progress_text'] = ($FYP_total ? round($FYP_sub * 100 / $FYP_total, 2) : 0) . "%";
+                                if ($FYP_total ? $FYP_sub / $FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
+                                break;
+                            case 7:
+                                $teamCodes = $data['teamCodes'];
+                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $r['progress_text'] = round($k2_check * 100, 2) . "%";
+                                if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                        }
+                        $pro_req['requirements'][$j] = $r;
                     }
                     break;
             }
