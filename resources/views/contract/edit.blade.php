@@ -91,9 +91,9 @@
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="premium">Tổng số phí phải đóng</label>
-                        <input type="number" class="form-control" id="premium" name="premium" value="{{ $contract->premium }}">
+                        <input type="number" class="form-control" id="premium" name="premium" value="{{ $contract->premium }}" disabled>
                     </div>
-                    <div class="col-md-3 form-group">
+                    <!-- <div class="col-md-3 form-group">
                         <label for="term_code">Định kỳ đóng phí</label>
                         <select name="term_code" id="term_code" class="form-control" required>
                             <option value="">Chọn kỳ đóng phí</option>
@@ -101,7 +101,7 @@
                             <option value="{{$code}}">{{$name}}</option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> -->
                     <div class="col-md-3 form-group">
                         <label for="premium_term">Phí định kỳ</label>
                         <input type="number" class="form-control" id="term_premium" name="premium_term" value="{{ $contract->premium_term }}" >

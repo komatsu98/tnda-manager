@@ -88,7 +88,7 @@ class AgentController extends Controller
             $input['ip_addr'] = $request->ip();
 
             $now = Carbon::now();
-            $now->addSecond(900);
+            $now->addSecond(3600);
             $input['expired_at'] = $now;
             $new_session = SessionLog::create($input);
 

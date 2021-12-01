@@ -30,9 +30,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/admin/users', 'AdminController@importUsers')->name('admin.user.import');
     Route::get('/admin/user/{user}/edit', 'AdminController@editUser')->name('admin.user.edit');
     Route::put('/admin/user/{user}', 'AdminController@updateUser')->name('admin.user.update');
+    Route::get('/admin/user/{user}/contract', 'AdminController@listUserContracts')->name('admin.user.contracts');
 
     Route::get('/admin/contracts', 'AdminController@listContracts')->name('admin.contracts');
-    Route::get('/admin/user/{user}/contract', 'AdminController@listUserContracts')->name('admin.user.contracts');
     Route::get('/admin/contract/bulk-create', 'AdminController@createBulkContracts')->name('admin.contract.bulk_create');
     Route::get('/admin/contract/{contract}/edit', 'AdminController@editContract')->name('admin.contract.edit');
     Route::get('/admin/contract/{contract}', 'AdminController@getContract')->name('admin.contract.detail');
@@ -40,27 +40,33 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin/contract/create', 'AdminController@createContract')->name('admin.contract.create');
     Route::post('/admin/contract', 'AdminController@storeContract')->name('admin.contract.store');
     Route::post('/admin/contracts', 'AdminController@importContracts')->name('admin.contract.import');
+    Route::get('/admin/contract/product/{contract_product}', 'AdminController@getContractProduct')->name('admin.contract.product.detail');
+    Route::get('/admin/contract/{contract}/products', 'AdminController@listContractProducts')->name('admin.contract.products');
+    Route::get('/admin/contract/product/{contract_product}/transactions', 'AdminController@listTransactions')->name('admin.contract.product.transactions');
 
     Route::get('/admin/customers', 'AdminController@listCustomers')->name('admin.customers');
     Route::get('/admin/customer/{customer}', 'AdminController@getCustomer')->name('admin.customer.detail');
     Route::get('/admin/customer/{customer}/raw', 'AdminController@getCustomerRaw')->name('admin.customer.raw');
-    // Route::get('/admin/user/{user}/group/create', 'AdminController@createUserGroup')->name('admin.user.group.create');
-    // Route::post('/admin/user/{user}/group', 'AdminController@storeUserGroup')->name('admin.user.group.store');
-    // Route::get('/admin/user/{user}/group/edit', 'AdminController@editUserGroup')->name('admin.user.group.edit');
-    // Route::put('/admin/user/{user}/group/{group}', 'AdminController@updateUserGroup')->name('admin.user.group.update');
-    // Route::delete('/admin/user/{user}/group/{group}', 'AdminController@destroyUserGroup')->name('admin.user.group.destroy');
+    Route::get('/admin/customer/{customer}/contracts', 'AdminController@listCustomerContracts')->name('admin.customer.contracts');
 
-    // Route::get('/admin/user/{user}/history', 'AdminController@listUserHistories')->name('admin.user.histories');
-    // Route::put('/admin/user/{user}', 'AdminController@updateFUser')->name('admin.user.update');
+    Route::get('/admin/app-news', 'AdminController@listNewss')->name('admin.newss');
+    Route::get('/admin/news/create', 'AdminController@createNews')->name('admin.news.create');
+    Route::get('/admin/news/{news}', 'AdminController@getNews')->name('admin.news.detail');
+    Route::get('/admin/news/{news}/edit', 'AdminController@editNews')->name('admin.news.edit');
+    Route::put('/admin/news/{news}', 'AdminController@updateNews')->name('admin.news.update');
+    Route::post('/admin/news', 'AdminController@storeNews')->name('admin.news.store');
 
-    // Route::get('/admin/groups', 'AdminController@listFGroups')->name('admin.groups');
-    // Route::get('/admin/group/{group}/user', 'AdminController@listGroupUsers')->name('admin.group.user.list');
-    // Route::get('/admin/group/create', 'AdminController@createFGroup')->name('admin.group.create');
-    // Route::post('/admin/group', 'AdminController@storeFGroup')->name('admin.group.store');
-    // 
-    // 
-    // Route::delete('/admin/group/{group}', 'AdminController@destroyFGroup')->name('admin.group.destroy');
+    Route::get('/admin/transactions', 'AdminController@listTransactions')->name('admin.transactions');
+    Route::get('/admin/transaction/{transaction}', 'AdminController@getTransaction')->name('admin.transaction.detail');
 
+    Route::get('/admin/metrics', 'AdminController@listMetrics')->name('admin.metrics');
+    Route::get('/admin/metric/{metric}', 'AdminController@getMetric')->name('admin.metric.detail');
+
+    Route::get('/admin/incomes', 'AdminController@listIncomes')->name('admin.incomes');
+    Route::get('/admin/income/{income}', 'AdminController@getIncome')->name('admin.income.detail');
+
+    Route::get('/admin/promotions', 'AdminController@listPromotions')->name('admin.promotions');
+    Route::get('/admin/promotion/{promotion}', 'AdminController@getPromotion')->name('admin.promotion.detail');
 });
 
 Route::prefix('api')->group(function () {

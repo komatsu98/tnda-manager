@@ -50,7 +50,7 @@ class ComissionCalculatorController extends Controller
         $data['isDrAreaManager'] = $this->getIsDrAreaManager($agent);
         $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data, $month);
         $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data, $month);
-        return $data['thisMonthPromotionReq'];
+        return $data;
     }
 
     public function updateThisMonthAllStructure($agent, $month = null)
@@ -904,7 +904,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -983,7 +983,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1026,7 +1026,7 @@ class ComissionCalculatorController extends Controller
                             case 5:
                                 $teamCodes = $data['teamCodes'];
                                 $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
-                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                $r['progress_text'] = round($FYC_check / 1000000000, 4) . " tỷ đồng";
                                 if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 6:
@@ -1039,7 +1039,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1082,7 +1082,7 @@ class ComissionCalculatorController extends Controller
                             case 5:
                                 $teamCodes = $data['teamCodes'];
                                 $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
-                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                $r['progress_text'] = round($FYC_check / 1000000000, 4) . " tỷ đồng";
                                 if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 6:
@@ -1102,7 +1102,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 8:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1142,7 +1142,7 @@ class ComissionCalculatorController extends Controller
                             case 4:
                                 $teamCodes = $data['teamCodes'];
                                 $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
-                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                $r['progress_text'] = round($FYC_check / 1000000000, 4) . " tỷ đồng";
                                 if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 5:
@@ -1162,7 +1162,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1241,7 +1241,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 6:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1288,7 +1288,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 6:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1335,7 +1335,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 6:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1387,7 +1387,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1426,7 +1426,7 @@ class ComissionCalculatorController extends Controller
                             case 5:
                                 $teamCodes = $data['teamCodes'];
                                 $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
-                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                $r['progress_text'] = round($FYC_check / 1000000000, 4) . " tỷ đồng";
                                 if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 6:
@@ -1439,7 +1439,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1478,7 +1478,7 @@ class ComissionCalculatorController extends Controller
                             case 5:
                                 $teamCodes = $data['teamCodes'];
                                 $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 12, $month);
-                                $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
+                                $r['progress_text'] = round($FYC_check / 1000000000, 4) . " tỷ đồng";
                                 if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 6:
@@ -1491,7 +1491,7 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 7:
                                 $teamCodes = $data['teamCodes'];
-                                $k2_check = $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * $teamCodes);
+                                $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1638,7 +1638,7 @@ class ComissionCalculatorController extends Controller
                 if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
                 $depdrCodes = $data['depDrCodes'];
                 $count_depdr_check = count($depdrCodes);
-                if (!count($depdrCodes)) break;
+                if (!$count_depdr_check) break;
                 $count_depdr_fyc_check = $this->getTotalFYCByCodes($depdrCodes, 0, 3, $month);
                 $count_depdr_k2_check = $this->getTotalK2ByCodes($depdrCodes, 0, 3, $month) / (3 * $count_depdr_check);
                 $count_depdr_aa_check = $this->getTotalAAByCodes($depdrCodes, 0, 3, $month);
@@ -1872,7 +1872,7 @@ class ComissionCalculatorController extends Controller
                 if (!$data['isDrAreaManager']) break;
                 $teamAGCodes = $data['teamAGCodes'];
                 $count_teamAG_check = count($teamAGCodes);
-                $count_teamAG_k2_check = $this->getTotalK2ByCodes($teamAGCodes, 0, 3, $month) / (3 * $count_teamAG_check);  // K2 toàn vùng theo quý hay theo tháng hiện tại
+                $count_teamAG_k2_check = $count_teamAG_check ? $this->getTotalK2ByCodes($teamAGCodes, 0, 3, $month) / (3 * $count_teamAG_check) : 0;  // K2 toàn vùng theo quý hay theo tháng hiện tại
                 $count_teamAG_fyp_check = $this->getTotalFYPByCodes($teamAGCodes, 0, 1, $month);
                 if ($count_teamAG_k2_check < 0.75) break;
                 if ($data['isDrAreaManager']) {

@@ -16,7 +16,7 @@ class Transaction extends Model
      */
     public function agent()
     {
-        return $this->belongsTo('App\User');
+        return $this->belongsTo('App\User', 'agent_code', 'agent_code');
     }
 
     public function contract()
@@ -27,5 +27,10 @@ class Transaction extends Model
     public function contract_product()
     {
         return $this->belongsTo('App\ContractProduct', 'contract_product_id', 'id');
+    }
+
+    public function comission()
+    {
+        return $this->hasOne('App\Comission', 'transaction_id', 'id');
     }
 }

@@ -23,4 +23,9 @@ class Comission extends Model
     {
         return $this->belongsTo('App\Contract');
     }
+
+    public function transaction()
+    {
+        return $this->belongsTo('App\Transaction', 'transaction_id', 'id');
+    }
 }
