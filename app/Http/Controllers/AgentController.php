@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Middleware;
 use App\User;
+use App\Guest;
 use App\AppNews;
 use App\Contract;
 use App\Customer;
 use App\Customers;
 use App\MonthlyMetric;
+use App\MonthlyIncome;
 use App\SessionLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -60,7 +62,69 @@ class AgentController extends Controller
             $respMsg = 'Invalid input';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        if (Auth::attempt(['username' => request('username'), 'password' => request('password')])) {
+        $is_guest = false;
+        if (request()->has('is_guest')) {
+            $is_guest = request('is_guest');
+        }
+        if ($is_guest) {
+            $guest = Guest::where(['username' => request('username')])->first();
+            if ($guest && Hash::check(request('password'), $guest->password)) {
+                $token = 'guestaccounttoken';
+                $data = [
+                    "access_token" => $token,
+                    "latest_version" => "1.0.0",
+                    "user" => [
+                        "id" => 621,
+                        "fullname" => "TRẦN ANH SƠN",
+                        "is_admin" => 0,
+                        "username" => "TNDA000003",
+                        "agent_code" => "000003",
+                        "identity_num" => "999999",
+                        "resident_address" => null,
+                        "gender" => 0,
+                        "join_date" => null,
+                        "designation_code" => "PGD",
+                        "supervisor_code" => null,
+                        "reference_code" => null,
+                        "highest_designation_code" => "TD",
+                        "alloc_code_date" => "2021-10-01",
+                        "active" => 1,
+                        "IFA" => null,
+                        "IFA_branch" => null,
+                        "IFA_ref_code" => "",
+                        "IFA_ref_name" => null,
+                        "IFA_supervisor_code" => "",
+                        "IFA_supervisor_name" => null,
+                        "IFA_supervisor_designation_code" => "",
+                        "IFA_TD_code" => null,
+                        "IFA_TD_name" => "",
+                        "IFA_start_date" => null,
+                        "image" => "http://103.226.249.106/images/avatar_1.png",
+                        "terminate_date" => null,
+                        "resident_province" => null,
+                        "business_address" => null,
+                        "business_province" => null,
+                        "marital_status_code" => "M",
+                        "native_place" => null,
+                        "mobile_phone" => "",
+                        "day_of_birth" => "1969-09-07",
+                        "identity_alloc_date" => "2016-01-11",
+                        "identity_alloc_place" => "Bộ Công An (0)",
+                        "email" => "ts@tnda.vn",
+                        "company_email" => null,
+                        "promote_date" => "2021-10-01",
+                        "branch_id" => null,
+                        "email_verified_at" => null,
+                        "created_at" => "2021-10-17 13:45:28",
+                        "updated_at" => "2021-10-17 13:45:28",
+                        "designation_text" => "Phó Tổng Giám đốc",
+                        "marital_status_text" => "Kết hôn"
+                    ]
+                ];
+                $respStatus = "success";
+                return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
+            }
+        } else if (Auth::attempt(['username' => request('username'), 'password' => request('password')])) {
             $id = Auth::id();
             $session = SessionLog::where([
                 ['agent_id', '=', $id],
@@ -71,7 +135,7 @@ class AgentController extends Controller
             $data['user'] = User::find($id);
             $data['user']->designation_text = $this->designation_code[$data['user']->designation_code];
             $data['user']->marital_status_text = $data['user']->marital_status_code != '' ? $this->marital_status_code[$data['user']->marital_status_code] : '';
-            if($data['user']->image == '') {
+            if ($data['user']->image == '') {
                 $data['user']->image = Util::get_default_avatar();
             }
             if ($session && $session->device == $input['device']) {
@@ -101,6 +165,39 @@ class AgentController extends Controller
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
+    public function register(Request $request)
+    {
+        if (!request()->has('username') || !request()->has('password')) {
+            $respStatus = 'error';
+            $respMsg = 'Invalid input';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $guest = Guest::where(['username' => request('username')])->first();
+        $user = User::where(['username' => request('username')])->first();
+        if ($guest || $user) {
+            $respStatus = 'error';
+            $respMsg = 'Username already exists';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if (strlen(request('password')) > 32 || strlen(request('username')) > 32) {
+            $respStatus = 'error';
+            $respMsg = 'Username or Password too long';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        if (strlen(request('password')) < 8 || strlen(request('username')) < 6) {
+            $respStatus = 'error';
+            $respMsg = 'Username or Password  too short';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
+        $guest_new = Guest::create([
+            'username' => request('username'),
+            'password' => Hash::make(request('password'))
+        ]);
+        $respStatus = 'success';
+        $respMsg = '';
+        return ['status' => $respStatus, 'message' => $respMsg];
+    }
+
     public function requireUpdateContract(Request $request)
     {
         $respStatus = $respMsg = '';
@@ -121,7 +218,11 @@ class AgentController extends Controller
             return ['status' => $respStatus, 'message' => $respMsg];
         }
         $contract_code = request('contract_code');
-        $agent = $check['session']->agent;
+        if ($check['session'] == 'guest') {
+            $agent = User::where(['agent_code' => '000052'])->first();
+        } else {
+            $agent = $check['session']->agent;
+        }
         $contract = $agent->contracts()->where(['partner_contract_code' => $contract_code])->first();
         $data = [];
         if (!$contract) {
@@ -164,17 +265,17 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         $current_password = request('current_password');
         $new_password = request('new_password');
-        if(!Hash::check($current_password, $agent->password)) {
+        if (!Hash::check($current_password, $agent->password)) {
             $respStatus = 'error';
             $respMsg = 'Incorrect password';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        if(strlen($new_password) > 32) {
+        if (strlen($new_password) > 32) {
             $respStatus = 'error';
             $respMsg = 'Password too long';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        if(strlen($new_password) < 8) {
+        if (strlen($new_password) < 8) {
             $respStatus = 'error';
             $respMsg = 'Password too short';
             return ['status' => $respStatus, 'message' => $respMsg];
@@ -207,17 +308,17 @@ class AgentController extends Controller
         $agent = $check['session']->agent;
         $current_password = request('current_password2');
         $new_password = request('new_password2');
-        if(!Hash::check($current_password, $agent->password2)) {
+        if (!Hash::check($current_password, $agent->password2)) {
             $respStatus = 'error';
             $respMsg = 'Incorrect password2';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        if(strlen($new_password) > 32) {
+        if (strlen($new_password) > 32) {
             $respStatus = 'error';
             $respMsg = 'Password2 too long';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        if(strlen($new_password) < 8) {
+        if (strlen($new_password) < 8) {
             $respStatus = 'error';
             $respMsg = 'Password2 too short';
             return ['status' => $respStatus, 'message' => $respMsg];
@@ -249,7 +350,7 @@ class AgentController extends Controller
         }
         $agent = $check['session']->agent;
         $password2 = request('password2');
-        if(!Hash::check($password2, $agent->password2)) {
+        if (!Hash::check($password2, $agent->password2)) {
             $respStatus = 'error';
             $respMsg = 'Incorrect password2';
             return ['status' => $respStatus, 'message' => $respMsg];
@@ -277,23 +378,72 @@ class AgentController extends Controller
         }
         $session = $check['session'];
         $respStatus = 'success';
-        $agent = $session->agent;
 
-        if (request()->has('view_as') && request('view_as') != '') {
-            $view_as_code = request('view_as');
-            if (!$this->checkSupervisor($agent, $view_as_code)) {
-                $respStatus = 'error';
-                $respMsg = 'View as not allowed!';
-                return ['status' => $respStatus, 'message' => $respMsg];
+        if ($check['session'] == 'guest') {
+            $agent = (object)[
+                "fullname" => "TRẦN ANH SƠN",
+                "is_admin" => 0,
+                "username" => "TNDA000003",
+                "agent_code" => "000003",
+                "identity_num" => "999999",
+                "resident_address" => null,
+                "gender" => 0,
+                "join_date" => null,
+                "designation_code" => "PGD",
+                "supervisor_code" => null,
+                "reference_code" => null,
+                "highest_designation_code" => "TD",
+                "alloc_code_date" => "2021-10-01",
+                "active" => 1,
+                "IFA" => null,
+                "IFA_branch" => null,
+                "IFA_ref_code" => "",
+                "IFA_ref_name" => null,
+                "IFA_supervisor_code" => "",
+                "IFA_supervisor_name" => null,
+                "IFA_supervisor_designation_code" => "",
+                "IFA_TD_code" => null,
+                "IFA_TD_name" => "",
+                "IFA_start_date" => null,
+                "image" => "http =>//103.226.249.106/images/avatar_1.png",
+                "terminate_date" => null,
+                "resident_province" => null,
+                "business_address" => null,
+                "business_province" => null,
+                "marital_status_code" => "M",
+                "native_place" => null,
+                "mobile_phone" => "",
+                "day_of_birth" => "1969-09-07",
+                "identity_alloc_date" => "2016-01-11",
+                "identity_alloc_place" => "Bộ Công An (0)",
+                "email" => "ts@tnda.vn",
+                "company_email" => null,
+                "promote_date" => "2021-10-01",
+                "branch_id" => null,
+                "email_verified_at" => null,
+                "created_at" => "2021-10-17 13:45:28",
+                "updated_at" => "2021-10-17 13:45:28",
+                "designation_text" => "Phó Tổng Giám đốc",
+                "marital_status_text" => "Kết hôn"
+            ];
+        } else {
+            $agent = $session->agent;
+            if (request()->has('view_as') && request('view_as') != '') {
+                $view_as_code = request('view_as');
+                if (!$this->checkSupervisor($agent, $view_as_code)) {
+                    $respStatus = 'error';
+                    $respMsg = 'View as not allowed!';
+                    return ['status' => $respStatus, 'message' => $respMsg];
+                }
+                $agent = User::where(['agent_code' => $view_as_code])->first();
             }
-            $agent = User::where(['agent_code' => $view_as_code])->first();
         }
 
         $data = [];
         $data['agent'] = $agent;
         $data['agent']->designation_text = $this->designation_code[$data['agent']->designation_code];
         $data['agent']->marital_status_text = $data['agent']->marital_status_code != '' ? $this->marital_status_code[$data['agent']->marital_status_code] : '';
-        if($data['agent']->image == '') {
+        if ($data['agent']->image == '') {
             $data['agent']->image = Util::get_default_avatar();
         }
         // $data['session'] = $session;
@@ -528,7 +678,11 @@ class AgentController extends Controller
             }
         }
 
-        $agent = $check['session']->agent;
+        if ($check['session'] == 'guest') {
+            $agent = User::where(['agent_code' => '000052'])->first();
+        } else {
+            $agent = $check['session']->agent;
+        }
         if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
@@ -631,16 +785,16 @@ class AgentController extends Controller
             $contract->premium = 0;
             $contract->premium_term = 0;
             $contract->premium_received = 0;
-            foreach($contract->products as $pc) {
+            foreach ($contract->products as $pc) {
                 $product_texts[] = $this->product_code[trim($pc->product_code)];
                 // list sub => sub_product_texts[] =...
                 $contract->premium += $pc->premium;
                 $contract->premium_term += $pc->premium_term;
-                foreach($pc->transactions as $tc) {
+                foreach ($pc->transactions as $tc) {
                     $contract->premium_received += $tc->premium_received;
                 }
             }
-            
+
             $contract->product_text = implode(", ", $product_texts);
             $info_awaiting_text = [];
             if ($contract->info_awaiting && strlen($contract->info_awaiting)) {
@@ -719,8 +873,11 @@ class AgentController extends Controller
                 }
             }
         }
-
-        $agent = $check['session']->agent;
+        if ($check['session'] == 'guest') {
+            $agent = User::where(['agent_code' => '000052'])->first();
+        } else {
+            $agent = $check['session']->agent;
+        }
         if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
@@ -802,7 +959,11 @@ class AgentController extends Controller
             $contract_code = request('contract_code');
         }
 
-        $agent = $check['session']->agent;
+        if ($check['session'] == 'guest') {
+            $agent = User::where(['agent_code' => '000052'])->first();
+        } else {
+            $agent = $check['session']->agent;
+        }
         if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
@@ -909,7 +1070,7 @@ class AgentController extends Controller
         $offset = ($page - 1) * $limit;
 
         $customers = Customer::where(['status' => 1])->offset($offset)->take($limit)->get();
-        foreach($customers as $customer) {
+        foreach ($customers as $customer) {
             $customer->partner_text = 'tiềm năng';
             $customer->image = Util::get_default_avatar();
         }
@@ -953,8 +1114,11 @@ class AgentController extends Controller
             }
         }
         $offset = ($page - 1) * $limit;
-
-        $agent = $check['session']->agent;
+        if ($check['session'] == 'guest') {
+            $agent = User::where(['agent_code' => '000052'])->first();
+        } else {
+            $agent = $check['session']->agent;
+        }
         if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
@@ -987,18 +1151,18 @@ class AgentController extends Controller
         }
 
         $list_partners = Util::get_partners();
-        foreach($customers as $customer) {
+        foreach ($customers as $customer) {
             $customer->image = Util::get_default_avatar();
             $partners = array_unique($customer->contracts()->pluck('partner_code')->all());
-            if(count($partners)) {
+            if (count($partners)) {
                 $partner_text = [];
-                foreach($partners as $partner_code) {
+                foreach ($partners as $partner_code) {
                     $partner_index = array_search($partner_code, array_column($list_partners, 'code'));
                     if ($partner_index !== false) {
                         $partner_text[] = $list_partners[$partner_index]['name'];
                     }
                 }
-                if(count($partner_text)) {
+                if (count($partner_text)) {
                     $customer->partner_text = implode(", ", $partner_text);
                 }
             }
@@ -1023,8 +1187,12 @@ class AgentController extends Controller
             $respMsg = $check['message'];
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-
-        $agent = $check['session']->agent;
+        $data = [];
+        if ($check['session'] == 'guest') {
+            $agent = User::where(['agent_code' => '000052'])->first();
+        } else {
+            $agent = $check['session']->agent;
+        }
         if (request()->has('view_as') && request('view_as') != '') {
             $view_as_code = request('view_as');
             if (!$this->checkSupervisor($agent, $view_as_code)) {
@@ -1038,34 +1206,33 @@ class AgentController extends Controller
         $promotions = Util::get_promotions($agent->designation_code);
         $month = Carbon::now()->startOfMonth()->format('Y-m-d');
         $eval_date = Carbon::now()->endOfMonth()->format('Y-m-d');
-        foreach($promotions as $i => $p) {
+        foreach ($promotions as $i => $p) {
             $metrics = $agent->promotionProgress()
-            ->where([
-                'agent_code' => $agent->agent_code,
-                'month' => $month,
-                'pro_code' => $p['code']
-            ])->get();
-            foreach($p['requirements'] as $j => $r) {
+                ->where([
+                    'agent_code' => $agent->agent_code,
+                    'month' => $month,
+                    'pro_code' => $p['code']
+                ])->get();
+            foreach ($p['requirements'] as $j => $r) {
                 $metric = null;
-                foreach($metrics as $om) {
-                    if($om->req_id == $r['id']) {
+                foreach ($metrics as $om) {
+                    if ($om->req_id == $r['id']) {
                         $metric = $om;
                         break;
                     }
                 }
-                if($metric) {
+                if ($metric) {
                     $r['progress_text'] = $metric->progress_text;
                     $r['is_done'] = $metric->is_done;
                 }
-                
+
                 $p['requirements'][$j] = $r;
-                if($r['is_done']) $p['gained_count']++;
+                if ($r['is_done']) $p['gained_count']++;
             }
             $p['evaluation_date'] = $eval_date;
             $promotions[$i] = $p;
         }
-        
-        $data = [];
+        // echo '<pre>';print_r($promotions);
         $respStatus = 'success';
         $data['promotions'] = $promotions;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
@@ -1085,29 +1252,81 @@ class AgentController extends Controller
             $respMsg = $check['message'];
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-
-        $agent = $check['session']->agent;
-        if (request()->has('team_as') && request('team_as') != '') {
-            $view_as_code = request('team_as');
-            if (!$this->checkSupervisor($agent, $view_as_code)) {
-                $respStatus = 'error';
-                $respMsg = 'View as not allowed!';
-                return ['status' => $respStatus, 'message' => $respMsg];
-            }
-            $agent = User::where(['agent_code' => $view_as_code])->first();
-        }
-
         $data = [];
-        $respStatus = 'success';
-        $team = $agent->directUnders;
-        foreach ($team as $dr_agent) {
-            $dr_agent->designation_text = $this->designation_code[$dr_agent->designation_code];
-            $dr_agent->marital_status_text = $dr_agent->marital_status_code != '' ? $this->marital_status_code[$dr_agent->marital_status_code] : '';
-            if($dr_agent->image == '') {
-                $dr_agent->image = Util::get_default_avatar();
+
+        if ($check['session'] == 'guest') {
+            $team = [
+                [
+                    "fullname" => "TRỊNH VĂN VŨ",
+                    "is_admin" => "0",
+                    "username" => "TNDA000001",
+                    "agent_code" => "000001",
+                    "identity_num" => "02546852132",
+                    "resident_address" => "10 Tô Hiệu, Phường 17, Quận Bình Thạnh, TP.HCM",
+                    "gender" => "0",
+                    "join_date" => "",
+                    "designation_code" => "TD",
+                    "supervisor_code" => "000003",
+                    "reference_code" => "",
+                    "highest_designation_code" => "TD",
+                    "alloc_code_date" => "2021-10-01",
+                    "active" => "1",
+                    "IFA" => "",
+                    "IFA_branch" => "",
+                    "IFA_ref_code" => "",
+                    "IFA_ref_name" => "",
+                    "IFA_supervisor_code" => "",
+                    "IFA_supervisor_name" => "",
+                    "IFA_supervisor_designation_code" => "",
+                    "IFA_TD_code" => "",
+                    "IFA_TD_name" => "TRỊNH VĂN VŨ",
+                    "IFA_start_date" => "",
+                    "image" => "http://103.226.249.106/images/avatar_1.png",
+                    "terminate_date" => "",
+                    "resident_province" => "",
+                    "business_address" => "",
+                    "business_province" => "",
+                    "marital_status_code" => "M",
+                    "native_place" => "",
+                    "mobile_phone" => "0325412562",
+                    "day_of_birth" => "1959-12-01",
+                    "identity_alloc_date" => "2012-01-12",
+                    "identity_alloc_place" => "Bộ Công An (0)",
+                    "email" => "ttsv@gmail.com",
+                    "company_email" => "",
+                    "promote_date" => "2021-10-01",
+                    "branch_id" => "",
+                    "email_verified_at" => "",
+                    "created_at" => "2021-10-17 13:45:28",
+                    "updated_at" => "2021-11-14 12:00:40",
+                    "designation_text" => "Giám đốc phát triển kinh doanh miền",
+                    "marital_status_text" => "Kết hôn",
+                    "team_length" => "2"
+                ]
+            ];
+        } else {
+            $agent = $check['session']->agent;
+            if (request()->has('team_as') && request('team_as') != '') {
+                $view_as_code = request('team_as');
+                if (!$this->checkSupervisor($agent, $view_as_code)) {
+                    $respStatus = 'error';
+                    $respMsg = 'View as not allowed!';
+                    return ['status' => $respStatus, 'message' => $respMsg];
+                }
+                $agent = User::where(['agent_code' => $view_as_code])->first();
             }
-            $dr_agent->team_length = $dr_agent->directUnders()->count();
+            $respStatus = 'success';
+            $team = $agent->directUnders;
+            foreach ($team as $dr_agent) {
+                $dr_agent->designation_text = $this->designation_code[$dr_agent->designation_code];
+                $dr_agent->marital_status_text = $dr_agent->marital_status_code != '' ? $this->marital_status_code[$dr_agent->marital_status_code] : '';
+                if ($dr_agent->image == '') {
+                    $dr_agent->image = Util::get_default_avatar();
+                }
+                $dr_agent->team_length = $dr_agent->directUnders()->count();
+            }
         }
+
         $data['team'] = $team;
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
@@ -1162,18 +1381,23 @@ class AgentController extends Controller
         }
         $offset = ($page - 1) * $limit;
 
-        $agent = $check['session']->agent;
-        if (request()->has('view_as') && request('view_as') != '') {
-            $view_as_code = request('view_as');
-            if (!$this->checkSupervisor($agent, $view_as_code)) {
-                $respStatus = 'error';
-                $respMsg = 'View as not allowed!';
-                return ['status' => $respStatus, 'message' => $respMsg];
+        if ($check['session'] == 'guest') {
+            $income = MonthlyIncome::where(['agent_code' => '000052']);
+        } else {
+            $agent = $check['session']->agent;
+            if (request()->has('view_as') && request('view_as') != '') {
+                $view_as_code = request('view_as');
+                if (!$this->checkSupervisor($agent, $view_as_code)) {
+                    $respStatus = 'error';
+                    $respMsg = 'View as not allowed!';
+                    return ['status' => $respStatus, 'message' => $respMsg];
+                }
+                $agent = User::where(['agent_code' => $view_as_code])->first();
             }
-            $agent = User::where(['agent_code' => $view_as_code])->first();
+
+            $income = $agent->monthlyIncomes();
         }
 
-        $income = $agent->monthlyIncomes();
 
         // if ($month_from !== '') {
         //     $month_from = $month_from . '-01';
@@ -1279,30 +1503,34 @@ class AgentController extends Controller
         }
         $offset = ($page - 1) * $limit;
 
-        $agent = $check['session']->agent;
-        if (request()->has('view_as') && request('view_as') != '') {
-            $view_as_code = request('view_as');
-            if (!$this->checkSupervisor($agent, $view_as_code)) {
-                $respStatus = 'error';
-                $respMsg = 'View as not allowed!';
-                return ['status' => $respStatus, 'message' => $respMsg];
-            }
-            $agent = User::where(['agent_code' => $view_as_code])->first();
-        }
-
-        $view_by = null;
-        if (request()->has('view_by')) {
-            $view_by = request('view_by');
-        }
-        if ($view_by == "direct") {
-            $teamCodes = $agent->directUnders()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
-            $metrics = MonthlyMetric::whereIn('agent_code', $teamCodes);
-        } else if ($view_by == "team") {
-            $teamCodes = $this->getWholeTeamCodes($agent);
-            $teamCodes[] = $agent->agent_code;
-            $metrics = MonthlyMetric::whereIn('agent_code', $teamCodes);
+        if ($check['session'] == 'guest') {
+            $metrics = MonthlyMetric::where(['agent_code' => '000052']);
         } else {
-            $metrics = $agent->monthlyMetrics();
+            $agent = $check['session']->agent;
+            if (request()->has('view_as') && request('view_as') != '') {
+                $view_as_code = request('view_as');
+                if (!$this->checkSupervisor($agent, $view_as_code)) {
+                    $respStatus = 'error';
+                    $respMsg = 'View as not allowed!';
+                    return ['status' => $respStatus, 'message' => $respMsg];
+                }
+                $agent = User::where(['agent_code' => $view_as_code])->first();
+            }
+
+            $view_by = null;
+            if (request()->has('view_by')) {
+                $view_by = request('view_by');
+            }
+            if ($view_by == "direct") {
+                $teamCodes = $agent->directUnders()->where(['designation_code' => 'AG'])->pluck('agent_code')->toArray();
+                $metrics = MonthlyMetric::whereIn('agent_code', $teamCodes);
+            } else if ($view_by == "team") {
+                $teamCodes = $this->getWholeTeamCodes($agent);
+                $teamCodes[] = $agent->agent_code;
+                $metrics = MonthlyMetric::whereIn('agent_code', $teamCodes);
+            } else {
+                $metrics = $agent->monthlyMetrics();
+            }
         }
 
         // if ($month_from !== '') {
@@ -1468,16 +1696,20 @@ class AgentController extends Controller
             $respMsg = $check['message'];
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $agent = $check['session']->agent;
         $partners = $this->partners;
-        foreach($partners as $key => $ptn) {
-            if($ptn['code'] == 'VBI') {
-                $info = base64_encode($agent->username);
-                $hash = hash_hmac('sha256', $info, config('partner.VBI')['hash_key']);
-                $ptn['url'] .= '?info=' . $info . '&hash=' . $hash;
-                $partners[$key] = $ptn;
+        if ($check['session'] == 'guest') {
+        } else {
+            $agent = $check['session']->agent;
+            foreach ($partners as $key => $ptn) {
+                if ($ptn['code'] == 'VBI') {
+                    $info = base64_encode($agent->username);
+                    $hash = hash_hmac('sha256', $info, config('partner.VBI')['hash_key']);
+                    $ptn['url'] .= '?info=' . $info . '&hash=' . $hash;
+                    $partners[$key] = $ptn;
+                }
             }
         }
+
         $respStatus = 'success';
 
         $data = [];
@@ -1486,7 +1718,8 @@ class AgentController extends Controller
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
-    public function test(Request $request) {
+    public function test(Request $request)
+    {
         return Hash::make('Monitaz2021@@');
     }
 
@@ -1524,6 +1757,10 @@ class AgentController extends Controller
     private function checkSession($access_token, $is_require_password2 = false)
     {
         $checkStatus = $checkMsg = '';
+        if ($access_token == 'guestaccounttoken') {
+            $checkStatus = 'success';
+            return ['status' => $checkStatus, 'message' => $checkMsg, 'session' => 'guest'];
+        }
         $session = SessionLog::where([
             ['access_token', '=', $access_token],
             ['expired_at', '>', Carbon::now()]

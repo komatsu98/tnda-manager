@@ -70,6 +70,7 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 Route::prefix('api')->group(function () {
+    Route::post('/register', 'AgentController@register')->name('api.register');
     Route::post('/login', 'AgentController@login')->name('api.login');
     Route::post('/require-update-contract', 'AgentController@requireUpdateContract')->name('api.require_update_contract');
     Route::post('/change-password', 'AgentController@changePassword')->name('api.change_password');
