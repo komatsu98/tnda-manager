@@ -62,12 +62,8 @@ class AgentController extends Controller
             $respMsg = 'Invalid input';
             return ['status' => $respStatus, 'message' => $respMsg];
         }
-        $is_guest = false;
-        if (request()->has('is_guest')) {
-            $is_guest = request('is_guest');
-        }
-        if ($is_guest) {
-            $guest = Guest::where(['username' => request('username')])->first();
+        $guest = Guest::where(['username' => request('username')])->first();
+        if ($guest) {
             if ($guest && Hash::check(request('password'), $guest->password)) {
                 $token = 'guestaccounttoken';
                 $data = [
