@@ -339,6 +339,10 @@ class AgentController extends Controller
             $respMsg = $check['message'];
             return ['status' => $respStatus, 'message' => $respMsg];
         }
+        if ($check['session'] == 'guest') {
+            $respStatus = 'success';
+            return ['status' => $respStatus, 'message' => $respMsg];
+        }
         if (!request()->has('password2')) {
             $respStatus = 'error';
             $respMsg = 'Missing password2';
