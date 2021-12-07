@@ -930,11 +930,17 @@ class ComissionCalculatorController extends Controller
                                 if ($data['twork'] >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 2:
-                                $direct_dm_count = $data['dr']->where(['designation_code' => 'DM'])->count();
-                                $r['progress_text'] = $direct_dm_count . " DM";
+                                $direct_dm_count = $data['dr']->where(['designation_code' => 'SDM'])->count();
+                                $r['progress_text'] = $direct_dm_count . " SDM";
                                 if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 3:
+                                $teamCodes = $data['teamCodes'];
+                                $dm_plus_count = User::whereIn('agent_code', $teamCodes)->whereIn('designation_code', ['DM', 'SDM'])->count();
+                                $r['progress_text'] = $dm_plus_count;
+                                if ($dm_plus_count >= $r['requirement_value']) $r['is_done'] = 1;
+                                break;
+                            case 4:
                                 $referencee_count = $agent->referencee()->where([
                                     ['designation_code', '=', 'AG']
                                 ])->where(function ($q) use ($eval_date) {
@@ -944,7 +950,7 @@ class ComissionCalculatorController extends Controller
                                 $r['progress_text'] = str_pad($referencee_count, 2, "0", STR_PAD_LEFT) . " nhân sự";
                                 if ($referencee_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
-                            case 4:
+                            case 5:
                                 if (!$month) {
                                     $backto = Carbon::now()->subMonths(6)->endOfMonth()->format('Y-m-d');
                                     $startMonth = Carbon::now()->startOfMonth();
@@ -967,13 +973,13 @@ class ComissionCalculatorController extends Controller
                                 $r['progress_text'] = str_pad($referencee_AA_count, 2, "0", STR_PAD_LEFT) . " đại lý";
                                 if ($referencee_AA_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
-                            case 5:
+                            case 6:
                                 $teamCodes = $data['teamCodes'];
                                 $FYC_check = $this->getTotalFYCByCodes($teamCodes, 0, 6, $month);
                                 $r['progress_text'] = round($FYC_check / 1000000, 2) . " triệu đồng";
                                 if ($FYC_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
-                            case 6:
+                            case 7:
                                 $list_sub_product_code = Util::get_sub_product_code();
                                 $teamCodes = $data['teamCodes'];
                                 $FYP_sub = $this->calcTotalFYPByCodes($teamCodes, 0, 6, $month, $list_sub_product_code);
@@ -981,14 +987,23 @@ class ComissionCalculatorController extends Controller
                                 $r['progress_text'] = ($FYP_total ? round($FYP_sub * 100 / $FYP_total, 2) : 0) . "%";
                                 if ($FYP_total ? $FYP_sub / $FYP_total >= $r['requirement_value'] : 0) $r['is_done'] = 1;
                                 break;
-                            case 7:
+                            case 8:
                                 $teamCodes = $data['teamCodes'];
                                 $k2_check = count($teamCodes) ? $this->getTotalK2ByCodes($teamCodes, 0, 3, $month) / (3 * count($teamCodes)) : 0;
                                 $r['progress_text'] = round($k2_check * 100, 2) . "%";
                                 if ($k2_check >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
-                            case 8:
+                            case 9:
                                 // huấn luyện
+                                break;
+                            case 10:
+                                // huấn luyện
+                                break;
+                            case 11:
+                                // huấn luyện
+                                break;
+                            case 12:
+                                // quy chê
                                 break;
                         }
                         $pro_req['requirements'][$j] = $r;
@@ -1409,7 +1424,7 @@ class ComissionCalculatorController extends Controller
                                 if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 3:
-                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD','SRD'])->count();
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD', 'SRD'])->count();
                                 $r['progress_text'] = $direct_dm_count;
                                 if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
@@ -1461,7 +1476,7 @@ class ComissionCalculatorController extends Controller
                                 if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;
                             case 3:
-                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD','SRD','TD'])->count();
+                                $direct_dm_count = $data['dr']->whereIn('designation_code', ['RD', 'SRD', 'TD'])->count();
                                 $r['progress_text'] = $direct_dm_count;
                                 if ($direct_dm_count >= $r['requirement_value']) $r['is_done'] = 1;
                                 break;

@@ -70,7 +70,6 @@ class AgentController extends Controller
                     "access_token" => $token,
                     "latest_version" => "1.0.0",
                     "user" => [
-                        "id" => 621,
                         "fullname" => "TRẦN ANH SƠN",
                         "is_admin" => 0,
                         "username" => "TNDA000003",

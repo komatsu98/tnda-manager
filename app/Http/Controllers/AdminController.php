@@ -25,6 +25,8 @@ use App\Transaction;
 use App\Comission;
 use App\ContractProduct;
 use App\Http\Controllers\ComissionCalculatorController;
+use App\PromotionProgress;
+use App\Promotion;
 use Exception;
 
 class AdminController extends Controller
@@ -942,7 +944,7 @@ class AdminController extends Controller
 
     public function listPromotions($agent_code = null)
     {
-        $promotions = MonthlyIncome::orderBy('created_at', 'desc');
+        $promotions = PromotionProgress::orderBy('created_at', 'desc');
         if(!is_null($agent_code)) {
             $promotions = $promotions->where(['agent_code' => $agent_code]);
         }
@@ -952,34 +954,163 @@ class AdminController extends Controller
                 ->orwhere('month', 'LIKE', '%' . $str . '%');
         }
         $promotions = $promotions->paginate(25);
+        $list_promotion_code = Util::get_promotions();
         foreach ($promotions as $promotion) {
-            $this->parsePromotionsDetail($promotion);
+            $this->parsePromotionsDetail($promotion, $list_promotion_code);
         }
-        // $list_income_code = Util::get_income_code();
-        return view('promotion.list', compact('promotions', 'list_income_code'));
+        return view('promotion.list', compact('promotions'));
     }
 
-    private function parsePromotionsDetail($promotion)
+    private function parsePromotionsDetail($promotion, $list_promotion_code)
     {
-        // $list_income_code = Util::get_income_code();
-        // $promotion->agent_text = $promotion->agent->fullname;
-        // $promotion->pro_text = $promotion->agent->fullname;
-        // $total = 0;
-        // foreach ($list_income_code as $code => $name) {
-        //     $total += $income->{$code};
-        // }
-        // $income->total = $total;
+        $promotion->agent_text = $promotion->agent->fullname;
+        $pro_index = array_search($promotion->pro_code, array_column($list_promotion_code, 'code'));
+        if ($pro_index === false) return;
+        $promotion_code = $list_promotion_code[$pro_index];
+        $promotion->pro_text = $promotion_code["title"];
+        $req_index = array_search($promotion->req_id, array_column($promotion_code["requirements"], 'id'));
+        if ($req_index !== false) {
+            $req = $promotion_code["requirements"][$req_index];
+            $promotion->req_text = $req["title"];
+            $promotion->requirement_text = $req["requirement_text"];
+            $promotion->is_done_text = $promotion->is_done == 1 ? "Hoàn thành" : "Đang tiến hành";
+        }
     }
     
-    public function getPromotion(Request $request, $income_id)
+    public function getPromotion(Request $request, $promotion_id)
     {
-        $income = MonthlyIncome::find($income_id);
-        if(!$income) {
-            return back()->with('error', 'Không tìm thấy thu nhập!');
+        $promotion = PromotionProgress::find($promotion_id);
+        if(!$promotion) {
+            return back()->with('error', 'Không tìm thấy thăng tiến!');
         }
-        $this->parseIncomesDetail($income);
+        $list_promotion_code = Util::get_promotions();
+        $this->parsePromotionsDetail($promotion, $list_promotion_code);
 
-        return view('income.detail', compact('income'));
+        return view('promotion.detail', compact('promotion'));
+    }
+
+    public function editPromotion($promotion_id)
+    {
+        $promotion = PromotionProgress::find($promotion_id);
+        $list_promotion_code = Util::get_promotions();
+        if ($promotion) {
+            $this->parsePromotionsDetail($promotion, $list_promotion_code);
+            return view('promotion.edit', [
+                'promotion' => $promotion
+            ]);
+        } else {
+            return redirect('admin/promotions')->with('error', 'Không tìm thấy thăng tiến.');
+        }
+    }
+
+    public function updatePromotion(Request $request, $promotion_id)
+    {
+        $promotion = PromotionProgress::find($promotion_id);
+        if (!$promotion) {
+            return redirect('admin/promotions')->with('error', 'Không tìm thấy thăng tiến.');
+        }
+        $input = $request->input();
+        $promotionUpdate = $promotion->update($input);
+        if ($promotionUpdate) {
+            return back()->with('success', 'Cập nhật thông tin thăng tiến thành công.');
+        } else {
+            return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại.');
+        }
+    }
+
+    public function listPromotionUps($agent_code = null)
+    {
+        $promotions = Promotion::orderBy('created_at', 'desc');
+        if(!is_null($agent_code)) {
+            $promotions = $promotions->where(['agent_code' => $agent_code]);
+        }
+        if (request()->has('search')) {
+            $str = trim(strtolower(request('search')), ' ');
+            $promotions = $promotions->where('agent_code', 'LIKE', '%' . $str . '%')
+                ->orwhere('valid_month', 'LIKE', '%' . $str . '%');
+        }
+        $promotions = $promotions->paginate(25);
+        $list_designation_code = Util::get_designation_code();
+        foreach ($promotions as $promotion) {
+            $this->parsePromotionUpsDetail($promotion, $list_designation_code);
+        }
+        return view('promotion_up.list', compact('promotions'));
+    }
+
+    private function parsePromotionUpsDetail($promotion, $list_designation_code)
+    {
+        $promotion->agent_text = $promotion->agent->fullname;
+        $promotion->old_designation_text = $list_designation_code[$promotion->old_designation_code];
+        $promotion->new_designation_text = $list_designation_code[$promotion->new_designation_code];
+    }
+    
+    public function getPromotionUp(Request $request, $promotion_id)
+    {
+        $promotion = Promotion::find($promotion_id);
+        if(!$promotion) {
+            return back()->with('error', 'Không tìm thấy thay đổi chức vụ!');
+        }
+        $list_designation_code = Util::get_designation_code();
+        $this->parsePromotionUpsDetail($promotion, $list_designation_code);
+        return view('promotion_up.detail', [
+            'promotion' => $promotion,
+            'list_designation_code' => $list_designation_code
+        ]);
+    }
+
+    public function editPromotionUp($promotion_id)
+    {
+        $promotion = Promotion::find($promotion_id);
+        $list_designation_code = Util::get_designation_code();
+        if ($promotion) {
+            $this->parsePromotionUpsDetail($promotion, $list_designation_code);
+            return view('promotion_up.edit', [
+                'promotion' => $promotion,
+                'list_designation_code' => $list_designation_code
+            ]);
+        } else {
+            return redirect('admin/promotion-ups')->with('error', 'Không tìm thấy thay đổi chức vụ.');
+        }
+    }
+
+    public function updatePromotionUp(Request $request, $promotion_id)
+    {
+        $promotion = Promotion::find($promotion_id);
+        if (!$promotion) {
+            return redirect('admin/promotion-ups')->with('error', 'Không tìm thấy thay đổi chức vụ.');
+        }
+        $input = $request->input();
+        $promotionUpdate = $promotion->update($input);
+        if ($promotionUpdate) {
+            return back()->with('success', 'Cập nhật thông tin thay đổi chức vụ thành công.');
+        } else {
+            return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại.');
+        }
+    }
+
+    public function createPromotionUp(Request $request)
+    {
+        $list_designation_code = Util::get_designation_code();
+        return view('promotion_up.add', compact('list_designation_code'));
+    }
+
+    public function storePromotionUp(Request $request)
+    {
+        $request->validate([
+            'old_designation_code' => 'required',
+            'new_designation_code' => 'required',
+            'valid_month' => 'required',
+        ]);
+        $input = $request->input();
+        $input["valid_month"] = Carbon::createFromFormat('Y-m-d', $input["valid_month"])->startOfMonth()->format('Y-m-d');
+                
+        try {
+            $new_promotion = Promotion::create($input);
+        } catch (Exception $e) {
+            return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại!');
+        }
+
+        return redirect('admin/promotion-up/' . $new_promotion->id)->with('success', 'Thêm thay đổi chức vụ thành công');
     }
 }
 function getStructure($structure, $agent) {

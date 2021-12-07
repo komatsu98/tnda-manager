@@ -65,8 +65,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin/incomes', 'AdminController@listIncomes')->name('admin.incomes');
     Route::get('/admin/income/{income}', 'AdminController@getIncome')->name('admin.income.detail');
 
-    Route::get('/admin/promotions', 'AdminController@listPromotions')->name('admin.promotions');
-    Route::get('/admin/promotion/{promotion}', 'AdminController@getPromotion')->name('admin.promotion.detail');
+    Route::get('/admin/promotion-steps', 'AdminController@listPromotions')->name('admin.promotions');
+    Route::get('/admin/promotion-step/{promotion}', 'AdminController@getPromotion')->name('admin.promotion.detail');
+    Route::get('/admin/promotion-steps/{promotion}/edit', 'AdminController@editPromotion')->name('admin.promotion.edit');
+    Route::put('/admin/promotion-steps/{promotion}', 'AdminController@updatePromotion')->name('admin.promotion.update');
+
+    Route::get('/admin/promotion-ups', 'AdminController@listPromotionUps')->name('admin.promotion_ups');
+    Route::get('/admin/promotion-up/create', 'AdminController@createPromotionUp')->name('admin.promotion_up.create');
+    Route::get('/admin/promotion-up/{promotion}/edit', 'AdminController@editPromotionUp')->name('admin.promotion_up.edit');
+    Route::get('/admin/promotion-up/{promotion}', 'AdminController@getPromotionUp')->name('admin.promotion_up.detail');
+    Route::put('/admin/promotion-up/{promotion}', 'AdminController@updatePromotionUp')->name('admin.promotion_up.update');
+    Route::post('/admin/promotion-up', 'AdminController@storePromotionUp')->name('admin.promotion_up.store');
 });
 
 Route::prefix('api')->group(function () {

@@ -5,11 +5,11 @@
     <br>
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <h2>Thông tin Thu nhập</h2>
+            <h2>Thông tin Thay đổi chức vụ</h2>
         </div>
         <div class="col-md-6">
             <div class="float-right">
-                <a href="{{ route('admin.incomes') }}" class="btn btn-primary">Back</a>
+                <a href="{{ route('admin.promotion_ups') }}" class="btn btn-primary">Back</a>
             </div>
         </div>
         <br>
@@ -24,7 +24,7 @@
                 {{ session('error') }}
             </div>
             @endif
-            @include('layouts.income_detail', ['incomes' => [$income]])
+            @include('layouts.promotion_up_detail', ['promotions' => [$promotion]])
         </div>
     </div>
 </div>
