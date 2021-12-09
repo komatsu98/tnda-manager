@@ -59,7 +59,7 @@
                         <label for="agent_name">Tư vấn viên</label>
                         <input type="text" class="form-control" id="agent_name" value="{{ $contract->agent_name }}" disabled>
                     </div>
-                    <div class="col-md-6 form-group">
+                    <!-- <div class="col-md-6 form-group">
                         <label for="product_code">Sản phẩm chính</label>
                         <select name="product_code[]" id="product_code" class="form-control selectpicker" multiple data-live-search="true" required>
                             <option value="">Chọn sản phẩm</option>
@@ -76,7 +76,7 @@
                             <option value="{{$code}}">{{$name}}</option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> -->
                     <div class="col-md-3 form-group">
                         <label for="release_date">Ngày hiệu lực</label>
                         <input type="date" class="form-control" id="release_date" name="release_date" value="{{ $contract->release_date }}" >
@@ -89,10 +89,10 @@
                         <label for="maturity_date">Ngày đáo hạn</label>
                         <input type="date" class="form-control" id="maturity_date" name="maturity_date" value="{{ $contract->maturity_date }}" >
                     </div>
-                    <div class="col-md-3 form-group">
+                    <!-- <div class="col-md-3 form-group">
                         <label for="premium">Tổng số phí phải đóng</label>
                         <input type="number" class="form-control" id="premium" name="premium" value="{{ $contract->premium }}" disabled>
-                    </div>
+                    </div> -->
                     <!-- <div class="col-md-3 form-group">
                         <label for="term_code">Định kỳ đóng phí</label>
                         <select name="term_code" id="term_code" class="form-control" required>
@@ -102,14 +102,14 @@
                             @endforeach
                         </select>
                     </div> -->
-                    <div class="col-md-3 form-group">
+                    <!-- <div class="col-md-3 form-group">
                         <label for="premium_term">Phí định kỳ</label>
                         <input type="number" class="form-control" id="term_premium" name="premium_term" value="{{ $contract->premium_term }}" >
                     </div>
                     <div class="col-md-3 form-group">
                         <label for="premium_received">Tổng số phí đã đóng</label>
                         <input type="number" class="form-control" id="premium_received" name="premium_received" value="{{ $contract->premium_received }}" >
-                    </div>
+                    </div> -->
                     <div class="col-md-3 form-group">
                         <label for="info_awaiting">Hồ sơ còn thiếu</label>
                         <select name="info_awaiting[]" id="info_awaiting" class="form-control selectpicker" multiple data-live-search="true">

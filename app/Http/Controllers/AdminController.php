@@ -1112,6 +1112,26 @@ class AdminController extends Controller
 
         return redirect('admin/promotion-up/' . $new_promotion->id)->with('success', 'Thêm thay đổi chức vụ thành công');
     }
+
+    public function calculator()
+    {
+        return view('calculator.index');
+    }
+
+    public function calc(Request $request) {
+        $request->validate([
+            'agent_code' => 'required',
+            'month' => 'required'
+        ]);
+        $input = $request->input();
+        $agent = User::where(['agent_code' => $input['agent_code']])->first();
+        $month = Carbon::createFromFormat('Y-m-d', $input["month"])->startOfMonth()->format('Y-m-d');
+        if(!$agent) return back()->with('error', 'Không tìm thấy thành viên!');
+        $calc = new ComissionCalculatorController();
+        $calc->updateThisMonthAllStructure($agent, $month);
+        return back()->with('success', 'Cập nhật thành công!');
+    }
+    
 }
 function getStructure($structure, $agent) {
     $unders = $agent->directUnders;

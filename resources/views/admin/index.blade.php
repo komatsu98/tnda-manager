@@ -30,6 +30,9 @@
             <div class="links">
                 <a href="{{ url('/admin/promotion-steps') }}">Tiến trình thăng tiến</a>
             </div>
+            <div class="links">
+                <a href="{{ url('/admin/calculator') }}">Tính toán thu nhập và thăng tiến</a>
+            </div>
         </div>
     </div>
 </div>

@@ -76,6 +76,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin/promotion-up/{promotion}', 'AdminController@getPromotionUp')->name('admin.promotion_up.detail');
     Route::put('/admin/promotion-up/{promotion}', 'AdminController@updatePromotionUp')->name('admin.promotion_up.update');
     Route::post('/admin/promotion-up', 'AdminController@storePromotionUp')->name('admin.promotion_up.store');
+
+    Route::get('/admin/calculator', 'AdminController@calculator')->name('admin.calculator');
+    Route::post('/admin/calculator/calc', 'AdminController@calc')->name('admin.calculator.calc');
 });
 
 Route::prefix('api')->group(function () {
