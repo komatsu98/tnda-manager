@@ -606,7 +606,7 @@ class AdminController extends Controller
                                 'confirmation' => $product_data['confirmation'],
                                 'premium' => $product_data['premium'],
                                 'premium_term' => $product_data['premium_term'],
-                                'term_code' => $product_data['term_code'],
+                                'term_code' => $contract_data['term_code'],
                             ]);
                         }
                         foreach($product_data['transactions'] as $transaction_data) {
@@ -636,6 +636,10 @@ class AdminController extends Controller
                             $com = $transaction->comission->amount;
                             if($com) $contract_product->comission += $com;
                         }
+                        if($contract->partner_code == 'VBI') {
+                            $contract_product->premium = $contract_product->premium_received;
+                            $contract_product->premium_term = $contract_product->premium_received;
+                        }
                         $contract_product->save();
                         
                     }
@@ -646,8 +650,8 @@ class AdminController extends Controller
                 }
             }
             foreach($agent_list as $agent_code => $agent) {
-                try 
-                {
+                // try 
+                // {
                     foreach($month_list as $month => $agents) {
                         if(in_array($agent_code, $agents)) {
                             $calc = new ComissionCalculatorController();
@@ -656,10 +660,10 @@ class AdminController extends Controller
                     } 
                     
                     $success[] =  "updated agent" . $agent_code . "\r\n";
-                }
-                catch(Exception $e){
-                    $errors[] = "failed updating agent" . $agent_code . " FAILED:" .$e->getMessage() . "\r\n";
-                }
+                // }
+                // catch(Exception $e){
+                //     $errors[] = "failed updating agent" . $agent_code . " FAILED:" .$e->getMessage() . "\r\n";
+                // }
             }
             // dd($final); exit;
 

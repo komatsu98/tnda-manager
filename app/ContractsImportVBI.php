@@ -47,7 +47,6 @@ class ContractsImportVBI implements ToCollection
             $comisison = round(Util::get_comission_perc($product_code) * $premium);
             $term_code = 'y'; // year
             if(!isset($data[$partner_contract_code])) {
-                $data[$partner_contract_code] = [];
                 $data[$partner_contract_code] = [
                     'contract' => [
                         'agent_code' => $agent_code,
