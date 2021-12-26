@@ -8,6 +8,8 @@ use App\Util;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 use Illuminate\Support\Facades\Validator;
 use Excel;
 use App\UsersImport;
@@ -106,7 +108,7 @@ class AdminController extends Controller
     }
 
     public function importUsers(Request $request)
-    {       
+    {
         $validator = Validator::make($request->all(), [
             'file' => 'required|mimes:xlsx'
         ]);
@@ -120,9 +122,8 @@ class AdminController extends Controller
             $success = [];
             $final = [];
             // dd($import->data); exit;
-            foreach($import->data as $user) {
-                try 
-                {
+            foreach ($import->data as $user) {
+                try {
                     $reference = User::where(['username' => $user['IFA_ref_code']])->orWhere(['identity_num' => $user['IFA_ref_code']])->first();
                     if ($reference) {
                         $user['reference_code'] = $reference->agent_code;
@@ -133,7 +134,7 @@ class AdminController extends Controller
                     }
                     $highest_agent_code = $user['designation_code'] == "TD" ? intval(Util::get_highest_agent_code(true)) : intval(Util::get_highest_agent_code());
                     $saved_numbers = Util::get_saved_numbers();
-                    while(in_array($highest_agent_code + 1, $saved_numbers)) {
+                    while (in_array($highest_agent_code + 1, $saved_numbers)) {
                         $highest_agent_code++;
                     }
                     $agent_code = str_pad($highest_agent_code + 1, 6, "0", STR_PAD_LEFT);
@@ -145,28 +146,27 @@ class AdminController extends Controller
 
                     User::create($user);
                     $reference_r = User::where(['IFA_ref_code' => $user['identity_num']])->orWhere(['IFA_ref_code' => $user['username']])->get();
-                    foreach($reference_r as $rf) {
+                    foreach ($reference_r as $rf) {
                         $rf->reference_code = $user['agent_code'];
                         $user['reference_r'][] = $rf->agent_code;
                         $rf->save();
                     }
                     $supervisor_r = User::where(['IFA_supervisor_code' => $user['identity_num']])->orWhere(['IFA_supervisor_code' => $user['username']])->get();
-                    foreach($supervisor_r as $sf) {
+                    foreach ($supervisor_r as $sf) {
                         $sf->supervisor_code = $user['agent_code'];
                         $sf->save();
                         $user['supervisor_r'][] = $sf->agent_code;
                     }
                     // $final[] = $user;
-                    $success[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . "\r\n";
-                }
-                catch(\Illuminate\Database\QueryException $e){
-                    $errors[] = $user['fullname'] . " " . $user['agent_code']. " " . $user['identity_num'] . " FAILED:" .$e->getMessage() . "\r\n";
+                    $success[] = $user['fullname'] . " " . $user['agent_code'] . " " . $user['identity_num'] . "\r\n";
+                } catch (\Illuminate\Database\QueryException $e) {
+                    $errors[] = $user['fullname'] . " " . $user['agent_code'] . " " . $user['identity_num'] . " FAILED:" . $e->getMessage() . "\r\n";
                 }
             }
             // dd($final); exit;
 
-            if(count($errors)) {
-                return back()->with('error', "SUCCESS ". json_encode($success) . "\r\n===============\r\nERROR " . json_encode($errors));
+            if (count($errors)) {
+                return back()->with('error', "SUCCESS " . json_encode($success) . "\r\n===============\r\nERROR " . json_encode($errors));
             } else {
                 return back()->with('success', 'Thêm mới danh sách thành viên thành công' . json_encode($success));
             }
@@ -178,7 +178,7 @@ class AdminController extends Controller
     public function getUser(Request $request, $agent_code)
     {
         $user = User::where(['agent_code' => $agent_code])->first();
-        if(!$user) {
+        if (!$user) {
             return back()->with('error', 'Không tìm thấy thành viên!');
         }
         $this->parseUserDetail($user);
@@ -191,9 +191,9 @@ class AdminController extends Controller
         $user = User::where(['agent_code' => $agent_code])->first();
         // echo "<pre>";print_r(implode('","', array_keys($user->toArray())));exit;
         // $this->parseUserDetail($user);
-        if($user) {
+        if ($user) {
             $list_designation_code = Util::get_designation_code();
-            if($user->designation_code) $user->designation_text = $list_designation_code[$user->designation_code];
+            if ($user->designation_code) $user->designation_text = $list_designation_code[$user->designation_code];
         }
         return $user;
     }
@@ -236,9 +236,9 @@ class AdminController extends Controller
         $list_designation_code = Util::get_designation_code();
         $list_marital_status_code = Util::get_marital_status_code();
         if ($user) {
-            if($user->reference_code) {
+            if ($user->reference_code) {
                 $reference = $user->reference;
-                if($reference) {
+                if ($reference) {
                     $user->reference_name = $reference->fullname;
                 } else {
                     $user->reference_name = 'Người này chưa được cấp code';
@@ -249,14 +249,14 @@ class AdminController extends Controller
             if ($supervisor) {
                 $user->supervisor_code = "TNDA" . $user->supervisor_code;
                 $user->supervisor_name = $supervisor->fullname;
-                if($supervisor->designation_code) $user->supervisor_designation_text = $list_designation_code[$supervisor->designation_code];
+                if ($supervisor->designation_code) $user->supervisor_designation_text = $list_designation_code[$supervisor->designation_code];
             } else {
                 $user->supervisor_code = $user->IFA_supervisor_code;
                 $user->supervisor_name = 'Người này chưa được cấp code';
                 $user->supervisor_designation_code = $user->IFA_supervisor_designation_code;
             }
             return view('user.edit', [
-                'user' => $user, 
+                'user' => $user,
                 'list_designation_code' => $list_designation_code,
                 'list_marital_status_code' => $list_marital_status_code,
             ]);
@@ -305,7 +305,7 @@ class AdminController extends Controller
     public function getContract(Request $request, $contract_id)
     {
         $contract = Contract::find($contract_id);
-        if(!$contract) {
+        if (!$contract) {
             return back()->with('error', 'Không tìm thấy hợp đồng!');
         }
         $this->parseContractDetail($contract);
@@ -317,10 +317,10 @@ class AdminController extends Controller
     public function listContractProducts(Request $request, $contract_id)
     {
         $contract = Contract::find($contract_id);
-        if(!$contract) return back()->with('error', 'Không tìm thấy hợp đồng!');
+        if (!$contract) return back()->with('error', 'Không tìm thấy hợp đồng!');
         $contract_products = $contract->products()->orderBy('created_at', 'desc');
         $contract_products = $contract_products->paginate(25);
-        
+
         foreach ($contract_products as $contract_product) {
             $this->parseContractProductDetail($contract_product, $contract);
         }
@@ -330,7 +330,7 @@ class AdminController extends Controller
     public function getContractProduct(Request $request, $contract_product_id)
     {
         $contract_product = ContractProduct::find($contract_product_id);
-        if(!$contract_product) {
+        if (!$contract_product) {
             return back()->with('error', 'Không tìm thấy sản phẩm ứng với hợp đồng!');
         }
         $this->parseContractProductDetail($contract_product);
@@ -352,7 +352,7 @@ class AdminController extends Controller
     {
         $list_product_code = Util::get_product_code();
         $list_contract_term_code = Util::get_contract_term_code();
-        if(!$contract) $contract = $contract_product->contract;
+        if (!$contract) $contract = $contract_product->contract;
         $contract_product->partner_contract_code = $contract->partner_contract_code;
         $contract_product->product_text = $list_product_code[$contract_product->product_code];
         $contract_product->term_text = $list_contract_term_code[$contract->term_code];
@@ -376,7 +376,7 @@ class AdminController extends Controller
         $premium_received = 0;
         $renewal_premium_received = 0;
         $contract_products = $contract->products;
-        foreach($contract_products as $pc) {
+        foreach ($contract_products as $pc) {
             $product_texts[] = $list_product_code[trim($pc->product_code)];
             $premium += $pc->premium;
             $comission += $pc->comission;
@@ -412,10 +412,10 @@ class AdminController extends Controller
         $contract->term_text = $list_contract_term_code[$contract->term_code];
         $contract->info_awaiting_text = implode(", ", $info_awaiting_text);
         $agent_name = $contract->agent()->pluck('fullname');
-        if(count($agent_name)) $contract->agent_name = $agent_name[0];
+        if (count($agent_name)) $contract->agent_name = $agent_name[0];
         else $contract->agent_name = 'Người này chưa được cấp code';
         $customer_name = $contract->customer()->pluck('fullname');
-        if(count($customer_name)) $contract->customer_name = $customer_name[0];
+        if (count($customer_name)) $contract->customer_name = $customer_name[0];
         else $contract->customer_name = 'Khách hàng chưa được tạo';
         $contract->agent_code = $contract->agent_code;
     }
@@ -428,7 +428,7 @@ class AdminController extends Controller
         $list_contract_bg_color = Util::get_contract_bg_color();
         $list_contract_term_code = Util::get_contract_term_code();
         $list_contract_info_await_code = Util::get_contract_info_await_code();
-        
+
         return view('contract.add', [
             'list_partners' => $list_partners,
             'list_product_code' => $list_product_code,
@@ -455,19 +455,19 @@ class AdminController extends Controller
         // if ($check_exists) {
         //     return redirect('admin/users')->with('error', 'Số CMND đã tồn tại!');
         // }
-        
+
         $input['expire_date'] = $input['maturity_date'];
-        if(isset($input['product_code']) && is_array($input['product_code'])) {
-            $input['product_code'] = implode(",",$input['product_code']);
+        if (isset($input['product_code']) && is_array($input['product_code'])) {
+            $input['product_code'] = implode(",", $input['product_code']);
         }
-        if(isset($input['sub_product_code']) && is_array($input['sub_product_code'])) {
-            $input['sub_product_code'] = implode(",",$input['sub_product_code']);
+        if (isset($input['sub_product_code']) && is_array($input['sub_product_code'])) {
+            $input['sub_product_code'] = implode(",", $input['sub_product_code']);
         }
-        if(isset($input['info_awaiting']) && is_array($input['info_awaiting'])) {
-            $input['info_awaiting'] = implode(",",$input['info_awaiting']);
+        if (isset($input['info_awaiting']) && is_array($input['info_awaiting'])) {
+            $input['info_awaiting'] = implode(",", $input['info_awaiting']);
         }
         $input['agent_code'] = str_replace("tnda", "", strtolower($input['agent_code']));
-        
+
         try {
             $new_contract = Contract::create($input);
         } catch (Exception $e) {
@@ -488,13 +488,13 @@ class AdminController extends Controller
             $list_contract_term_code = Util::get_contract_term_code();
             $list_contract_info_await_code = Util::get_contract_info_await_code();
             $this->parseContractDetail($contract);
-            if($contract->product_code) $contract->product_code = explode(',', $contract->product_code);
+            if ($contract->product_code) $contract->product_code = explode(',', $contract->product_code);
             else $contract->product_code = [];
-            if($contract->sub_product_code) $contract->sub_product_code = explode(',', $contract->sub_product_code);
+            if ($contract->sub_product_code) $contract->sub_product_code = explode(',', $contract->sub_product_code);
             else $contract->sub_product_code = [];
-            if($contract->info_awaiting) $contract->info_awaiting = explode(',', $contract->info_awaiting);
+            if ($contract->info_awaiting) $contract->info_awaiting = explode(',', $contract->info_awaiting);
             else $contract->info_awaiting = [];
-            
+
             return view('contract.edit', [
                 'contract' => $contract,
                 'list_partners' => $list_partners,
@@ -515,14 +515,14 @@ class AdminController extends Controller
             return redirect('admin/contracts')->with('error', 'Không tìm thấy hợp đồng.');
         }
         $input = $request->input();
-        if(isset($input['product_code']) && is_array($input['product_code'])) {
-            $input['product_code'] = implode(",",$input['product_code']);
+        if (isset($input['product_code']) && is_array($input['product_code'])) {
+            $input['product_code'] = implode(",", $input['product_code']);
         }
-        if(isset($input['sub_product_code']) && is_array($input['sub_product_code'])) {
-            $input['sub_product_code'] = implode(",",$input['sub_product_code']);
+        if (isset($input['sub_product_code']) && is_array($input['sub_product_code'])) {
+            $input['sub_product_code'] = implode(",", $input['sub_product_code']);
         }
-        if(isset($input['info_awaiting']) && is_array($input['info_awaiting'])) {
-            $input['info_awaiting'] = implode(",",$input['info_awaiting']);
+        if (isset($input['info_awaiting']) && is_array($input['info_awaiting'])) {
+            $input['info_awaiting'] = implode(",", $input['info_awaiting']);
         }
         $input['agent_code'] = str_replace("tnda", "", strtolower($input['agent_code']));
         $contractUpdate = $contract->update($input);
@@ -540,7 +540,7 @@ class AdminController extends Controller
     }
 
     public function importContracts(Request $request)
-    {       
+    {
         $validator = Validator::make($request->all(), [
             'file' => 'required|mimes:xlsx',
             'partner_code' => 'required'
@@ -549,14 +549,14 @@ class AdminController extends Controller
         if ($validator->fails()) {
             return redirect()->to(route('admin.contract.bulk_create'))->withErrors($validator);
         } else {
-            switch($request->partner_code) {
+            switch ($request->partner_code) {
                 case 'VBI':
                     $import = new ContractsImportVBI;
                     break;
                 default:
                     $import = null;
             }
-            if(!$import) return back()->with('error', 'Có lỗi xảy ra. Vui lòng thử lại.');
+            if (!$import) return back()->with('error', 'Có lỗi xảy ra. Vui lòng thử lại.');
 
             Excel::import($import, $request->file('file'));
             $errors = [];
@@ -566,19 +566,18 @@ class AdminController extends Controller
             $agent_list = [];
             $month_list = [];
             // echo "<pre>";
-            foreach($import->data as $partner_contract_code => $dt) {
-                try 
-                {
+            foreach ($import->data as $partner_contract_code => $dt) {
+                try {
                     $customer_data = $dt['customer'];
                     // print_r($customer_data);continue;
                     $contract_data = $dt['contract'];
                     $products = $dt['products'];
                     $agent_code = $contract_data['agent_code'];
                     $agent = User::where(['agent_code' => $agent_code])->first();
-                    if(!$agent) {
+                    if (!$agent) {
                         throw new Exception('Agent not found');
                     }
-                    if(!isset($agent_list[$agent_code])) $agent_list[$agent_code] = $agent;
+                    if (!isset($agent_list[$agent_code])) $agent_list[$agent_code] = $agent;
                     $customer = Customer::where([
                         'identity_num' => $customer_data['identity_num'],
                         'fullname' => $customer_data['fullname'],
@@ -587,19 +586,19 @@ class AdminController extends Controller
                         'email' => $customer_data['email'],
                     ])->first();
                     $contract = Contract::where(['partner_contract_code' => $partner_contract_code])->first();
-                    if(!$customer) {
+                    if (!$customer) {
                         $customer = Customer::create($customer_data);
                     }
-                    if(!$contract) {
+                    if (!$contract) {
                         $contract_data['customer_id'] = $customer->id;
                         $contract = Contract::create($contract_data);
                     }
-                    foreach($products as $product_code => $product_data) {
+                    foreach ($products as $product_code => $product_data) {
                         $contract_product = ContractProduct::where([
-                            'contract_id' => $contract->id, 
+                            'contract_id' => $contract->id,
                             'product_code' => $product_code
                         ])->first();
-                        if(!$contract_product) {
+                        if (!$contract_product) {
                             $contract_product = ContractProduct::create([
                                 'contract_id' => $contract->id,
                                 'product_code' => $product_code,
@@ -609,7 +608,7 @@ class AdminController extends Controller
                                 'term_code' => $contract_data['term_code'],
                             ]);
                         }
-                        foreach($product_data['transactions'] as $transaction_data) {
+                        foreach ($product_data['transactions'] as $transaction_data) {
                             $transaction_data['contract_product_id'] = $contract_product->id;
                             $transaction_data['contract_id'] = $contract->id;
                             $transaction_data['agent_code'] = $agent_code;
@@ -625,41 +624,39 @@ class AdminController extends Controller
                             ];
                             $comission = Comission::create($comission_data);
                             $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
-                            if(!isset($month_list[$month])) $month_list[$month] = [];
-                            if(!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
+                            if (!isset($month_list[$month])) $month_list[$month] = [];
+                            if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
                         }
                         $contract_product->premium_received = $contract_product->transactions()->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
                         $contract_product->renewal_premium_received = $contract_product->transactions()->where(['is_renewal' => true])->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
-                        if(!$contract_product->renewal_premium_received) $contract_product->renewal_premium_received = 0;
+                        if (!$contract_product->renewal_premium_received) $contract_product->renewal_premium_received = 0;
                         $contract_product->comission = 0;
-                        foreach($contract_product->transactions as $transaction) {
+                        foreach ($contract_product->transactions as $transaction) {
                             $com = $transaction->comission->amount;
-                            if($com) $contract_product->comission += $com;
+                            if ($com) $contract_product->comission += $com;
                         }
-                        if($contract->partner_code == 'VBI') {
+                        if ($contract->partner_code == 'VBI') {
                             $contract_product->premium = $contract_product->premium_received;
                             $contract_product->premium_term = $contract_product->premium_received;
                         }
                         $contract_product->save();
-                        
                     }
                     $success[] =  $partner_contract_code . "\r\n";
-                }
-                catch(Exception $e){
-                    $errors[] = $partner_contract_code . " FAILED:" .$e->getMessage() . "\r\n";
+                } catch (Exception $e) {
+                    $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
                 }
             }
-            foreach($agent_list as $agent_code => $agent) {
+            foreach ($agent_list as $agent_code => $agent) {
                 // try 
                 // {
-                    foreach($month_list as $month => $agents) {
-                        if(in_array($agent_code, $agents)) {
-                            $calc = new ComissionCalculatorController();
-                            $calc->updateThisMonthAllStructure($agent, $month);
-                        }
-                    } 
-                    
-                    $success[] =  "updated agent" . $agent_code . "\r\n";
+                foreach ($month_list as $month => $agents) {
+                    if (in_array($agent_code, $agents)) {
+                        $calc = new ComissionCalculatorController();
+                        $calc->updateThisMonthAllStructure($agent, $month);
+                    }
+                }
+
+                $success[] =  "updated agent" . $agent_code . "\r\n";
                 // }
                 // catch(Exception $e){
                 //     $errors[] = "failed updating agent" . $agent_code . " FAILED:" .$e->getMessage() . "\r\n";
@@ -667,9 +664,9 @@ class AdminController extends Controller
             }
             // dd($final); exit;
 
-            if(count($errors)) {
+            if (count($errors)) {
                 // return back()->with('error',json_encode($final));
-                return back()->with('error', "SUCCESS ". json_encode($success) . "\r\n===============\r\nERROR " . json_encode($errors));
+                return back()->with('error', "SUCCESS " . json_encode($success) . "\r\n===============\r\nERROR " . json_encode($errors));
             } else {
                 return back()->with('success', 'Thêm mới hợp đồng thành công' . json_encode($success));
             }
@@ -703,10 +700,10 @@ class AdminController extends Controller
     public function listCustomerContracts(Request $request, $customer_id)
     {
         $customer = Customer::find($customer_id);
-        if(!$customer) return back()->with('error', 'Không tìm thấy khách hàng');
+        if (!$customer) return back()->with('error', 'Không tìm thấy khách hàng');
         $contracts = $customer->contracts;
-        if($contracts && count($contracts)) {
-            foreach($contracts as $contract) {
+        if ($contracts && count($contracts)) {
+            foreach ($contracts as $contract) {
                 $this->parseContractDetail($contract);
             }
         }
@@ -716,7 +713,7 @@ class AdminController extends Controller
     public function getCustomer(Request $request, $customer_id)
     {
         $customer = Customer::find($customer_id)->first();
-        if(!$customer) {
+        if (!$customer) {
             return back()->with('error', 'Không tìm thấy khách hàng!');
         }
         $this->parseCustomerDetail($customer);
@@ -728,12 +725,13 @@ class AdminController extends Controller
     {
         $customer = Customer::where(['id' => $id])->first();
         // ->with('beneficiaries')
-        if($customer) {
+        if ($customer) {
         }
         return $customer;
     }
 
-    public function exportUsersStructure() {
+    public function exportUsersStructure()
+    {
         $start_agent_code = '000003';
         $agent = User::where(['agent_code' => $start_agent_code])->first();
         $structure = [];
@@ -741,7 +739,7 @@ class AdminController extends Controller
         // echo '<pre>';
         // print_r();
         $users_with_no_super = User::where(['supervisor_code' => null])->get();
-        foreach($users_with_no_super as $user) {
+        foreach ($users_with_no_super as $user) {
             $structure_x = [];
             $structure[$user->designation_code . " - " . $user->fullname . " - TNDA" . $user->agent_code] = getStructure($structure_x, $user);
         }
@@ -770,11 +768,11 @@ class AdminController extends Controller
         $news->type_text = $news->type == 1 ? 'Bài viết kèm link' : 'Tin ngắn';
         $news->status_text = $news->type == 1 ? 'Hiện' : 'Ẩn';
     }
-    
+
     public function getNews(Request $request, $news_id)
     {
         $news = AppNews::find($news_id);
-        if(!$news) {
+        if (!$news) {
             return back()->with('error', 'Không tìm thấy tin tức!');
         }
         $this->parseNewsDetail($news);
@@ -796,7 +794,7 @@ class AdminController extends Controller
             'public_at' => 'required'
         ]);
         $input = $request->input();
-                
+
         try {
             $new_post = AppNews::create($input);
         } catch (Exception $e) {
@@ -834,7 +832,7 @@ class AdminController extends Controller
     public function listTransactions($contract_product_id = null)
     {
         $transactions = Transaction::orderBy('created_at', 'desc');
-        if(!is_null($contract_product_id)) {
+        if (!is_null($contract_product_id)) {
             $transactions = $transactions->where(['contract_product_id' => $contract_product_id]);
         }
         if (request()->has('search')) {
@@ -859,11 +857,11 @@ class AdminController extends Controller
         $transaction->renewal_text = $transaction->is_renewal ? 'Tái tục' : 'Năm nhất';
         $transaction->comission_amount = $transaction->comission->amount;
     }
-    
+
     public function getTransaction(Request $request, $news_id)
     {
         $transaction = Transaction::find($news_id);
-        if(!$transaction) {
+        if (!$transaction) {
             return back()->with('error', 'Không tìm thấy giao dịch!');
         }
         $this->parseTransactionsDetail($transaction);
@@ -874,7 +872,7 @@ class AdminController extends Controller
     public function listMetrics($agent_code = null)
     {
         $metrics = MonthlyMetric::orderBy('created_at', 'desc');
-        if(!is_null($agent_code)) {
+        if (!is_null($agent_code)) {
             $metrics = $metrics->where(['agent_code' => $agent_code]);
         }
         if (request()->has('search')) {
@@ -893,11 +891,11 @@ class AdminController extends Controller
     {
         $metric->agent_text = $metric->agent->fullname;
     }
-    
+
     public function getMetric(Request $request, $metric_id)
     {
         $metric = MonthlyMetric::find($metric_id);
-        if(!$metric) {
+        if (!$metric) {
             return back()->with('error', 'Không tìm thấy chỉ số!');
         }
         $this->parseMetricsDetail($metric);
@@ -908,7 +906,7 @@ class AdminController extends Controller
     public function listIncomes($agent_code = null)
     {
         $incomes = MonthlyIncome::orderBy('created_at', 'desc');
-        if(!is_null($agent_code)) {
+        if (!is_null($agent_code)) {
             $incomes = $incomes->where(['agent_code' => $agent_code]);
         }
         if (request()->has('search')) {
@@ -934,11 +932,11 @@ class AdminController extends Controller
         }
         $income->total = $total;
     }
-    
+
     public function getIncome(Request $request, $income_id)
     {
         $income = MonthlyIncome::find($income_id);
-        if(!$income) {
+        if (!$income) {
             return back()->with('error', 'Không tìm thấy thu nhập!');
         }
         $this->parseIncomesDetail($income);
@@ -949,7 +947,7 @@ class AdminController extends Controller
     public function listPromotions($agent_code = null)
     {
         $promotions = PromotionProgress::orderBy('created_at', 'desc');
-        if(!is_null($agent_code)) {
+        if (!is_null($agent_code)) {
             $promotions = $promotions->where(['agent_code' => $agent_code]);
         }
         if (request()->has('search')) {
@@ -980,11 +978,11 @@ class AdminController extends Controller
             $promotion->is_done_text = $promotion->is_done == 1 ? "Hoàn thành" : "Đang tiến hành";
         }
     }
-    
+
     public function getPromotion(Request $request, $promotion_id)
     {
         $promotion = PromotionProgress::find($promotion_id);
-        if(!$promotion) {
+        if (!$promotion) {
             return back()->with('error', 'Không tìm thấy thăng tiến!');
         }
         $list_promotion_code = Util::get_promotions();
@@ -1025,7 +1023,7 @@ class AdminController extends Controller
     public function listPromotionUps($agent_code = null)
     {
         $promotions = Promotion::orderBy('created_at', 'desc');
-        if(!is_null($agent_code)) {
+        if (!is_null($agent_code)) {
             $promotions = $promotions->where(['agent_code' => $agent_code]);
         }
         if (request()->has('search')) {
@@ -1047,11 +1045,11 @@ class AdminController extends Controller
         $promotion->old_designation_text = $list_designation_code[$promotion->old_designation_code];
         $promotion->new_designation_text = $list_designation_code[$promotion->new_designation_code];
     }
-    
+
     public function getPromotionUp(Request $request, $promotion_id)
     {
         $promotion = Promotion::find($promotion_id);
-        if(!$promotion) {
+        if (!$promotion) {
             return back()->with('error', 'Không tìm thấy thay đổi chức vụ!');
         }
         $list_designation_code = Util::get_designation_code();
@@ -1107,7 +1105,7 @@ class AdminController extends Controller
         ]);
         $input = $request->input();
         $input["valid_month"] = Carbon::createFromFormat('Y-m-d', $input["valid_month"])->startOfMonth()->format('Y-m-d');
-                
+
         try {
             $new_promotion = Promotion::create($input);
         } catch (Exception $e) {
@@ -1122,7 +1120,8 @@ class AdminController extends Controller
         return view('calculator.index');
     }
 
-    public function calc(Request $request) {
+    public function calc(Request $request)
+    {
         $request->validate([
             'agent_code' => 'required',
             'month' => 'required'
@@ -1130,21 +1129,31 @@ class AdminController extends Controller
         $input = $request->input();
         $agent = User::where(['agent_code' => $input['agent_code']])->first();
         $month = Carbon::createFromFormat('Y-m-d', $input["month"])->startOfMonth()->format('Y-m-d');
-        if(!$agent) return back()->with('error', 'Không tìm thấy thành viên!');
+        if (!$agent) return back()->with('error', 'Không tìm thấy thành viên!');
         $calc = new ComissionCalculatorController();
         $calc->updateThisMonthAllStructure($agent, $month);
         return back()->with('success', 'Cập nhật thành công!');
     }
-    
+
+    public function test()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue('A1', 'Hello World !');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('hello world.xlsx');
+    }
 }
-function getStructure($structure, $agent) {
+function getStructure($structure, $agent)
+{
     $unders = $agent->directUnders;
-    $structure[$agent->designation_code . " - " .$agent->fullname . " - TNDA" . $agent->agent_code] = '.';
-    if(count($unders)) {
-        $structure[$agent->designation_code . " - " .$agent->fullname . " - TNDA" . $agent->agent_code] = [];
-        foreach($unders as $under) {
-            $structure[$agent->designation_code . " - " .$agent->fullname . " - TNDA" . $agent->agent_code][$under->designation_code . " - " .$under->fullname . " - TNDA" . $under->agent_code] = getStructure($structure, $under);
+    $structure[$agent->designation_code . " - " . $agent->fullname . " - TNDA" . $agent->agent_code] = '.';
+    if (count($unders)) {
+        $structure[$agent->designation_code . " - " . $agent->fullname . " - TNDA" . $agent->agent_code] = [];
+        foreach ($unders as $under) {
+            $structure[$agent->designation_code . " - " . $agent->fullname . " - TNDA" . $agent->agent_code][$under->designation_code . " - " . $under->fullname . " - TNDA" . $under->agent_code] = getStructure($structure, $under);
         }
     }
-    return $structure[$agent->designation_code . " - " .$agent->fullname . " - TNDA" . $agent->agent_code];
+    return $structure[$agent->designation_code . " - " . $agent->fullname . " - TNDA" . $agent->agent_code];
 };

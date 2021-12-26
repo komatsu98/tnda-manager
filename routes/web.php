@@ -79,6 +79,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/admin/calculator', 'AdminController@calculator')->name('admin.calculator');
     Route::post('/admin/calculator/calc', 'AdminController@calc')->name('admin.calculator.calc');
+    Route::get('/admin/test', 'AdminController@test')->name('admin.test');
 });
 
 Route::prefix('api')->group(function () {
