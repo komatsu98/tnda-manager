@@ -1232,6 +1232,18 @@ class Util
                 'name' => 'Bảo hiểm FWD',
                 'icon' => 'http://103.226.249.106/images/logo_fwd.png',
                 'url' => ''
+            ],
+            [
+                'code' => 'BML',
+                'name' => 'Bảo hiểm BIDV Metlife',
+                'icon' => 'http://103.226.249.106/images/logo_fwd.png',
+                'url' => ''
+            ],
+            [
+                'code' => 'BV',
+                'name' => 'Bảo hiểm Bảo Việt',
+                'icon' => 'http://103.226.249.106/images/logo_fwd.png',
+                'url' => ''
             ]
         ];
         return $partners;
