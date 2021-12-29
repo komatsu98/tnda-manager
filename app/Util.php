@@ -1438,7 +1438,7 @@ class Util
 
     public static function get_saved_numbers()
     {
-        return [68, 86, 100, 111, 123, 168, 186, 200, 222, 234, 246];
+        return [68, 86, 100, 111, 123, 168, 186, 200, 222, 234, 246, 268, 286, 300, 303, 345];
     }
 
     public static function get_designation_rank($d)
