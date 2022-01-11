@@ -63,7 +63,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin/metric/{metric}', 'AdminController@getMetric')->name('admin.metric.detail');
 
     Route::get('/admin/incomes', 'AdminController@listIncomes')->name('admin.incomes');
+    Route::get('/admin/income/export', 'AdminController@exportIncome')->name('admin.income.export');
     Route::get('/admin/income/{income}', 'AdminController@getIncome')->name('admin.income.detail');
+    
 
     Route::get('/admin/promotion-steps', 'AdminController@listPromotions')->name('admin.promotions');
     Route::get('/admin/promotion-step/{promotion}', 'AdminController@getPromotion')->name('admin.promotion.detail');

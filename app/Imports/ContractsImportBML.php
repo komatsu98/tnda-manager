@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Imports;
 
 use Carbon\Carbon;
@@ -36,11 +37,12 @@ class ContractsImportBML implements ToCollection
             $ack_date = Util::parseDateExcel($row[22], 'd/m/Y', 'Y-m-d');
             $expire_date = Carbon::createFromFormat('Y-m-d', $release_date)->add('year', 1)->add('day', -1)->format('Y-m-d');
             $maturity_date = $expire_date;
-            $premium = $row[16];
-            $premium_received = $row[17];
-            $premim_term = $premium_received; // mặc định số phí nhận được là đủ
-            $term_code = 'y'; // year
-            $contract_year = 1;
+            $premium_received = $row[16];
+            $premium = $row[17]; // phí bảo hiểm quy năm
+            $premium_term = $premium_received; // mặc định số phí nhận được là đủ
+            $term_code = $this->getTermCodeFromText($row[18]); // year
+            $contract_year = $row[19];
+            $calc_status = $row[25] == "Đã chi trả thưởng bán hàng cá nhân" ? 1 : 0;
 
             if (!isset($data[$partner_contract_code])) {
                 $data[$partner_contract_code] = [
@@ -55,11 +57,12 @@ class ContractsImportBML implements ToCollection
                         'status_code' => $status_code,
                         'term_code' => $term_code,
                         'contract_year' => $contract_year,
-                        'partner_code' => 'BML'
+                        'partner_code' => 'BML',
+                        'calc_status' => $calc_status
                     ],
                     'customer' => [
                         'fullname' => $customer_name,
-                        // 'day_of_birth' => $customer_day_of_birth,
+                        'day_of_birth' => null,
                         'identity_num' => $customer_identity_num,
                         'address' => $customer_address,
                         'mobile_phone' => $customer_phone,
@@ -69,18 +72,43 @@ class ContractsImportBML implements ToCollection
                     'products' => []
                 ];
             }
+            if (!isset($data[$partner_contract_code]['perc'])) $data[$partner_contract_code]['perc'] = ['main_code' => '', 'sub_code' => [], 'main' => 0, 'sub' => 0];
+
             if (!isset($data[$partner_contract_code]['products'][$product_code])) {
                 $data[$partner_contract_code]['products'][$product_code] = [
                     'premium' => $premium,
-                    'premium_term' => $premium,
+                    'premium_term' => $premium_term,
+                    'confirmation' => null,
+                    'premium_factor_rank' => null,
                     'transactions' => []
                 ];
+                if($product_code == 'WUL1') $data[$partner_contract_code]['perc']['main'] += $premium;
+                else $data[$partner_contract_code]['perc']['sub'] += $premium;
             }
             $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
                 'premium_received' => $premium,
                 'trans_date' => $submit_date,
             ];
+            
+
         }
         $this->data = $data;
+    }
+
+    function getTermCodeFromText($term)
+    {
+        $term_code = '';
+        switch ($term) {
+            case 1:
+                $term_code = 'y';
+                break;
+            case 12:
+                $term_code = 'm';
+                break;
+            case 2:
+                $term_code = 'm6';
+                break;
+        }
+        return $term_code;
     }
 }

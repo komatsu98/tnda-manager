@@ -58,6 +58,7 @@ class Util
             "SM" => "#F26A11",
             "21" => "#F26A11",
             "RL" => "#22D69F",
+            "IF" => "#22D69F",
             "MA" => "#F26A11",
             "LA" => "#C7171B"
         ];
@@ -78,7 +79,7 @@ class Util
             // "EX" => "Đáo hạn",
             // "FL" => "Hủy hợp đồng trong thời gian cân nhắc",
             // "HP" => "PH RestPnd",
-            // "IF" => "Hiệu lực",
+            "IF" => "Phát hành",
             "LA" => "Mất hiệu lực",
             // "LS" => "Mất hiệu lực/Hủy hợp đồng",
             "MA" => "Đáo hạn",
@@ -118,43 +119,43 @@ class Util
     public static function get_product_code()
     {
         $product_code = [
-            // "WP02" => "Bảo Hiểm Miễn Thu Phí Bệnh Hiểm Nghèo",
-            // "UX01" => "Phí đóng thêm",
-            // "AC01" => "Bảo Hiểm Tai Nạn Cá Nhân Toàn Diện",
-            // "HS04" => "FWD CARE Bảo hiểm trợ cấp nằm viện",
-            // "WP05" => "Bảo Hiểm Miễn Thu Phí Bệnh Hiểm Nghèo",
-            // "MR01" => "FWD CARE Bảo hiểm sức khỏe",
-            // "WP06" => "Bảo Hiểm Miễn Thu Phí Mở Rộng",
-            // "WP08" => "FWD CARE Bảo hiểm miễn đóng nâng cao",
-            // "QEF1" => "Family MCCI - Embedded Benefit for Child",
-            // "JC01" => "Bảo Hiểm Bệnh Hiểm Nghèo Dành Cho Trẻ Em - Phí Thông Thường",
-            // "UX02" => "Khoản Đầu Tư Thêm Dự Kiến",
-            // "QWP1" => "Embedded Waiver",
-            // "UL04" => "FWD Đón đầu thay đổi 2.0",
-            // "AC03" => "FWD CARE Bảo hiểm tai nạn",
-            // "HS03" => "Bảo Hiểm Hỗ Trợ Viện Phí do tai nạn",
-            // "UL01" => "Linh Hoạt 3 Trong 1 - Quyền lợi cơ bản",
-            // "AC02" => "Bảo Hiểm Tai Nạn Cá Nhân Toàn Diện",
-            // "CI04" => "FWD CARE Bảo hiểm bệnh hiểm nghèo 2.0",
-            // "HS01" => "Bảo hiểm trợ cấp viện phí và chi phí phẫu thuật",
-            // "CI02" => "Bảo Hiểm Bổ Trợ Trợ Cấp Thu Nhập Khi Mắc Bệnh Hiểm Nghèo",
-            // "HS02" => "Bảo Hiểm Trợ Cấp Viện Phí Và Phẫu Thuật",
-            // "WP07" => "FWD CARE Bảo hiểm miễn đóng phí bệnh hiểm nghèo",
-            // "CI01" => "Bảo Hiểm Bổ Trợ Trợ Cấp Thu Nhập Khi Mắc Bệnh Hiểm Nghèo",
-            // "CI03" => "FWD CARE Bảo hiểm bệnh hiểm nghèo",
-            // "MR02" => "FWD CARE Bảo hiểm sức khỏe 2.0",
-            // "MC01" => "FWD Bảo hiểm hỗ trợ viện phí",
-            // "TR01" => "Bảo Hiểm Tử Kỳ",
-            // "WP10" => "FWD CARE Bảo hiểm miễn đóng phí nâng cao 2.0",
-            // "UX03" => "Khoản Đầu Tư Thêm Dự Kiến",
-            // "CC01" => "FWD Sống khỏe - Bảo hiểm bệnh ung thư",
-            // "UL03" => "FWD Đón Đầu Thay Đổi",
-            // "WP09" => "FWD CARE Bảo hiểm miễn đóng phí bệnh hiểm nghèo 2.0",
-            // "TR02" => "FWD CARE Bảo hiểm tử vong và thương tật",
-            // "BP01" => "FWD Bộ 3 bảo vệ",
-            // "IX01" => "Khoản Đầu Tư Thêm",
-            // "IL01" => "FWD Bộ đôi tài sản",
-            // "EF02" => "FWD Cả nhà vui khỏe - Kế hoạch B",
+            "WP02" => "Bảo Hiểm Miễn Thu Phí Bệnh Hiểm Nghèo",
+            "UX01" => "Phí đóng thêm",
+            "AC01" => "Bảo Hiểm Tai Nạn Cá Nhân Toàn Diện",
+            "HS04" => "FWD CARE Bảo hiểm trợ cấp nằm viện",
+            "WP05" => "Bảo Hiểm Miễn Thu Phí Bệnh Hiểm Nghèo",
+            "MR01" => "FWD CARE Bảo hiểm sức khỏe",
+            "WP06" => "Bảo Hiểm Miễn Thu Phí Mở Rộng",
+            "WP08" => "FWD CARE Bảo hiểm miễn đóng nâng cao",
+            "QEF1" => "Family MCCI - Embedded Benefit for Child",
+            "JC01" => "Bảo Hiểm Bệnh Hiểm Nghèo Dành Cho Trẻ Em - Phí Thông Thường",
+            "UX02" => "Khoản Đầu Tư Thêm Dự Kiến",
+            "QWP1" => "Embedded Waiver",
+            "UL04" => "FWD Đón đầu thay đổi 2.0",
+            "AC03" => "FWD CARE Bảo hiểm tai nạn",
+            "HS03" => "Bảo Hiểm Hỗ Trợ Viện Phí do tai nạn",
+            "UL01" => "Linh Hoạt 3 Trong 1 - Quyền lợi cơ bản",
+            "AC02" => "Bảo Hiểm Tai Nạn Cá Nhân Toàn Diện",
+            "CI04" => "FWD CARE Bảo hiểm bệnh hiểm nghèo 2.0",
+            "HS01" => "Bảo hiểm trợ cấp viện phí và chi phí phẫu thuật",
+            "CI02" => "Bảo Hiểm Bổ Trợ Trợ Cấp Thu Nhập Khi Mắc Bệnh Hiểm Nghèo",
+            "HS02" => "Bảo Hiểm Trợ Cấp Viện Phí Và Phẫu Thuật",
+            "WP07" => "FWD CARE Bảo hiểm miễn đóng phí bệnh hiểm nghèo",
+            "CI01" => "Bảo Hiểm Bổ Trợ Trợ Cấp Thu Nhập Khi Mắc Bệnh Hiểm Nghèo",
+            "CI03" => "FWD CARE Bảo hiểm bệnh hiểm nghèo",
+            "MR02" => "FWD CARE Bảo hiểm sức khỏe 2.0",
+            "MC01" => "FWD Bảo hiểm hỗ trợ viện phí",
+            "TR01" => "Bảo Hiểm Tử Kỳ",
+            "WP10" => "FWD CARE Bảo hiểm miễn đóng phí nâng cao 2.0",
+            "UX03" => "Khoản Đầu Tư Thêm Dự Kiến",
+            "CC01" => "FWD Sống khỏe - Bảo hiểm bệnh ung thư",
+            "UL03" => "FWD Đón Đầu Thay Đổi",
+            "WP09" => "FWD CARE Bảo hiểm miễn đóng phí bệnh hiểm nghèo 2.0",
+            "TR02" => "FWD CARE Bảo hiểm tử vong và thương tật",
+            "BP01" => "FWD Bộ 3 bảo vệ",
+            "IX01" => "Khoản Đầu Tư Thêm",
+            "IL01" => "FWD Bộ đôi tài sản",
+            "EF02" => "FWD Cả nhà vui khỏe - Kế hoạch B",
             "CN.6" => "Bảo hiểm sức khỏe",
             "XC.1.1" => "Bảo hiểm xe máy",
             "XE" => "Bảo hiểm ô tô",
@@ -169,7 +170,21 @@ class Util
             "VBI.15" => "Bảo hiểm vật chất xe ô tô",
             "VBI.16" => "Bảo hiểm TNDS xe ô tô",
             "VBI.17" => "Bảo hiểm TNDS xe máy",
-            "VBI.18" => "Bảo hiểm nhà tư nhân"
+            "VBI.18" => "Bảo hiểm nhà tư nhân",
+            "PA01" => "Bảo hiểm tai nạn cá nhân",
+            "HSR1" => "SẢN PHẨM BỔ TRỢ HỖ TRỢ VIỆN PHÍ VÀ CHI PHÍ PHẪU THUẬT",
+            "WUL1" => "SẢN PHẨM QUÀ TẶNG HẠNH PHÚC & SP BH CHĂM SÓC SỨC KHỎE",
+            "ULI1" => "SẢN PHẨM HƯNG GIA TOÀN MỸ",
+            "TR02" => "SẢN PHẨM BH TỬ KỲ VÀ CÁC SẢN PHẨM BỔ TRỢ KHÁC",
+            "WOP1" => "SẢN PHẨM BỔ TRỢ MIỄN ĐÓNG PHÍ",
+            "CI03" => "SẢN PHẨM BỔ TRỢ BỆNH HIỂM NGHÈO TOÀN DIỆN",
+            "BVAG" => "Bảo Việt An Gia",
+            "ATVP" => "An Tâm Viện Phí",
+            "C37" => "Bảo hiểm 37 bệnh hiểm nghèo (Ci37)",
+            "FLE" => "Bảo hiểm du lịch (Flexi)",
+            "MVS" => "Bảo hiểm TNDS ô tô",
+            "PMC" => "Bảo hiểm TNDS xe máy",
+
         ];
         return $product_code;
     }
@@ -228,10 +243,10 @@ class Util
             "dm_rwd_tcldt_rd" => "Thưởng thăng cấp lần đầu tiên lên RD",
             "dm_rwd_dthdtptt" => "Thưởng Duy Trì hợp đồng trên Phòng trực tiếp",
             "rd_rwd_dscnht" => "Thưởng doanh số CÁ NHÂN hàng tháng",
-            "rd_hh_nsht" => "Hoa hồng năng suất hàng tháng ",
-            "rd_rwd_dctkdq" => "Thưởng ĐẠT chỉ tiêu kinh doanh hàng QUÝ ",
+            "rd_hh_nsht" => "Hoa hồng năng suất hàng tháng",
+            "rd_rwd_dctkdq" => "Thưởng ĐẠT chỉ tiêu kinh doanh hàng QUÝ",
             "rd_rwd_tndhkd" => "Thưởng năm (gắn bó lâu dài) dành cho cấp điều hành kinh doanh",
-            "rd_rwd_dbgdmht" => "Thưởng đặc biệt hàng tháng dành cho giám đốc miền (TD) ",
+            "rd_rwd_dbgdmht" => "Thưởng đặc biệt hàng tháng dành cho giám đốc miền (TD)",
             "rd_rwd_tcldt_srd" => "Thưởng thăng cấp lần đầu tiên lên SRD",
             "rd_rwd_tcldt_td" => "Thưởng thăng cấp lần đầu tiên lên TD",
             "rd_rwd_dthdtvtt" => "Thưởng Duy Trì Hợp Đồng trên Vùng trực tiếp"
@@ -1455,38 +1470,182 @@ class Util
         return $date;
     }
 
-    public static function calc_BML_comission($product_code, $contract_year, $premium, $sub_product_premium)
+    public static function calc_comission($partner_code, $data)
     {
-        $comission_perc = 0;
-        $sub_comission_perc = 0;
-        $is_bonus = false;
-        if ($sub_product_premium > $premium * 0.15) $is_bonus = true;
-        switch ($product_code) {
-            case 'WUL':
-                $comission_perc = $is_bonus ? 0.4 : 0.35;
-                $sub_comission_perc = 0;
+        $com = 0;
+        switch ($partner_code) {
+            case 'BML':
+                $com = calc_BML_comission($data['product_code'], $data['contract_year'], $data['premium'], $data['is_bonus']);
                 break;
-            case 'ULI':
-                $comission_perc = $contract_year >= 11 ? 0.3 : 0.2;
-                $sub_comission_perc = 0.02;
+            case 'BV':
+                $com = calc_BV_comission($data['product_code'], $data['premium']);
                 break;
-            case 'TR02':
-                $comission_perc = 0.15;
-                $sub_comission_perc = 0.1;
+            case 'VBI':
+                $com = calc_VBI_comission($data['product_code'], $data['premium']);
                 break;
-            case 'HSR':
-                $comission_perc = 0.1;
-                $sub_comission_perc = 0;
-                break;
-            case 'WOP1':
-            case 'CI03':
-                if($contract_year <= 5) $comission_perc = 0.1;
-                if($contract_year == 6) $comission_perc = 0.1;
-                if($contract_year == 7) $comission_perc = 0.15;
-                if($contract_year >= 8 && $contract_year <= 10) $comission_perc = 0.15;
-                if($contract_year >= 10) $comission_perc = 0.2;
+            case 'FWD':
+                $com = calc_FWD_comission($data['product_code'], $data['contract_year'], $data['premium'], $data['APE'], $data['customer_type'], $data['main_code'], $data['product_list'], $data['is_bonus'], $data['factor_rank']);
                 break;
         }
-        return $comission_perc * $premium + $sub_comission_perc * $sub_product_premium;
+        return $com;
     }
+}
+function calc_VBI_comission($product_code, $premium)
+{
+    $comission_perc = 0;
+    switch ($product_code) {
+        case 'CN.1.6':
+            $comission_perc = 0.07;
+            break;
+        case 'CN.6':
+            $comission_perc = 0.07;
+            break;
+        case 'CN.8':
+            $comission_perc = 0.07;
+            break;
+        case 'UTV':
+            $comission_perc = 0.07;
+            break;
+        case 'CN.7':
+            $comission_perc = 0.07;
+            break;
+        case 'CN.4.3':
+            $comission_perc = 0.07;
+            break;
+        case 'CN.4.1':
+            $comission_perc = 0.07;
+            break;
+        case 'XC.2.5':
+            $comission_perc = 0.07;
+            break;
+        case 'XE':
+            $comission_perc = 0.07;
+            break;
+        case 'XC.1.1':
+            $comission_perc = 0.07;
+            break;
+        case 'TS.3':
+            $comission_perc = 0.03;
+            break;
+    }
+    return $comission_perc * $premium;
+}
+
+function calc_BV_comission($product_code, $premium)
+{
+    $comission_perc = 0;
+    switch ($product_code) {
+        case 'BVAG':
+            $comission_perc = 0.07;
+            break;
+        case 'ATVP':
+            $comission_perc = 0.07;
+            break;
+        case 'C37':
+            $comission_perc = 0.07;
+            break;
+        case 'FLE':
+            $comission_perc = 0.07;
+            break;
+        case 'MVS':
+            $comission_perc = 0.07;
+            break;
+        case 'PMC':
+            $comission_perc = 0.15;
+            break;
+    }
+    return $comission_perc * $premium;
+}
+
+function calc_BML_comission($product_code, $contract_year, $premium, $is_bonus = false)
+{
+    $comission_perc = 0;
+    switch ($product_code) {
+        case 'WUL1':
+            $comission_perc = $is_bonus ? 0.4 : 0.35;
+            break;
+        case 'ULI':
+            $comission_perc = $contract_year >= 11 ? 0.3 : 0.2;
+            break;
+        case 'TR02':
+            $comission_perc = 0.15;
+            break;
+        case 'PA01':
+            $comission_perc = 0.15;
+            break;
+        case 'HSR1':
+            $comission_perc = 0.1;
+            break;
+        case 'WOP1':
+        case 'CI03':
+            if ($contract_year <= 5) $comission_perc = 0.1;
+            if ($contract_year == 6) $comission_perc = 0.1;
+            if ($contract_year == 7) $comission_perc = 0.15;
+            if ($contract_year >= 8 && $contract_year <= 10) $comission_perc = 0.15;
+            if ($contract_year >= 10) $comission_perc = 0.2;
+            break;
+    }
+    return $comission_perc * $premium;
+}
+
+function calc_FWD_comission($product_code, $contract_year, $premium, $APE, $customer_type, $main_product_code, $product_list, $is_bonus = false, $factor_rank = 0)
+{
+    $comission_perc = 0;
+    switch ($product_code) {
+        case 'UL05':
+            $valid_sub_list = ['MR02', 'CI04', 'WP09', 'WP10', 'AC03', 'TR02', 'HS04'];
+            $valid_sub_count = count(array_filter($product_list, function ($a) use ($valid_sub_list) {
+                return in_array($a, $valid_sub_list);
+            }));
+            if ($APE >= 10000000 && $valid_sub_count >= 3) {
+                if (!$is_bonus) $comission_perc = 0.35;
+                else {
+                    if ($factor_rank == 1) $comission_perc = 0.4;
+                    if ($factor_rank == 2) $comission_perc = 0.42;
+                }
+            } else if ($customer_type == 2 && $APE >= 6000000 && $valid_sub_count >= 2) {
+                $comission_perc = 0.3;
+            }
+            break;
+        case 'IL01':
+            $valid_sub_list = ['MR02', 'CI04', 'WP09', 'WP10', 'AC03', 'TR02', 'HS04'];
+            $valid_sub_count = count(array_filter($product_list, function ($a) use ($valid_sub_list) {
+                return in_array($a, $valid_sub_list);
+            }));
+            if (!$is_bonus) {
+                $comission_perc = 0.35;
+            } else if ($customer_type != 2 || $valid_sub_count > 3) {
+                $comission_perc = 0.4;
+            }
+            break;
+        case 'MR02':
+            if ($main_product_code == 'UL05') $comission_perc = 0.1;
+            if ($main_product_code == 'IL01') $comission_perc = 0.2;
+            break;
+        case 'CI04':
+            if ($main_product_code == 'UL05') $comission_perc = 0.15;
+            if ($main_product_code == 'IL01') $comission_perc = 0.2;
+            break;
+        case 'WP09':
+            if ($main_product_code == 'UL05') $comission_perc = 0.1;
+            if ($main_product_code == 'IL01') $comission_perc = 0.2;
+            break;
+        case 'WP10':
+            if ($main_product_code == 'UL05') $comission_perc = 0.1;
+            if ($main_product_code == 'IL01') $comission_perc = 0.2;
+            break;
+        case 'AC03':
+            if ($main_product_code == 'UL05') $comission_perc = 0.1;
+            if ($main_product_code == 'IL01') $comission_perc = 0.2;
+            break;
+        case 'TR02':
+            if ($main_product_code == 'UL05') $comission_perc = $contract_year >= 10 ? 0.2 : ($contract_year >= 8 ? 0.15 : 0.1);
+            if ($main_product_code == 'IL01') $comission_perc = 0.2;
+            break;
+        case 'HS04':
+            if ($main_product_code == 'UL05') $comission_perc = 0.1;
+            if ($main_product_code == 'IL01') $comission_perc = 0.2;
+            break;
+    }
+    return $comission_perc * $premium;
 }

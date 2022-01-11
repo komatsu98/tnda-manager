@@ -37,7 +37,6 @@ class ContractsImportVBI implements ToCollection
             $premium = $row[26];
             $status_code = $this->getStatusCodeFromText($row[30]);
             $agent_code = str_replace(['TND', 'TNDA'], '', $row[38]);
-            $comisison = round(Util::get_comission_perc($product_code) * $premium);
             $term_code = 'y'; // year
             if(!isset($data[$partner_contract_code])) {
                 $data[$partner_contract_code] = [
@@ -66,19 +65,23 @@ class ContractsImportVBI implements ToCollection
                     'products' => []
                 ];
             }
+            if (!isset($data[$partner_contract_code]['perc'])) $data[$partner_contract_code]['perc'] = ['main_code' => '', 'sub_code' => [], 'main' => 0, 'sub' => 0];
+
             if(!isset($data[$partner_contract_code]['products'][$product_code])) {
                 $data[$partner_contract_code]['products'][$product_code] = [
                     'premium' => $premium,
                     'premium_term' => $premium,
                     'confirmation' => $GCN,
+                    'premium_factor_rank' => null,
                     'transactions' => []
                 ];
+                if($product_code == 'XXX') $data[$partner_contract_code]['perc']['main'] += $premium;
+                else $data[$partner_contract_code]['perc']['sub'] += $premium;
             }
             $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
                 'premium_received' => $premium,
                 'confirmation' => $GCN,
-                'trans_date' => $submit_date,
-                'comission' => $comisison
+                'trans_date' => $submit_date
             ];
         }
         

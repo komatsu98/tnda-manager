@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 use Illuminate\Support\Facades\Validator;
 use Excel;
@@ -34,6 +35,7 @@ use App\Http\Controllers\ComissionCalculatorController;
 use App\PromotionProgress;
 use App\Promotion;
 use Exception;
+
 
 class AdminController extends Controller
 {
@@ -575,8 +577,8 @@ class AdminController extends Controller
             $errors = [];
             $success = [];
             $final = [];
-            dd($import->data);
-            exit;
+            // dd($import->data);
+            // exit;
             $agent_list = [];
             $month_list = [];
             // echo "<pre>";
@@ -584,13 +586,14 @@ class AdminController extends Controller
             foreach ($import->data as $partner_contract_code => $dt) {
                 try {
                     $customer_data = $dt['customer'];
-                    // print_r($customer_data);continue;
                     $contract_data = $dt['contract'];
                     $products = $dt['products'];
+                    $has_bonus = $dt['perc']['sub'] / ($dt['perc']['main'] + $dt['perc']['sub']) > 0.15;
                     $agent_code = $contract_data['agent_code'];
                     $agent = User::where(['agent_code' => $agent_code])->first();
                     if (!$agent) {
-                        throw new Exception('Agent not found');
+                        $errors[] = 'Agent not found ' . $agent_code . " - " . $partner_contract_code;
+                        continue;
                     }
                     if (!isset($agent_list[$agent_code])) $agent_list[$agent_code] = $agent;
                     $customer = Customer::where([
@@ -600,14 +603,15 @@ class AdminController extends Controller
                         'mobile_phone' => $customer_data['mobile_phone'],
                         'email' => $customer_data['email'],
                     ])->first();
-                    $contract = Contract::where(['partner_contract_code' => $partner_contract_code])->first();
                     if (!$customer) {
                         $customer = Customer::create($customer_data);
                     }
+                    $contract = Contract::where(['partner_contract_code' => $partner_contract_code])->first();
                     if (!$contract) {
                         $contract_data['customer_id'] = $customer->id;
                         $contract = Contract::create($contract_data);
                     }
+                    $product_list = array_keys($products);
                     foreach ($products as $product_code => $product_data) {
                         $contract_product = ContractProduct::where([
                             'contract_id' => $contract->id,
@@ -630,14 +634,26 @@ class AdminController extends Controller
                             $transaction_data['product_code'] = $product_code;
                             $final[] = $transaction_data;
                             $transaction = Transaction::create($transaction_data);
+                            $data_calc = [
+                                'product_code' => $product_code,
+                                'contract_year' => $contract->contract_year,
+                                'premium' => $transaction_data['premium_received'],
+                                'is_bonus' => $has_bonus,
+                                'factor_rank' => $product_data['premium_factor_rank'],
+                                'APE' => $product_data['premium'],
+                                'customer_type' => $customer_data['type'],
+                                'product_list' => $product_list,
+                                'main_code' => $dt['perc']['main_code']
+                            ];
                             $comission_data = [
                                 'transaction_id' => $transaction->id,
                                 'contract_id' => $contract->id,
                                 'agent_code' => $agent_code,
-                                'amount' => $transaction_data['comission'],
+                                'amount' => Util::calc_comission($request->partner_code, $data_calc),
                                 'received_date' => $transaction_data['trans_date']
                             ];
                             $comission = Comission::create($comission_data);
+                            // dd(Util::calc_comission($request->partner_code, $data_calc));exit;
                             $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
                             if (!isset($month_list[$month])) $month_list[$month] = [];
                             if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
@@ -1158,6 +1174,99 @@ class AdminController extends Controller
 
         $writer = new Xlsx($spreadsheet);
         $writer->save('hello world.xlsx');
+    }
+
+    public function exportIncome(Request $request)
+    {
+        $month = trim($request->month);
+        $input_file = "report_template/income.xlsx";
+        $spreadsheet = IOFactory::load($input_file);
+
+        $designation_code = Util::get_designation_code();
+
+        // AG-DM+
+        $spreadsheet->setActiveSheetIndex(0);
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue("B3", "Tháng " . $month);
+
+        $incomes = MonthlyIncome::where(['valid_month' => $month . "-01"]);
+        // ->whereHas('agent', function ($q) {
+        //     $q->whereIn('designation_code', ['AG', 'DM', 'SDM', 'AM']);
+        // });
+        $selectStr = 'agent_code, ';
+        $income_code = Util::get_income_code();
+        foreach ($income_code as $field => $name) {
+            $selectStr .= 'sum(' . $field . ') as ' . $field . ',';
+        }
+        $selectStr = substr($selectStr, 0, -1);
+        $incomes = $incomes
+            ->groupBy('agent_code')
+            ->selectRaw($selectStr)
+            ->orderBy('agent_code')
+            ->get();
+
+        $styleArray = array(
+            'borders' => array(
+                'allBorders' => array(
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => array('argb' => '000000'),
+                ),
+            ),
+        );
+        $styleBold = array(
+            'font' => [
+                'bold' => true,
+            ]
+        );
+
+        $i = 7;
+        foreach ($incomes as $income) {
+            $agent = $income->agent;
+            $metric = $agent->monthlyMetrics()->select('FYC')->where(['month' => $month . "-01"])->first();
+            $sheet->setCellValue("B" . $i, $agent->IFA_TD_name);
+            // $sheet->setCellValue("C".$i, $income->TD_code);
+            $sheet->setCellValue("E" . $i, $agent->fullname);
+            $sheet->setCellValue("F" . $i, $agent->agent_code);
+            $sheet->setCellValue("G" . $i, $designation_code[$agent->designation_code]);
+            $sheet->setCellValue("J" . $i, $metric->FYC);
+            $sheet->setCellValue("K" . $i, $income->ag_rwd_hldlth);
+            $sheet->setCellValue("L" . $i, $income->ag_hh_bhcn);
+            $sheet->setCellValue("M" . $i, $income->ag_rwd_dscnhq);
+            $sheet->setCellValue("N" . $i, $income->ag_rwd_tndl);
+            $sheet->setCellValue("O" . $i, $income->ag_rwd_tcldt_dm);
+            $sheet->setCellValue("P" . $i, $income->dm_rwd_hldlm);
+            $sheet->setCellValue("Q" . $i, $income->dm_rwd_dscnht);
+            $sheet->setCellValue("R" . $i, $income->dm_rwd_qlhtthhptt);
+            $sheet->setCellValue("S" . $i, $income->dm_rwd_qlhqthhptt);
+            $sheet->setCellValue("T" . $i, $income->dm_rwd_tnql);
+            $sheet->setCellValue("U" . $i, $income->dm_rwd_ptptt);
+            $sheet->setCellValue("V" . $i, $income->dm_rwd_gt);
+            $sheet->setCellValue("W" . $i, $income->dm_rwd_tcldt_sdm);
+            $sheet->setCellValue("X" . $i, $income->dm_rwd_tcldt_am);
+            $sheet->setCellValue("Y" . $i, $income->dm_rwd_tcldt_rd);
+            $sheet->setCellValue("Z" . $i, $income->dm_rwd_dthdtptt);
+            $sheet->setCellValue("AA" . $i, $income->rd_rwd_dscnht);
+            $sheet->setCellValue("AB" . $i, $income->rd_hh_nsht);
+            $sheet->setCellValue("AC" . $i, $income->rd_rwd_dctkdq);
+            $sheet->setCellValue("AD" . $i, $income->rd_rwd_tndhkd);
+            $sheet->setCellValue("AE" . $i, $income->rd_rwd_dbgdmht);
+            $sheet->setCellValue("AF" . $i, $income->rd_rwd_tcldt_srd);
+            $sheet->setCellValue("AG" . $i, $income->rd_rwd_tcldt_td);
+            $sheet->setCellValue("AH" . $i, $income->rd_rwd_dthdtvtt);
+            $i++;
+        }
+
+        $sheet->getStyle('A7:AH'.($i))->applyFromArray($styleArray);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
+        //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
+        header('Content-Disposition: attachment;filename="income_export.xlsx"'); //Tell the browser to output the browser name
+        header('Cache-Control: max-age=0'); //Disable caching
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+        exit;
     }
 }
 function getStructure($structure, $agent)

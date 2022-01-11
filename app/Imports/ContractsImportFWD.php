@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Imports;
 
 use Carbon\Carbon;
@@ -14,7 +15,7 @@ class ContractsImportFWD implements ToCollection
     {
         $data = [];
         foreach ($rows as $i => $row) {
-            if ($i < 2) {
+            if ($i < 2 || !$row[0]) {
                 continue;
             }
             foreach ($row as $key => $field) {
@@ -33,11 +34,12 @@ class ContractsImportFWD implements ToCollection
             $customer_email = $row[13];
             $customer_phone = $row[14];
             // $customer_address = $row[13];
-            $premium = $row[16];
             $premium_received = $row[17];
-            $premim_term = $premium_received; // mặc định số phí nhận được là đủ
+            $premium_term = $premium_received; // mặc định số phí nhận được là đủ
             $product_code = $row[21];
             $term_code = $this->getTermCodeFromText($row[22]); // year
+            $premium = $term_code == 'y' ? $premium_received : ($term_code == 'm6' ? intval($premium_received) * 2 : intval($premium_received) * 12);
+
             $release_date = Util::parseDateExcel($row[23], 'd/m/Y', 'Y-m-d');
             $expire_date = Util::parseDateExcel($row[24], 'd/m/Y', 'Y-m-d');
             $maturity_date = $expire_date;
@@ -46,11 +48,11 @@ class ContractsImportFWD implements ToCollection
             $premium_factor_1 = $row[28];
             $premium_factor_2 = $row[29];
             $premium_factor_max = $row[30];
-            if($premium_factor_1 && $premium_factor < $premium_factor_1) $premium_factor_rank = 0;
-            else if($premium_factor_2 && $premium_factor < $premium_factor_2) $premium_factor_rank = 1;
-            else if($premium_factor_2 && $premium_factor >= $premium_factor_2) $premium_factor_rank = 2;
-            
-            
+            if ($premium_factor_1 && $premium_factor < $premium_factor_1) $premium_factor_rank = 0;
+            else if ($premium_factor_2 && $premium_factor < $premium_factor_2) $premium_factor_rank = 1;
+            else if ($premium_factor_2 && $premium_factor >= $premium_factor_2) $premium_factor_rank = 2;
+
+
             if (!isset($data[$partner_contract_code])) {
                 $data[$partner_contract_code] = [
                     'contract' => [
@@ -68,9 +70,9 @@ class ContractsImportFWD implements ToCollection
                     ],
                     'customer' => [
                         'fullname' => $customer_name,
-                        // 'day_of_birth' => $customer_day_of_birth,
+                        'day_of_birth' => null,
                         'identity_num' => $customer_identity_num,
-                        // 'address' => $customer_address,
+                        'address' => null,
                         'mobile_phone' => $customer_phone,
                         'email' => $customer_email,
                         'type' => $customer_type
@@ -78,13 +80,23 @@ class ContractsImportFWD implements ToCollection
                     'products' => []
                 ];
             }
+            if (!isset($data[$partner_contract_code]['perc'])) $data[$partner_contract_code]['perc'] = ['main_code' => '', 'sub_code' => [], 'main' => 0, 'sub' => 0];
+
             if (!isset($data[$partner_contract_code]['products'][$product_code])) {
                 $data[$partner_contract_code]['products'][$product_code] = [
                     'premium' => $premium,
-                    'premium_term' => $premium,
+                    'premium_term' => $premium_term,
                     'premium_factor_rank' => $premium_factor_rank,
+                    'confirmation' => null,
                     'transactions' => []
                 ];
+                if (in_array($product_code, ['UL05', 'IL01', 'CC01', 'BP01'])) {
+                    $data[$partner_contract_code]['perc']['main'] += $premium;
+                    $data[$partner_contract_code]['perc']['main_code'] = $product_code;
+                } else {
+                    $data[$partner_contract_code]['perc']['sub'] += $premium;
+                    $data[$partner_contract_code]['perc']['sub_code'][] = $product_code;
+                }
             }
             $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
                 'premium_received' => $premium,
@@ -94,9 +106,10 @@ class ContractsImportFWD implements ToCollection
         $this->data = $data;
     }
 
-    function getTermCodeFromText($term) {
+    function getTermCodeFromText($term)
+    {
         $term_code = '';
-        switch($term) {
+        switch ($term) {
             case 'Đóng phí nửa năm':
                 $term_code = 'm6';
                 break;

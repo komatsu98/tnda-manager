@@ -55,11 +55,11 @@ class ContractsImportBV implements ToCollection
                         'status_code' => $status_code,
                         'term_code' => $term_code,
                         'contract_year' => $contract_year,
-                        'partner_code' => 'BML'
+                        'partner_code' => 'BV'
                     ],
                     'customer' => [
                         'fullname' => $customer_name,
-                        // 'day_of_birth' => $customer_day_of_birth,
+                        'day_of_birth' => null,
                         'identity_num' => $customer_identity_num,
                         'address' => $customer_address,
                         'mobile_phone' => $customer_phone,
@@ -69,12 +69,18 @@ class ContractsImportBV implements ToCollection
                     'products' => []
                 ];
             }
+            if (!isset($data[$partner_contract_code]['perc'])) $data[$partner_contract_code]['perc'] = ['main_code' => '', 'sub_code' => [], 'main' => 0, 'sub' => 0];
+
             if (!isset($data[$partner_contract_code]['products'][$product_code])) {
                 $data[$partner_contract_code]['products'][$product_code] = [
                     'premium' => $premium,
                     'premium_term' => $premium,
+                    'confirmation' => null,
+                    'premium_factor_rank' => null,
                     'transactions' => []
                 ];
+                if($product_code == 'XXX') $data[$partner_contract_code]['perc']['main'] += $premium;
+                else $data[$partner_contract_code]['perc']['sub'] += $premium;
             }
             $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
                 'premium_received' => $premium,

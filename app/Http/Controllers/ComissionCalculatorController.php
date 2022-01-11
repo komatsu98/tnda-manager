@@ -1803,7 +1803,7 @@ class ComissionCalculatorController extends Controller
                 if ($k2_check < 0.75) break;
                 $last_quater_HC = $this->getAU($agent, 3, $month);
                 $then_quater_HC = $this->getAU($agent, 0, $month);
-                $incHC_check = $then_quater_HC / $last_quater_HC - 1;
+                $incHC_check = $last_quater_HC ? $then_quater_HC / $last_quater_HC - 1 : 1;
                 $teamAGCodes = $data['teamAGCodes'];
                 $count_teamAG_fyc_check = $this->getTotalFYCByCodes($teamAGCodes, 0, 1, $month);
                 if ($data['isDrAreaManager']) {
