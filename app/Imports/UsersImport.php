@@ -1,5 +1,5 @@
 <?php
-namespace App;
+namespace App\Imports;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;

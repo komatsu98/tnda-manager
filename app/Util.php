@@ -176,8 +176,7 @@ class Util
 
     public static function get_sub_product_code()
     {
-        $sub_product_code = [
-        ];
+        $sub_product_code = [];
         return $sub_product_code;
     }
 
@@ -1447,11 +1446,47 @@ class Util
         return $ranks[$d];
     }
 
-    public static function parseDateExcel($d = '', $format = 'd/m/Y', $target_format = '') {
+    public static function parseDateExcel($d = '', $format = 'd/m/Y', $target_format = '')
+    {
         $d = trim($d);
-        if(!$d || $d == '') return null;
+        if (!$d || $d == '') return null;
         $date = Carbon::createFromFormat($format, is_numeric($d) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($d)->format($format) : $d);
-        if($target_format != '') $date = $date->format('Y-m-d');
+        if ($target_format != '') $date = $date->format('Y-m-d');
         return $date;
+    }
+
+    public static function calc_BML_comission($product_code, $contract_year, $premium, $sub_product_premium)
+    {
+        $comission_perc = 0;
+        $sub_comission_perc = 0;
+        $is_bonus = false;
+        if ($sub_product_premium > $premium * 0.15) $is_bonus = true;
+        switch ($product_code) {
+            case 'WUL':
+                $comission_perc = $is_bonus ? 0.4 : 0.35;
+                $sub_comission_perc = 0;
+                break;
+            case 'ULI':
+                $comission_perc = $contract_year >= 11 ? 0.3 : 0.2;
+                $sub_comission_perc = 0.02;
+                break;
+            case 'TR02':
+                $comission_perc = 0.15;
+                $sub_comission_perc = 0.1;
+                break;
+            case 'HSR':
+                $comission_perc = 0.1;
+                $sub_comission_perc = 0;
+                break;
+            case 'WOP1':
+            case 'CI03':
+                if($contract_year <= 5) $comission_perc = 0.1;
+                if($contract_year == 6) $comission_perc = 0.1;
+                if($contract_year == 7) $comission_perc = 0.15;
+                if($contract_year >= 8 && $contract_year <= 10) $comission_perc = 0.15;
+                if($contract_year >= 10) $comission_perc = 0.2;
+                break;
+        }
+        return $comission_perc * $premium + $sub_comission_perc * $sub_product_premium;
     }
 }

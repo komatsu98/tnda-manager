@@ -12,9 +12,11 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 use Illuminate\Support\Facades\Validator;
 use Excel;
-use App\UsersImport;
-use App\ContractsImportVBI;
-use App\ContractsImportBML;
+use App\Imports\UsersImport;
+use App\Imports\ContractsImportVBI;
+use App\Imports\ContractsImportBML;
+use App\Imports\ContractsImportBV;
+use App\Imports\ContractsImportFWD;
 
 use Illuminate\Support\Facades\DB;
 
@@ -558,6 +560,12 @@ class AdminController extends Controller
                 case 'BML':
                     $import = new ContractsImportBML;
                     break;
+                case 'FWD':
+                    $import = new ContractsImportFWD;
+                    break;
+                case 'BV':
+                    $import = new ContractsImportBV;
+                    break;
                 default:
                     $import = null;
             }
@@ -567,95 +575,94 @@ class AdminController extends Controller
             $errors = [];
             $success = [];
             $final = [];
-            // dd($import->data); exit;
+            dd($import->data);
+            exit;
             $agent_list = [];
             $month_list = [];
             // echo "<pre>";
-            if ($request->partner_code === 'internal') {
-                foreach ($import->data as $partner_contract_code => $dt) {
-                    try {
 
-                        $customer_data = $dt['customer'];
-                        // print_r($customer_data);continue;
-                        $contract_data = $dt['contract'];
-                        $products = $dt['products'];
-                        $agent_code = $contract_data['agent_code'];
-                        $agent = User::where(['agent_code' => $agent_code])->first();
-                        if (!$agent) {
-                            throw new Exception('Agent not found');
-                        }
-                        if (!isset($agent_list[$agent_code])) $agent_list[$agent_code] = $agent;
-                        $customer = Customer::where([
-                            'identity_num' => $customer_data['identity_num'],
-                            'fullname' => $customer_data['fullname'],
-                            'day_of_birth' => $customer_data['day_of_birth'],
-                            'mobile_phone' => $customer_data['mobile_phone'],
-                            'email' => $customer_data['email'],
-                        ])->first();
-                        $contract = Contract::where(['partner_contract_code' => $partner_contract_code])->first();
-                        if (!$customer) {
-                            $customer = Customer::create($customer_data);
-                        }
-                        if (!$contract) {
-                            $contract_data['customer_id'] = $customer->id;
-                            $contract = Contract::create($contract_data);
-                        }
-                        foreach ($products as $product_code => $product_data) {
-                            $contract_product = ContractProduct::where([
-                                'contract_id' => $contract->id,
-                                'product_code' => $product_code
-                            ])->first();
-                            if (!$contract_product) {
-                                $contract_product = ContractProduct::create([
-                                    'contract_id' => $contract->id,
-                                    'product_code' => $product_code,
-                                    'confirmation' => $product_data['confirmation'],
-                                    'premium' => $product_data['premium'],
-                                    'premium_term' => $product_data['premium_term'],
-                                    'term_code' => $contract_data['term_code'],
-                                ]);
-                            }
-                            foreach ($product_data['transactions'] as $transaction_data) {
-                                $transaction_data['contract_product_id'] = $contract_product->id;
-                                $transaction_data['contract_id'] = $contract->id;
-                                $transaction_data['agent_code'] = $agent_code;
-                                $transaction_data['product_code'] = $product_code;
-                                $final[] = $transaction_data;
-                                $transaction = Transaction::create($transaction_data);
-                                $comission_data = [
-                                    'transaction_id' => $transaction->id,
-                                    'contract_id' => $contract->id,
-                                    'agent_code' => $agent_code,
-                                    'amount' => $transaction_data['comission'],
-                                    'received_date' => $transaction_data['trans_date']
-                                ];
-                                $comission = Comission::create($comission_data);
-                                $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
-                                if (!isset($month_list[$month])) $month_list[$month] = [];
-                                if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
-                            }
-                            $contract_product->premium_received = $contract_product->transactions()->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
-                            $contract_product->renewal_premium_received = $contract_product->transactions()->where(['is_renewal' => true])->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
-                            if (!$contract_product->renewal_premium_received) $contract_product->renewal_premium_received = 0;
-                            $contract_product->comission = 0;
-                            foreach ($contract_product->transactions as $transaction) {
-                                $com = $transaction->comission->amount;
-                                if ($com) $contract_product->comission += $com;
-                            }
-                            if ($contract->partner_code == 'VBI') {
-                                $contract_product->premium = $contract_product->premium_received;
-                                $contract_product->premium_term = $contract_product->premium_received;
-                            }
-                            $contract_product->save();
-                        }
-                        $success[] =  $partner_contract_code . "\r\n";
-                    } catch (Exception $e) {
-                        $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
+            foreach ($import->data as $partner_contract_code => $dt) {
+                try {
+                    $customer_data = $dt['customer'];
+                    // print_r($customer_data);continue;
+                    $contract_data = $dt['contract'];
+                    $products = $dt['products'];
+                    $agent_code = $contract_data['agent_code'];
+                    $agent = User::where(['agent_code' => $agent_code])->first();
+                    if (!$agent) {
+                        throw new Exception('Agent not found');
                     }
+                    if (!isset($agent_list[$agent_code])) $agent_list[$agent_code] = $agent;
+                    $customer = Customer::where([
+                        'identity_num' => $customer_data['identity_num'],
+                        'fullname' => $customer_data['fullname'],
+                        'day_of_birth' => $customer_data['day_of_birth'],
+                        'mobile_phone' => $customer_data['mobile_phone'],
+                        'email' => $customer_data['email'],
+                    ])->first();
+                    $contract = Contract::where(['partner_contract_code' => $partner_contract_code])->first();
+                    if (!$customer) {
+                        $customer = Customer::create($customer_data);
+                    }
+                    if (!$contract) {
+                        $contract_data['customer_id'] = $customer->id;
+                        $contract = Contract::create($contract_data);
+                    }
+                    foreach ($products as $product_code => $product_data) {
+                        $contract_product = ContractProduct::where([
+                            'contract_id' => $contract->id,
+                            'product_code' => $product_code
+                        ])->first();
+                        if (!$contract_product) {
+                            $contract_product = ContractProduct::create([
+                                'contract_id' => $contract->id,
+                                'product_code' => $product_code,
+                                'confirmation' => $product_data['confirmation'],
+                                'premium' => $product_data['premium'],
+                                'premium_term' => $product_data['premium_term'],
+                                'term_code' => $contract_data['term_code'],
+                            ]);
+                        }
+                        foreach ($product_data['transactions'] as $transaction_data) {
+                            $transaction_data['contract_product_id'] = $contract_product->id;
+                            $transaction_data['contract_id'] = $contract->id;
+                            $transaction_data['agent_code'] = $agent_code;
+                            $transaction_data['product_code'] = $product_code;
+                            $final[] = $transaction_data;
+                            $transaction = Transaction::create($transaction_data);
+                            $comission_data = [
+                                'transaction_id' => $transaction->id,
+                                'contract_id' => $contract->id,
+                                'agent_code' => $agent_code,
+                                'amount' => $transaction_data['comission'],
+                                'received_date' => $transaction_data['trans_date']
+                            ];
+                            $comission = Comission::create($comission_data);
+                            $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
+                            if (!isset($month_list[$month])) $month_list[$month] = [];
+                            if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
+                        }
+                        $contract_product->premium_received = $contract_product->transactions()->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
+                        $contract_product->renewal_premium_received = $contract_product->transactions()->where(['is_renewal' => true])->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
+                        if (!$contract_product->renewal_premium_received) $contract_product->renewal_premium_received = 0;
+                        $contract_product->comission = 0;
+                        foreach ($contract_product->transactions as $transaction) {
+                            $com = $transaction->comission->amount;
+                            if ($com) $contract_product->comission += $com;
+                        }
+                        if ($contract->partner_code == 'VBI') {
+                            $contract_product->premium = $contract_product->premium_received;
+                            $contract_product->premium_term = $contract_product->premium_received;
+                        }
+                        $contract_product->save();
+                    }
+                    $success[] =  $partner_contract_code . "\r\n";
+                } catch (Exception $e) {
+                    $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
                 }
-                foreach ($agent_list as $agent_code => $agent) {
-                    // try 
-                    // {
+            }
+            foreach ($agent_list as $agent_code => $agent) {
+                try {
                     foreach ($month_list as $month => $agents) {
                         if (in_array($agent_code, $agents)) {
                             $calc = new ComissionCalculatorController();
@@ -664,108 +671,11 @@ class AdminController extends Controller
                     }
 
                     $success[] =  "updated agent" . $agent_code . "\r\n";
-                    // }
-                    // catch(Exception $e){
-                    //     $errors[] = "failed updating agent" . $agent_code . " FAILED:" .$e->getMessage() . "\r\n";
-                    // }
-                }
-            } else {
-                foreach ($import->data as $partner_contract_code => $dt) {
-                    try {
-
-                        $customer_data = $dt['customer'];
-                        // print_r($customer_data);continue;
-                        $contract_data = $dt['contract'];
-                        $products = $dt['products'];
-                        $agent_code = $contract_data['agent_code'];
-                        $agent = User::where(['agent_code' => $agent_code])->first();
-                        if (!$agent) {
-                            throw new Exception('Agent not found');
-                        }
-                        if (!isset($agent_list[$agent_code])) $agent_list[$agent_code] = $agent;
-                        $customer = Customer::where([
-                            'identity_num' => $customer_data['identity_num'],
-                            'fullname' => $customer_data['fullname'],
-                            'day_of_birth' => $customer_data['day_of_birth'],
-                            'mobile_phone' => $customer_data['mobile_phone'],
-                            'email' => $customer_data['email'],
-                        ])->first();
-                        $contract = Contract::where(['partner_contract_code' => $partner_contract_code])->first();
-                        if (!$customer) {
-                            $customer = Customer::create($customer_data);
-                        }
-                        if (!$contract) {
-                            $contract_data['customer_id'] = $customer->id;
-                            $contract = Contract::create($contract_data);
-                        }
-                        foreach ($products as $product_code => $product_data) {
-                            $contract_product = ContractProduct::where([
-                                'contract_id' => $contract->id,
-                                'product_code' => $product_code
-                            ])->first();
-                            if (!$contract_product) {
-                                $contract_product = ContractProduct::create([
-                                    'contract_id' => $contract->id,
-                                    'product_code' => $product_code,
-                                    'confirmation' => $product_data['confirmation'],
-                                    'premium' => $product_data['premium'],
-                                    'premium_term' => $product_data['premium_term'],
-                                    'term_code' => $contract_data['term_code'],
-                                ]);
-                            }
-                            foreach ($product_data['transactions'] as $transaction_data) {
-                                $transaction_data['contract_product_id'] = $contract_product->id;
-                                $transaction_data['contract_id'] = $contract->id;
-                                $transaction_data['agent_code'] = $agent_code;
-                                $transaction_data['product_code'] = $product_code;
-                                $final[] = $transaction_data;
-                                $transaction = Transaction::create($transaction_data);
-                                $comission_data = [
-                                    'transaction_id' => $transaction->id,
-                                    'contract_id' => $contract->id,
-                                    'agent_code' => $agent_code,
-                                    'amount' => $transaction_data['comission'],
-                                    'received_date' => $transaction_data['trans_date']
-                                ];
-                                $comission = Comission::create($comission_data);
-                                $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
-                                if (!isset($month_list[$month])) $month_list[$month] = [];
-                                if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
-                            }
-                            $contract_product->premium_received = $contract_product->transactions()->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
-                            $contract_product->renewal_premium_received = $contract_product->transactions()->where(['is_renewal' => true])->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
-                            if (!$contract_product->renewal_premium_received) $contract_product->renewal_premium_received = 0;
-                            $contract_product->comission = 0;
-                            foreach ($contract_product->transactions as $transaction) {
-                                $com = $transaction->comission->amount;
-                                if ($com) $contract_product->comission += $com;
-                            }
-                            if ($contract->partner_code == 'VBI') {
-                                $contract_product->premium = $contract_product->premium_received;
-                                $contract_product->premium_term = $contract_product->premium_received;
-                            }
-                            $contract_product->save();
-                        }
-                        $success[] =  $partner_contract_code . "\r\n";
-                    } catch (Exception $e) {
-                        $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
-                    }
-                }
-                foreach ($agent_list as $agent_code => $agent) {
-                    try {
-                        foreach ($month_list as $month => $agents) {
-                            if (in_array($agent_code, $agents)) {
-                                $calc = new ComissionCalculatorController();
-                                $calc->updateThisMonthAllStructure($agent, $month);
-                            }
-                        }
-
-                        $success[] =  "updated agent" . $agent_code . "\r\n";
-                    } catch (Exception $e) {
-                        $errors[] = "failed updating agent" . $agent_code . " FAILED:" . $e->getMessage() . "\r\n";
-                    }
+                } catch (Exception $e) {
+                    $errors[] = "failed updating agent" . $agent_code . " FAILED:" . $e->getMessage() . "\r\n";
                 }
             }
+
 
             // dd($final); exit;
 
