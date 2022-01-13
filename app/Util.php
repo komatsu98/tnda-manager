@@ -1603,7 +1603,8 @@ function calc_FWD_comission($product_code, $contract_year, $premium, $APE, $cust
                     if ($factor_rank == 1) $comission_perc = 0.4;
                     if ($factor_rank == 2) $comission_perc = 0.42;
                 }
-            } else if ($customer_type == 2 && $APE >= 6000000 && $valid_sub_count >= 2) {
+            } else {
+            // if ($customer_type == 2 && $APE >= 6000000 && $valid_sub_count >= 2) {
                 $comission_perc = 0.3;
             }
             break;

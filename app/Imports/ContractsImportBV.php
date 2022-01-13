@@ -14,7 +14,7 @@ class ContractsImportBV implements ToCollection
     {
         $data = [];
         foreach ($rows as $i => $row) {
-            if ($i < 4) {
+            if ($i < 1) {
                 continue;
             }
             foreach ($row as $key => $field) {
@@ -41,6 +41,7 @@ class ContractsImportBV implements ToCollection
             $expire_date = Carbon::createFromFormat('Y-m-d', $release_date)->add('year', 1)->add('day', -1)->format('Y-m-d');
             $maturity_date = $expire_date;
             $contract_year = 1;
+            // $calc_status = $row[25] == "Đã chi trả hoa hồng" ? 1 : 0;
 
             if (!isset($data[$partner_contract_code])) {
                 $data[$partner_contract_code] = [
@@ -55,7 +56,8 @@ class ContractsImportBV implements ToCollection
                         'status_code' => $status_code,
                         'term_code' => $term_code,
                         'contract_year' => $contract_year,
-                        'partner_code' => 'BV'
+                        'partner_code' => 'BV',
+                        // 'calc_status' => $calc_status
                     ],
                     'customer' => [
                         'fullname' => $customer_name,
@@ -79,8 +81,6 @@ class ContractsImportBV implements ToCollection
                     'premium_factor_rank' => null,
                     'transactions' => []
                 ];
-                if($product_code == 'XXX') $data[$partner_contract_code]['perc']['main'] += $premium;
-                else $data[$partner_contract_code]['perc']['sub'] += $premium;
             }
             $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
                 'premium_received' => $premium,

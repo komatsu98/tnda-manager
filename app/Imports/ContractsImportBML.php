@@ -15,7 +15,7 @@ class ContractsImportBML implements ToCollection
     {
         $data = [];
         foreach ($rows as $i => $row) {
-            if ($i < 4) {
+            if ($i < 1) {
                 continue;
             }
             foreach ($row as $key => $field) {

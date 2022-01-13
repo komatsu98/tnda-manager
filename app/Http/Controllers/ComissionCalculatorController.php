@@ -33,6 +33,7 @@ class ComissionCalculatorController extends Controller
     {
         $agent = User::where(['agent_code' => $agent_code])->first();
         $month = isset($request->month) ? $request->month : null;
+        // return $this->updateThisMonthAllStructure($agent, $month = null);
         $data = [];
         $data['month'] = $month;
         $data['twork'] = $this->getTwork($agent, $month);
@@ -51,6 +52,20 @@ class ComissionCalculatorController extends Controller
         $data['thisMonthReward'] = $this->updateThisMonthReward($agent, $data, $month);
         $data['thisMonthPromotionReq'] = $this->updateThisMonthPromotionReq($agent, $data, $month);
         return $data;
+    }
+
+    public function calcAll() {
+        $des = ['AG'];
+        foreach($des as $d) {
+            $AGs = User::whereIn('designation_code',[$d])->get();
+            foreach($AGs as $agent) {
+                $this->updateThisMonthAllStructure($agent, $month = '2021-10-01');
+                $this->updateThisMonthAllStructure($agent, $month = '2021-11-01');
+                $this->updateThisMonthAllStructure($agent, $month = '2021-12-01');
+            }
+        }
+        echo "done";
+        
     }
 
     public function updateThisMonthAllStructure($agent, $month = null)
@@ -223,12 +238,26 @@ class ComissionCalculatorController extends Controller
             $from = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
         }
-        $FYCs = $agent->comissions()->where([
-            ['received_date', '>=', $from],
-            ['received_date', '<=', $to]
-        ])
-            ->selectRaw('sum(amount) as count')
-            ->get();
+        $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonth(1)->subDay(21);
+        $valid_ack_date = Carbon::createFromFormat('Y-m-d', $to)->subDay(21);
+        $FYCs = $agent->comissions()
+        ->where(function ($q) use ($from, $to, $valid_ack_date, $last_month_valid_ack) {
+            $q->where(function($q1) use ($from, $to) {
+                $q1->where([
+                    ['received_date', '>=', $from],
+                    ['received_date', '<=', $to]
+                ])->whereHas('contract', function ($q) {
+                    $q->whereIn('partner_code', ['BV', 'VBI']);
+                });
+            })->orWhereHas('contract', function ($q1) use ($valid_ack_date, $last_month_valid_ack) {
+                $q1->whereIn('partner_code', ['FWD', 'BML'])->whereNotNull('ack_date')->where([['ack_date', '<', $valid_ack_date], ['ack_date', '>', $last_month_valid_ack]]);
+            });
+        })
+        ->selectRaw('sum(amount) as count')
+        ->get();
+        // $query = str_replace(array('?'), array('\'%s\''), $FYCs->toSql());
+        // $query = vsprintf($query, $FYCs->getBindings());
+        // print_r($query);exit;
         $countFYC = 0;
         if (count($FYCs)) {
             $countFYC = intval($FYCs[0]->count);
@@ -258,7 +287,7 @@ class ComissionCalculatorController extends Controller
         return $countCC;
     }
 
-    private function calcThisMonthFYP($agent, $month = null, $list_product = null)
+    private function calcThisMonthFYP($agent, $month = null, $list_product = null, $list_partner_code = null)
     {
         if (!$month) {
             $from = Carbon::now()->startOfMonth()->format('Y-m-d');
@@ -267,20 +296,37 @@ class ComissionCalculatorController extends Controller
             $from = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
         }
+        $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonth(1)->subDay(21);
+        $valid_ack_date = Carbon::createFromFormat('Y-m-d', $to)->subDay(21);
 
-        $FYPs = $agent->transactions()->where([
-            ['trans_date', '>=', $from],
-            ['trans_date', '<=', $to]
-        ]);
+        $FYPs = $agent->transactions()
+        ->where(function ($q) use ($from, $to, $valid_ack_date, $last_month_valid_ack) {
+            $q->where(function($q1) use ($from, $to) {
+                $q1->where([
+                    ['trans_date', '>=', $from],
+                    ['trans_date', '<=', $to]
+                ])->whereHas('contract', function ($q) {
+                    $q->whereIn('partner_code', ['BV', 'VBI']);
+                });
+            })->orWhereHas('contract', function ($q1) use ($valid_ack_date, $last_month_valid_ack) {
+                $q1->whereIn('partner_code', ['FWD', 'BML'])->whereNotNull('ack_date')->where([['ack_date', '<', $valid_ack_date], ['ack_date', '>', $last_month_valid_ack]]);
+            });
+        });
         if (!is_null($list_product)) {
             $FYPs = $FYPs->whereHas('contract_product', function ($query) use ($list_product) {
                 $query->whereIn('product_code', $list_product);
+            });
+        }
+        if (!is_null($list_partner_code)) {
+            $FYPs = $FYPs->whereHas('contract', function ($query) use ($list_partner_code) {
+                $query->whereIn('partner_code', $list_partner_code);
             });
         }
         // $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
         // $query = vsprintf($query, $FYPs->getBindings());
         // print_r($query);
         $FYPs = $FYPs->selectRaw('sum(premium_received) as count')->get();
+        // print_r();exit;
         $countFYP = 0;
         if (count($FYPs)) {
             $countFYP = intval($FYPs[0]->count);
@@ -613,13 +659,14 @@ class ComissionCalculatorController extends Controller
     private function getWholeTeamCodes($supervisor, $isAGOnly = false)
     {
         $codes = [];
+        if(is_string($supervisor)) $supervisor = User::where(['agent_code' => $supervisor])->first();
         $direct_unders = $supervisor->directUnders;
         if (!count($direct_unders)) {
             return [];
         } else {
             foreach ($direct_unders as $dr_under) {
                 if (!$isAGOnly || $dr_under->designation_code == 'AG') array_push($codes, $dr_under->agent_code);
-                $codes = array_merge($codes, $this->getWholeTeamCodes($dr_under, true));
+                $codes = array_merge($codes, $this->getWholeTeamCodes($dr_under, $isAGOnly));
             }
             return $codes;
         }
@@ -683,6 +730,7 @@ class ComissionCalculatorController extends Controller
         foreach ($list_reward_type as $type => $desc) {
             $rewards[$type] = $this->calcThisMonthRewardType($agent, $data, $type, $month);
         }
+        // print_r($rewards);
         $list_reward_to_insert = [];
         foreach ($rewards as $key => $list_result) {
             foreach ($list_result as $result) {
@@ -1543,6 +1591,7 @@ class ComissionCalculatorController extends Controller
                 break;
             case 'ag_hh_bhcn':
                 if (!in_array($agent->designation_code, ['AG', 'DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
+                // if (!in_array($agent->designation_code, ['AG'])) break;    // updated Jan 12
                 $result = $this->getFYC($agent, 0, 1, $month);
                 $list_result[] = [$result, $valid_month];
                 break;
@@ -1617,7 +1666,8 @@ class ComissionCalculatorController extends Controller
                 $count_depdr_aa_check = $this->getTotalAAByCodes($depdrCodes);
                 $perc_depdr_aa_check = $count_depdr_check ? $count_depdr_aa_check / $count_depdr_check : 0;
                 // list products restrict for this reward
-                $fyp = $this->calcThisMonthFYP($agent, $month, [''], ['']);
+                $fyp = $this->calcThisMonthFYP($agent, $month, null, ['BML', 'FWD']);
+                // $fyp = $this->calcThisMonthFYP($agent, $month);   // updated Jan 12
                 if ($count_depdr_aa_check < 3 || $perc_depdr_aa_check < 0.5) $result = 0.5 * $fyp;
                 else if ($count_depdr_aa_check == 3) $result = 0.55 * $fyp;
                 else if ($count_depdr_aa_check > 3) $result = 0.65 * $fyp;
@@ -1762,18 +1812,31 @@ class ComissionCalculatorController extends Controller
                 break;
             case 'rd_rwd_dscnht':
                 if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
-                $fyp = $this->getFYP($agent);
+                $fyp = $this->calcThisMonthFYP($agent, $month, null, ['BML', 'FWD']);
                 $result = 0.65 * $fyp;
                 $list_result[] = [$result, $valid_month];
                 break;
             case 'rd_hh_nsht':
                 if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
-                if ($data['isDrAreaManager']) {
-                    $teamAGCodes = $data['teamAGCodes'];
-                    $count_teamAG_fyc_check = $this->getTotalFYCByCodes($teamAGCodes, 0, 1, $month);
-                    if ($count_teamAG_fyc_check < 100000000) $result = 0.15 * $count_teamAG_fyc_check;
-                    else if ($count_teamAG_fyc_check >= 100000000) $result = 0.2 * $count_teamAG_fyc_check;
+                // if ($data['isDrAreaManager']) {
+                $teamCodes = $data['teamCodes'];
+                $list_dr_RD_plus = [];
+                foreach($data['drCodes'] as $drc) {
+                    $drcc = User::where(['agent_code' => $drc])->select('designation_code')->first();
+                    if($drcc && in_array($drcc->designation_code,['RD','SRD','TD'])) {
+                        $list_dr_RD_plus[] = $drc;
+                    }
                 }
+                $except_codes = [];
+                foreach($list_dr_RD_plus as $rdp) {
+                    $except_codes = array_merge($except_codes, $this->getWholeTeamCodes($rdp));
+                }
+                $teamCodes = array_filter($teamCodes, function($q) use($except_codes) {return !in_array($q, $except_codes);});
+                $count_team_fyc_check = $this->getTotalFYCByCodes($teamCodes, 0, 1, $month);
+                if ($count_team_fyc_check < 100000000) $result = 0.15 * $count_team_fyc_check;
+                else if ($count_team_fyc_check >= 100000000) $result = 0.2 * $count_team_fyc_check;
+                // }
+                
                 if (in_array($agent->designation_code, ['SRD', 'TD'])) {
                     $drCodes = $data['drCodes'];
                     $count_dr_check = count($drCodes);
@@ -1862,8 +1925,8 @@ class ComissionCalculatorController extends Controller
                 break;
             case 'rd_rwd_dbgdmht':
                 if (!in_array($agent->designation_code, ['TD'])) break;
-                $teamAGCodes = $data['teamAGCodes'];
-                $count_teamAG_fyc_check = $this->getTotalFYCByCodes($teamAGCodes);
+                $teamCodes = $data['teamCodes'];
+                $count_teamAG_fyc_check = $this->getTotalFYCByCodes($teamCodes, 0, 1, $month);
                 $result = 0.05 * $count_teamAG_fyc_check;
                 $list_result[] = [$result, $valid_month];
                 break;

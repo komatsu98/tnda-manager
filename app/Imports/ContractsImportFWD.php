@@ -15,7 +15,7 @@ class ContractsImportFWD implements ToCollection
     {
         $data = [];
         foreach ($rows as $i => $row) {
-            if ($i < 2 || !$row[0]) {
+            if ($i < 1 || !$row[0]) {
                 continue;
             }
             foreach ($row as $key => $field) {
@@ -51,7 +51,6 @@ class ContractsImportFWD implements ToCollection
             if ($premium_factor_1 && $premium_factor < $premium_factor_1) $premium_factor_rank = 0;
             else if ($premium_factor_2 && $premium_factor < $premium_factor_2) $premium_factor_rank = 1;
             else if ($premium_factor_2 && $premium_factor >= $premium_factor_2) $premium_factor_rank = 2;
-
 
             if (!isset($data[$partner_contract_code])) {
                 $data[$partner_contract_code] = [
@@ -99,7 +98,7 @@ class ContractsImportFWD implements ToCollection
                 }
             }
             $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
-                'premium_received' => $premium,
+                'premium_received' => $premium_received,
                 'trans_date' => $submit_date,
             ];
         }

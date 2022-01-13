@@ -581,14 +581,15 @@ class AdminController extends Controller
             // exit;
             $agent_list = [];
             $month_list = [];
-            // echo "<pre>";
+            echo "<pre>";
 
             foreach ($import->data as $partner_contract_code => $dt) {
                 try {
                     $customer_data = $dt['customer'];
                     $contract_data = $dt['contract'];
+                    $is_nt = in_array($contract_data['partner_code'], ['FWD', 'BML']); //  có phải là hđ nhân thọ hay không 
                     $products = $dt['products'];
-                    $has_bonus = $dt['perc']['sub'] / ($dt['perc']['main'] + $dt['perc']['sub']) > 0.15;
+                    $has_bonus = $dt['perc']['sub'] / max(1,($dt['perc']['main'] + $dt['perc']['sub'])) > 0.15;
                     $agent_code = $contract_data['agent_code'];
                     $agent = User::where(['agent_code' => $agent_code])->first();
                     if (!$agent) {
@@ -617,6 +618,7 @@ class AdminController extends Controller
                             'contract_id' => $contract->id,
                             'product_code' => $product_code
                         ])->first();
+
                         if (!$contract_product) {
                             $contract_product = ContractProduct::create([
                                 'contract_id' => $contract->id,
@@ -627,6 +629,8 @@ class AdminController extends Controller
                                 'term_code' => $contract_data['term_code'],
                             ]);
                         }
+                        
+
                         foreach ($product_data['transactions'] as $transaction_data) {
                             $transaction_data['contract_product_id'] = $contract_product->id;
                             $transaction_data['contract_id'] = $contract->id;
@@ -634,6 +638,17 @@ class AdminController extends Controller
                             $transaction_data['product_code'] = $product_code;
                             $final[] = $transaction_data;
                             $transaction = Transaction::create($transaction_data);
+                            // print_r($transaction);continue;
+                            $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
+                            if (!isset($month_list[$month])) $month_list[$month] = [];
+                            if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
+
+                            // Tạo comission để tính vào FYC trong trường hợp k phải là hợp đồng nhân thọ bán bởi cấp quản lý và điều hành
+                            // echo $agent->designation_code; exit;
+                            if ($is_nt && $agent->designation_code != 'AG') {
+                                $errors[] = "không tạo comission cho hợp đồng " . $partner_contract_code;
+                                continue;
+                            }
                             $data_calc = [
                                 'product_code' => $product_code,
                                 'contract_year' => $contract->contract_year,
@@ -653,17 +668,15 @@ class AdminController extends Controller
                                 'received_date' => $transaction_data['trans_date']
                             ];
                             $comission = Comission::create($comission_data);
-                            // dd(Util::calc_comission($request->partner_code, $data_calc));exit;
-                            $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
-                            if (!isset($month_list[$month])) $month_list[$month] = [];
-                            if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
                         }
                         $contract_product->premium_received = $contract_product->transactions()->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
                         $contract_product->renewal_premium_received = $contract_product->transactions()->where(['is_renewal' => true])->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
                         if (!$contract_product->renewal_premium_received) $contract_product->renewal_premium_received = 0;
                         $contract_product->comission = 0;
                         foreach ($contract_product->transactions as $transaction) {
-                            $com = $transaction->comission->amount;
+                            $comission = $transaction->comission;
+                            if (!$comission) continue;
+                            $com = $comission->amount;
                             if ($com) $contract_product->comission += $com;
                         }
                         if ($contract->partner_code == 'VBI') {
@@ -1181,9 +1194,12 @@ class AdminController extends Controller
         $month = trim($request->month);
         $input_file = "report_template/income.xlsx";
         $spreadsheet = IOFactory::load($input_file);
-
-        $designation_code = Util::get_designation_code();
-
+        // $designation_code = Util::get_designation_code();
+        // calc_date
+        // tính toán lại cho các hợp đồng có calc_status = 0 (chưa chốt để thanh toán)
+        // $calc_date = Carbon::createFromFormat('Y-m-d', $month  . "-01")->endOfMonth()->format('Y-m-d');
+        // $valid_ack_date = Carbon::createFromFormat('Y-m-d', $calc_date)->subDay(21)->format('Y-m-d');
+        // $contracts = Contract::where(['ack_date' > $valid_ack_date, 'calc_status' => 0])->get();
         // AG-DM+
         $spreadsheet->setActiveSheetIndex(0);
         $sheet = $spreadsheet->getActiveSheet();
@@ -1213,6 +1229,7 @@ class AdminController extends Controller
                 ),
             ),
         );
+
         $styleBold = array(
             'font' => [
                 'bold' => true,
@@ -1227,7 +1244,7 @@ class AdminController extends Controller
             // $sheet->setCellValue("C".$i, $income->TD_code);
             $sheet->setCellValue("E" . $i, $agent->fullname);
             $sheet->setCellValue("F" . $i, $agent->agent_code);
-            $sheet->setCellValue("G" . $i, $designation_code[$agent->designation_code]);
+            $sheet->setCellValue("G" . $i, $agent->designation_code);
             $sheet->setCellValue("J" . $i, $metric->FYC);
             $sheet->setCellValue("K" . $i, $income->ag_rwd_hldlth);
             $sheet->setCellValue("L" . $i, $income->ag_hh_bhcn);
@@ -1256,11 +1273,11 @@ class AdminController extends Controller
             $i++;
         }
 
-        $sheet->getStyle('A7:AH'.($i))->applyFromArray($styleArray);
+        $sheet->getStyle('A7:AH' . ($i))->applyFromArray($styleArray);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
         //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
-        header('Content-Disposition: attachment;filename="income_export.xlsx"'); //Tell the browser to output the browser name
+        header('Content-Disposition: attachment;filename="income_export_'.$month.'.xlsx"'); //Tell the browser to output the browser name
         header('Cache-Control: max-age=0'); //Disable caching
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
