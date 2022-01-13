@@ -33,7 +33,7 @@ class ComissionCalculatorController extends Controller
     {
         $agent = User::where(['agent_code' => $agent_code])->first();
         $month = isset($request->month) ? $request->month : null;
-        // return $this->updateThisMonthAllStructure($agent, $month = null);
+        return $this->updateThisMonthAllStructure($agent, $month);
         $data = [];
         $data['month'] = $month;
         $data['twork'] = $this->getTwork($agent, $month);
@@ -55,14 +55,21 @@ class ComissionCalculatorController extends Controller
     }
 
     public function calcAll() {
-        $des = ['AG'];
-        foreach($des as $d) {
-            $AGs = User::whereIn('designation_code',[$d])->get();
-            foreach($AGs as $agent) {
-                $this->updateThisMonthAllStructure($agent, $month = '2021-10-01');
-                $this->updateThisMonthAllStructure($agent, $month = '2021-11-01');
-                $this->updateThisMonthAllStructure($agent, $month = '2021-12-01');
-            }
+        // $des = ['AG'];
+        // foreach($des as $d) {
+        //     $AGs = User::whereIn('designation_code',[$d])->get();
+            // foreach($AGs as $agent) {
+            //     $this->updateThisMonthAllStructure($agent, $month = '2021-10-01');
+            //     $this->updateThisMonthAllStructure($agent, $month = '2021-11-01');
+            //     $this->updateThisMonthAllStructure($agent, $month = '2021-12-01');
+            // }
+        // }
+        $codes = [2,4,22,29,30,31,32,38,40,42,43,44,48,49,50,51,52,55,59,61,64,69,77,85,88,91,99,104,106,108,109,110,113,114,115,116,118,129,134,141,142,144,147,150,159,164,184,185,187,188,190,198,202,224,242,244,258];
+        $agents = User::whereIn('agent_code', $codes)->get();
+        foreach($agents as $agent) {
+            $this->updateThisMonthAllStructure($agent, $month = '2021-10-01');
+            $this->updateThisMonthAllStructure($agent, $month = '2021-11-01');
+            $this->updateThisMonthAllStructure($agent, $month = '2021-12-01');
         }
         echo "done";
         
@@ -324,7 +331,7 @@ class ComissionCalculatorController extends Controller
         }
         // $query = str_replace(array('?'), array('\'%s\''), $FYPs->toSql());
         // $query = vsprintf($query, $FYPs->getBindings());
-        // print_r($query);
+        // print_r($query);exit;
         $FYPs = $FYPs->selectRaw('sum(premium_received) as count')->get();
         // print_r();exit;
         $countFYP = 0;
@@ -1607,8 +1614,10 @@ class ComissionCalculatorController extends Controller
                     else if ($twork_check >= 6 && $twork_check < 14)
                         $result = 0.3 * $fyc_q_check;
                     else if ($twork_check >= 14) {
-                        if ($k2_check < 0.75) break;
-                        else if ($k2_check < 0.85)
+                        // if ($k2_check < 0.75) break;
+                        // else 
+                        // tạm bỏ điều kiện K2
+                        if ($k2_check < 0.85)
                             $result = 0.3 * $fyc_q_check;
                         else if ($k2_check <= 0.9)
                             $result = 0.35 * $fyc_q_check;
@@ -1621,8 +1630,10 @@ class ComissionCalculatorController extends Controller
                     else if ($twork_check >= 6 && $twork_check < 14)
                         $result = 0.4 * $fyc_q_check;
                     else if ($twork_check >= 14) {
-                        if ($k2_check < 0.75) break;
-                        else if ($k2_check < 0.85)
+                        // if ($k2_check < 0.75) break;
+                        // else 
+                        // tạm bỏ điều kiện K2
+                        if ($k2_check < 0.85)
                             $result = 0.35 * $fyc_q_check;
                         else if ($k2_check <= 0.9)
                             $result = 0.40 * $fyc_q_check;
@@ -1687,7 +1698,7 @@ class ComissionCalculatorController extends Controller
                 // echo "\ncount_depdr_k2_check: " . $count_depdr_k2_check;
                 // echo "\ncount_depdr_aa_check: " . $count_depdr_aa_check;
 
-                if ($count_depdr_k2_check < 0.75) break;
+                // if ($count_depdr_k2_check < 0.75) break;
                 if ($count_depdr_fyc_check < 25000000) {
                     if ($count_depdr_aa_check < 3) $result = 0.15 * $count_depdr_fyc_check;
                     if ($count_depdr_aa_check >= 3) $result = 0.2 * $count_depdr_fyc_check;
@@ -1696,6 +1707,8 @@ class ComissionCalculatorController extends Controller
                     if ($count_depdr_aa_check == 3) $result = 0.2 * $count_depdr_fyc_check;
                     if ($count_depdr_aa_check > 3) $result = 0.25 * $count_depdr_fyc_check;
                 }
+                // print_r($result);exit;
+
                 $list_result[] = [$result, $valid_month];
                 break;
             case 'dm_rwd_qlhqthhptt':
@@ -1713,7 +1726,7 @@ class ComissionCalculatorController extends Controller
                 // echo "\ncount_depdr_k2_check: " . $count_depdr_k2_check;
                 // echo "\ncount_depdr_aa_check: " . $count_depdr_aa_check;
 
-                if ($count_depdr_k2_check < 0.75) break;
+                // if ($count_depdr_k2_check < 0.75) break;
                 if ($count_depdr_fyc_check < 60000000) {
                     if ($count_depdr_aa_check < 3) $result = 0.05 * $count_depdr_fyc_check;
                     if ($count_depdr_aa_check >= 3) $result = 0.1 * $count_depdr_fyc_check;
@@ -1813,6 +1826,7 @@ class ComissionCalculatorController extends Controller
             case 'rd_rwd_dscnht':
                 if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
                 $fyp = $this->calcThisMonthFYP($agent, $month, null, ['BML', 'FWD']);
+                // echo "fyp " . $fyp; 
                 $result = 0.65 * $fyp;
                 $list_result[] = [$result, $valid_month];
                 break;
@@ -1863,7 +1877,7 @@ class ComissionCalculatorController extends Controller
                 }
                 if ($percFYC_check < 1) break;
                 $k2_check = $this->getK2($agent, 0, 3, $month) / 3;
-                if ($k2_check < 0.75) break;
+                // if ($k2_check < 0.75) break; // tạm bỏ điều kiện K2
                 $last_quater_HC = $this->getAU($agent, 3, $month);
                 $then_quater_HC = $this->getAU($agent, 0, $month);
                 $incHC_check = $last_quater_HC ? $then_quater_HC / $last_quater_HC - 1 : 1;
@@ -1887,7 +1901,7 @@ class ComissionCalculatorController extends Controller
                 if (!$this->checkValidTpay('y', $month)) break;
                 if (!in_array($agent->designation_code, ['RD', 'SRD', 'TD'])) break;
                 // $k2_check = $this->getK2($agent, 0, 12) / 12; // K2 này lấy cả năm hay tháng đó
-                // if($k2_check < 0.75) break;
+                // if($k2_check < 0.75) break; // tạm bỏ điều kiện K2
                 $month_in_position = $data['tp'];
                 if (!$month) {
                     $target_date = date('Y-m-d');
@@ -1952,7 +1966,7 @@ class ComissionCalculatorController extends Controller
                 $count_teamAG_check = count($teamAGCodes);
                 $count_teamAG_k2_check = $count_teamAG_check ? $this->getTotalK2ByCodes($teamAGCodes, 0, 3, $month) / (3 * $count_teamAG_check) : 0;  // K2 toàn vùng theo quý hay theo tháng hiện tại
                 $count_teamAG_fyp_check = $this->getTotalFYPByCodes($teamAGCodes, 0, 1, $month);
-                if ($count_teamAG_k2_check < 0.75) break;
+                // if ($count_teamAG_k2_check < 0.75) break; // tạm bỏ điều kiện K2
                 if ($data['isDrAreaManager']) {
                     if ($count_teamAG_k2_check < 0.8) $result = 0.015 * $count_teamAG_fyp_check;
                     else if ($count_teamAG_k2_check < 0.9) $result = 0.02 * $count_teamAG_fyp_check;

@@ -86,7 +86,7 @@ class ContractsImportBML implements ToCollection
                 else $data[$partner_contract_code]['perc']['sub'] += $premium;
             }
             $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
-                'premium_received' => $premium,
+                'premium_received' => $premium_received,
                 'trans_date' => $submit_date,
             ];
             

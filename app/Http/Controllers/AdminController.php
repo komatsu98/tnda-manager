@@ -581,7 +581,7 @@ class AdminController extends Controller
             // exit;
             $agent_list = [];
             $month_list = [];
-            echo "<pre>";
+            // echo "<pre>";
 
             foreach ($import->data as $partner_contract_code => $dt) {
                 try {
@@ -629,7 +629,6 @@ class AdminController extends Controller
                                 'term_code' => $contract_data['term_code'],
                             ]);
                         }
-                        
 
                         foreach ($product_data['transactions'] as $transaction_data) {
                             $transaction_data['contract_product_id'] = $contract_product->id;
