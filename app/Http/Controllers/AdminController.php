@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 use Illuminate\Support\Facades\Validator;
 use Excel;
@@ -226,7 +227,7 @@ class AdminController extends Controller
             $user->supervisor_name = $user->IFA_supervisor_name;
             // $user->supervisor_designation_code = $user->IFA_supervisor_designation_code;
         }
-        $TD = Util::get_TD($user);
+        $TD = Util::get_super_by_des($user);
         if ($TD) {
             $user->TD_code = "TNDA" . $TD->agent_code;
             $user->TD_name = $TD->fullname;
@@ -589,7 +590,7 @@ class AdminController extends Controller
                     $contract_data = $dt['contract'];
                     $is_nt = in_array($contract_data['partner_code'], ['FWD', 'BML']); //  có phải là hđ nhân thọ hay không 
                     $products = $dt['products'];
-                    $has_bonus = $dt['perc']['sub'] / max(1,($dt['perc']['main'] + $dt['perc']['sub'])) > 0.15;
+                    $has_bonus = $dt['perc']['sub'] / max(1, ($dt['perc']['main'] + $dt['perc']['sub'])) > 0.15;
                     $agent_code = $contract_data['agent_code'];
                     $agent = User::where(['agent_code' => $agent_code])->first();
                     if (!$agent) {
@@ -1276,10 +1277,211 @@ class AdminController extends Controller
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
         //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
-        header('Content-Disposition: attachment;filename="income_export_'.$month.'.xlsx"'); //Tell the browser to output the browser name
+        header('Content-Disposition: attachment;filename="income_export_' . $month . '.xlsx"'); //Tell the browser to output the browser name
         header('Cache-Control: max-age=0'); //Disable caching
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+        exit;
+    }
+
+    public function exportMetric(Request $request)
+    {
+        $input_file = "report_template/sales_report.xlsx";
+
+        $spreadsheet = IOFactory::load($input_file);
+        $year = trim($request->year);
+        $styleArray = array(
+            'borders' => array(
+                'allBorders' => array(
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => array('argb' => '000000'),
+                ),
+            ),
+        );
+
+        $styleBold = array(
+            'font' => [
+                'bold' => true,
+            ]
+        );
+
+        $from = Carbon::createFromFormat('Y-m-d H:s:i', $year . '-01-01 00:00:00');
+        $to = Carbon::now();
+        $month_back = $to->diffInMonths($from);
+
+        // AGENT
+        $spreadsheet->setActiveSheetIndex(0);
+        $sheet = $spreadsheet->getActiveSheet();
+        $date_report = date('d-m-Y');
+        $sheet->setCellValue("B2", $date_report);
+
+        $agents = User::where(['designation_code' => 'AG'])
+            ->select('agent_code', 'fullname', 'supervisor_code', 'IFA_supervisor_name', 'alloc_code_date', 'reference_code', 'IFA_ref_name', 'designation_code')
+            // ->limit(2)
+            ->get();
+        $com = new ComissionCalculatorController();
+        foreach ($agents as $agent) {
+            $super_list = Util::get_all_super_info($agent);
+            $agent->super_info = $super_list;
+            $metrics = [
+                'total' => [
+                    'FYP' => 0,
+                    'FYC' => 0,
+                    'APE' => 0,
+                    'CC' => 0,
+                ]
+
+            ];
+            for ($m = 0; $m < 12; $m++) {
+                $metrics[$m] = [
+                    'FYP' => $com->getFYP($agent, $month_back - $m, 1),
+                    'FYC' => $com->getFYC($agent, $month_back - $m, 1),
+                    'APE' => $com->getAPE($agent, $month_back - $m, 1),
+                    'CC' => $com->getCC($agent, $month_back - $m, 1)
+                ];
+                $metrics['total']['FYP'] += $metrics[$m]['FYP'];
+                $metrics['total']['FYC'] += $metrics[$m]['FYC'];
+                $metrics['total']['APE'] += $metrics[$m]['APE'];
+                $metrics['total']['CC'] += $metrics[$m]['CC'];
+            }
+            $agent->metric = $metrics;
+        }
+
+        $i = 5;
+        $max_col = 0;
+        foreach ($agents as $agent) {
+            $super_info = $agent->super_info;
+            $sheet->setCellValue("C" . $i,isset($super_info['TD']) ? "TNDA" . $super_info['TD']['agent_code'] : '');
+            $sheet->setCellValue("D" . $i, isset($super_info['TD']) ? $super_info['TD']['fullname'] : $agent->IFA_TD_name);
+            $sheet->setCellValue("E" . $i, isset($super_info['SRD']) ? $super_info['SRD']['fullname'] : '');
+            $sheet->setCellValue("F" . $i, isset($super_info['RD']) ? $super_info['RD']['fullname'] : '');
+            $sheet->setCellValue("H" . $i, $agent->IFA_supervisor_name);
+            $sheet->setCellValue("J" . $i, isset($super_info['DM']) ? $super_info['DM']['fullname'] : '');
+            $sheet->setCellValue("K" . $i, isset($super_info['SDM']) ? $super_info['SDM']['fullname'] : '');
+            $sheet->setCellValue("L" . $i, "TNDA" . $agent->reference_code);
+            $sheet->setCellValue("M" . $i, $agent->IFA_ref_name);
+            $sheet->setCellValue("N" . $i, "TNDA" . $agent->agent_code);
+            $sheet->setCellValue("O" . $i, $agent->fullname);
+            $sheet->setCellValue("P" . $i, $agent->alloc_code_date);
+            $sheet->setCellValue("Q" . $i, $agent->designation_code);
+
+            $col = 18;
+            for ($m = 0; $m <= 12; $m++) {
+                if ($m < 12) $metric = $agent->metric[$m];
+                else $metric = $agent->metric['total'];
+
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col) . $i, $metric['FYP']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $i, $metric['APE']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 2) . $i, $metric['FYC']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 3) . $i, $metric['CC']);
+                $col += 4;
+                if ($col > $max_col) $max_col = $col;
+            }
+            $i++;
+        }
+
+        $sheet->getStyle('A5:' . Coordinate::stringFromColumnIndex($max_col - 1) . ($i - 1))->applyFromArray($styleArray);
+
+        // LEADER
+        $spreadsheet->setActiveSheetIndex(1);
+        $sheet = $spreadsheet->getActiveSheet();
+        $date_report = date('d-m-Y');
+        $sheet->setCellValue("B2", $date_report);
+
+        $agents = User::where([['designation_code', '<>', 'AG'], ['agent_code', '<>', '000000']])
+            ->select('agent_code', 'fullname', 'supervisor_code', 'IFA_supervisor_name', 'alloc_code_date', 'reference_code', 'IFA_ref_name', 'designation_code')
+            // ->limit(10)
+            ->get();
+        $com = new ComissionCalculatorController();
+        foreach ($agents as $agent) {
+            $super_list = Util::get_all_super_info($agent);
+            $agent->super_info = $super_list;
+            $metrics = [
+                'total' => [
+                    'FYP' => 0,
+                    'FYC' => 0,
+                    'APE' => 0,
+                    // 'CC' => 0,
+                    // 'U' => 0,
+                    'AAU' => 0,
+                    'HC' => 0,
+                    'AHC' => 0
+                ]
+
+            ];
+            $previous_total_HC = 0;
+            $previous_total_AHC = 0;
+            $previous_total_AAU = 0;
+            for ($m = 0; $m < 12; $m++) {
+                $metrics[$m] = [
+                    'FYP' => $com->getFYP($agent, $month_back - $m, 1),
+                    'FYC' => $com->getFYC($agent, $month_back - $m, 1),
+                    'APE' => $com->getAPE($agent, $month_back - $m, 1),
+                    'AAU' => $com->getAAU($agent, $month_back - $m) - $previous_total_AAU,
+                    'HC' => $com->getHC($agent, $month_back - $m, 1) - $previous_total_HC,
+                    'AHC' => $com->getAHC($agent, $month_back - $m, 1) - $previous_total_AHC,
+                ];
+                $previous_total_AAU += $metrics[$m]['AAU'];
+                $previous_total_HC += $metrics[$m]['HC'];
+                $previous_total_AHC += $metrics[$m]['AHC'];
+                $metrics['total']['FYP'] += $metrics[$m]['FYP'];
+                $metrics['total']['FYC'] += $metrics[$m]['FYC'];
+                $metrics['total']['APE'] += $metrics[$m]['APE'];
+                $metrics['total']['AAU'] = $metrics[$m]['AAU'] + $previous_total_AAU;
+                $metrics['total']['HC'] = $metrics[$m]['HC'] + $previous_total_HC;
+                $metrics['total']['AHC'] = $metrics[$m]['AHC'] + $previous_total_AHC;
+            }
+            $agent->metric = $metrics;
+        }
+
+        $i = 6;
+        $max_col = 0;
+        foreach ($agents as $agent) {
+            $super_info = $agent->super_info;
+            $sheet->setCellValue("C" . $i, isset($super_info['TD']) ? "TNDA" . $super_info['TD']['agent_code'] : '');
+            $sheet->setCellValue("D" . $i, isset($super_info['TD']) ? $super_info['TD']['fullname'] : $agent->IFA_TD_name);
+            $sheet->setCellValue("E" . $i, isset($super_info['SRD']) ? $super_info['SRD']['fullname'] : '');
+            $sheet->setCellValue("F" . $i, isset($super_info['RD']) ? $super_info['RD']['fullname'] : '');
+            // $sheet->setCellValue("H" . $i, $agent->IFA_supervisor_name);
+            $sheet->setCellValue("I" . $i, isset($super_info['DM']) ? $super_info['DM']['fullname'] : '');
+            // $sheet->setCellValue("K" . $i, isset($super_info['SDM']) ? $super_info['SDM']['fullname'] : '');
+            // $sheet->setCellValue("K" . $i, "TNDA" . $agent->reference_code);
+            // $sheet->setCellValue("L" . $i, $agent->IFA_ref_name);
+            $sheet->setCellValue("K" . $i, "TNDA" . $agent->agent_code);
+            $sheet->setCellValue("L" . $i, $agent->fullname);
+            $sheet->setCellValue("M" . $i, $agent->alloc_code_date);
+            $sheet->setCellValue("N" . $i, $agent->designation_code);
+
+            $col = 15;
+            for ($m = 0; $m <= 12; $m++) {
+                if ($m < 12) $metric = $agent->metric[$m];
+                else $metric = $agent->metric['total'];
+
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col) . $i, $metric['FYP']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $i, $metric['APE']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 2) . $i, $metric['FYC']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 3) . $i, $metric['AAU']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 4) . $i, $metric['AHC']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 5) . $i, $metric['HC'] - $metric['AHC']);
+                $col += 6;
+                if ($col > $max_col) $max_col = $col;
+            }
+            $i++;
+        }
+
+        $sheet->getStyle('A6:' . Coordinate::stringFromColumnIndex($max_col - 1) . ($i - 1))->applyFromArray($styleArray);
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
+        //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
+        header('Content-Disposition: attachment;filename="metric_export_' . $year . '.xlsx"'); //Tell the browser to output the browser name
+        header('Cache-Control: max-age=0'); //Disable caching
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        // $writer->save('report_template/metric_export.xlsx');
         $spreadsheet->disconnectWorksheets();
         unset($spreadsheet);
         exit;

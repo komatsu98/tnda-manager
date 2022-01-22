@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class MonthlyMetric extends Model
 {
     protected $table = 'monthly_metrics';
-    protected $fillable = ['agent_code', 'FYC', 'FYP', 'RYP', 'IP', 'CC', 'K2', 'AA', 'month', 'AU'];
+    protected $fillable = ['agent_code', 'FYC', 'FYP', 'RYP', 'IP', 'CC', 'K2', 'AA', 'month', 'AAU', 'AU', 'U', 'AHC', 'HC'];
     // protected $guarded = ['id'];
     protected $casts = [
     ];

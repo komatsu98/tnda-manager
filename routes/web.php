@@ -60,6 +60,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin/transaction/{transaction}', 'AdminController@getTransaction')->name('admin.transaction.detail');
 
     Route::get('/admin/metrics', 'AdminController@listMetrics')->name('admin.metrics');
+    Route::get('/admin/metric/export', 'AdminController@exportMetric')->name('admin.metric.export');
     Route::get('/admin/metric/{metric}', 'AdminController@getMetric')->name('admin.metric.detail');
 
     Route::get('/admin/incomes', 'AdminController@listIncomes')->name('admin.incomes');

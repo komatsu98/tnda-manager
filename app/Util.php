@@ -1429,14 +1429,36 @@ class Util
         return $ha['agent_code'];
     }
 
-    public static function get_TD($agent)
+    public static function get_super_by_des($agent, $des = 'TD')
     {
         $supervisor = $agent->supervisor;
 
-        while ($supervisor && $supervisor->designation_code != 'TD') {
+        while ($supervisor && $supervisor->designation_code != $des) {
             $supervisor = $supervisor->supervisor;
         }
         return $supervisor;
+    }
+
+    public static function get_all_super_info($agent)
+    {
+        $list_super = [];
+        $supervisor = $agent->supervisor;
+        if ((!$supervisor || $supervisor->designation_code != 'TD') && $agent->designation_code == 'TD') {
+            $list_super[$agent->designation_code] = [
+                'fullname' => $agent->fullname,
+                'agent_code' => $agent->agent_code
+            ];
+        }
+        while ($supervisor) {
+            if(!isset($list_super[$supervisor->designation_code])) $list_super[$supervisor->designation_code] = [
+                'fullname' => $supervisor->fullname,
+                'agent_code' => $supervisor->agent_code
+            ];
+            $supervisor = $supervisor->supervisor;
+        }
+
+
+        return $list_super;
     }
 
     public static function sortByDesDesc($users)
@@ -1604,7 +1626,7 @@ function calc_FWD_comission($product_code, $contract_year, $premium, $APE, $cust
                     if ($factor_rank == 2) $comission_perc = 0.42;
                 }
             } else {
-            // if ($customer_type == 2 && $APE >= 6000000 && $valid_sub_count >= 2) {
+                // if ($customer_type == 2 && $APE >= 6000000 && $valid_sub_count >= 2) {
                 $comission_perc = 0.3;
             }
             break;
