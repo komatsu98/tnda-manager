@@ -1652,6 +1652,7 @@ class ComissionCalculatorController extends Controller
                 $list_result[] = [$result, $valid_month];
                 break;
             case 'dm_rwd_hldlm':
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM'])) break;
                 $depdrCodes = $data['depDrCodes'];
                 $count_depdr_check = count($depdrCodes);
                 if ($count_depdr_check) break;
@@ -1674,7 +1675,7 @@ class ComissionCalculatorController extends Controller
                 $list_result[] = [$result, $valid_month];
                 break;
             case 'dm_rwd_qlhtthhptt':
-                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM'])) break;
                 $depdrCodes = $data['depDrCodes'];
                 // $count_depdr_check = $data['depDr']->count();
                 $count_depdr_check = count($depdrCodes);
@@ -1700,7 +1701,7 @@ class ComissionCalculatorController extends Controller
                 break;
             case 'dm_rwd_qlhqthhptt':
                 if (!$this->checkValidTpay('q', $month)) break;
-                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM'])) break;
                 $depdrCodes = $data['depDrCodes'];
                 $count_depdr_check = count($depdrCodes);
                 if (!$count_depdr_check) break;
@@ -1726,7 +1727,7 @@ class ComissionCalculatorController extends Controller
                 break;
             case 'dm_rwd_tnql':
                 if (!$this->checkValidTpay('y', $month)) break;
-                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM'])) break;
                 $depdrCodes = $data['depDrCodes'];
                 $count_depdr_check = count($depdrCodes);
                 if (!count($depdrCodes)) break;
@@ -1740,7 +1741,7 @@ class ComissionCalculatorController extends Controller
                 $list_result[] = [$result, $valid_month];
                 break;
             case 'dm_rwd_ptptt':
-                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM', 'RD', 'SRD', 'TD'])) break;
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM'])) break;
                 $drs = $data['dr'];
                 if (!$month) {
                     $to = Carbon::now()->endOfMonth()->format('Y-m-d');
@@ -1779,6 +1780,7 @@ class ComissionCalculatorController extends Controller
                 }
                 break;
             case 'dm_rwd_gt':
+                if (!in_array($agent->designation_code, ['DM', 'SDM', 'AM'])) break;
                 $drCodes = $data['drCodes'];
                 $count_dr_check = count($drCodes);
                 if (!$count_dr_check) break;
