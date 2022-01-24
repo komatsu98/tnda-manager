@@ -86,7 +86,7 @@ class ContractsImportFWD implements ToCollection
                     'premium' => $premium,
                     'premium_term' => $premium_term,
                     'premium_factor_rank' => $premium_factor_rank,
-                    'confirmation' => null,
+                    // 'confirmation' => null,
                     'transactions' => []
                 ];
                 if (in_array($product_code, ['UL05', 'IL01', 'CC01', 'BP01'])) {
@@ -97,10 +97,12 @@ class ContractsImportFWD implements ToCollection
                     $data[$partner_contract_code]['perc']['sub_code'][] = $product_code;
                 }
             }
-            $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
-                'premium_received' => $premium_received,
-                'trans_date' => $submit_date,
-            ];
+            if(!count($data[$partner_contract_code]['products'][$product_code]['transactions'])) {
+                $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
+                    'premium_received' => $premium,
+                    'trans_date' => $submit_date
+                ];
+            } else $data[$partner_contract_code]['products'][$product_code]['transactions'][0]['premium_received'] += $premium;
         }
         $this->data = $data;
     }

@@ -597,7 +597,11 @@ class AdminController extends Controller
                         $errors[] = 'Agent not found ' . $agent_code . " - " . $partner_contract_code;
                         continue;
                     }
-                    if (!isset($agent_list[$agent_code])) $agent_list[$agent_code] = $agent;
+                    if (!isset($agent_list[$agent_code])) {                        
+                        $agent_list[$agent_code] = $agent;
+                    }
+                    // $is_valid_21_days = !is_null($contract_data['ack_date']) && $contract_data['ack_date'] && Carbon::createFromFormat('Y-m-d', $contract_data['ack_date'])->addDay(21) < Carbon::now();
+
                     $customer = Customer::where([
                         'identity_num' => $customer_data['identity_num'],
                         'fullname' => $customer_data['fullname'],
@@ -609,27 +613,36 @@ class AdminController extends Controller
                         $customer = Customer::create($customer_data);
                     }
                     $contract = Contract::where(['partner_contract_code' => $partner_contract_code])->first();
+                    $contract_data['customer_id'] = $customer->id;
                     if (!$contract) {
-                        $contract_data['customer_id'] = $customer->id;
                         $contract = Contract::create($contract_data);
+                    } else {
+                        $contract->update($contract_data);
                     }
                     $product_list = array_keys($products);
                     foreach ($products as $product_code => $product_data) {
                         $contract_product = ContractProduct::where([
                             'contract_id' => $contract->id,
-                            'product_code' => $product_code
+                            'product_code' => $product_code,
+                            // 'confirmation' => $product_data['confirmation']
                         ])->first();
-                        $exists = false;
                         if (!$contract_product) {
                             $contract_product = ContractProduct::create([
                                 'contract_id' => $contract->id,
                                 'product_code' => $product_code,
-                                'confirmation' => $product_data['confirmation'],
+                                // 'confirmation' => $product_data['confirmation'],
                                 'premium' => $product_data['premium'],
                                 'premium_term' => $product_data['premium_term'],
                                 'term_code' => $contract_data['term_code'],
                             ]);
-                        } else $exists = true;
+                        } else {
+                            $contract_product->update([
+                                // 'confirmation' => $product_data['confirmation'],
+                                'premium' => $product_data['premium'],
+                                'premium_term' => $product_data['premium_term'],
+                                'term_code' => $contract_data['term_code'],
+                            ]);
+                        }
 
                         $sum_exists_transactions = $contract_product->transactions()->selectRaw('sum(premium_received) as premium_received')->first();
                         if($sum_exists_transactions) $sum_exists_transactions = $sum_exists_transactions->premium_received;
@@ -638,9 +651,10 @@ class AdminController extends Controller
                         }, $product_data['transactions']), function ($a, $b) {
                             return $a + $b;
                         });
-                        if ($new_sum_transactions > $sum_exists_transactions) {
+                        if ($new_sum_transactions != $sum_exists_transactions) {
                             $product_data['transactions'][0]['premium_received'] = $new_sum_transactions - $sum_exists_transactions;
                             foreach ($product_data['transactions'] as $transaction_data) {
+                                // dd($transaction_data);exit;
                                 $transaction_data['contract_product_id'] = $contract_product->id;
                                 $transaction_data['contract_id'] = $contract->id;
                                 $transaction_data['agent_code'] = $agent_code;
@@ -650,8 +664,13 @@ class AdminController extends Controller
                                 $success[] =  "New transaction id " . $transaction->id . "\r\n";
                                 // print_r($transaction);continue;
                                 $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
+                                // $month_release = Carbon::createFromFormat('Y-m-d', $contract_data['release_date'])->startOfMonth()->format('Y-m-d');
                                 if (!isset($month_list[$month])) $month_list[$month] = [];
                                 if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
+                                // if($is_valid_21_days) {
+                                //     if (!isset($month_list[$month_release])) $month_list[$month_release] = [];
+                                //     if (!in_array($agent_code, $month_list[$month_release])) $month_list[$month_release][] = $agent_code;
+                                // }
 
                                 // Tạo comission để tính vào FYC trong trường hợp k phải là hợp đồng nhân thọ bán bởi cấp quản lý và điều hành
                                 // echo $agent->designation_code; exit;
@@ -716,20 +735,20 @@ class AdminController extends Controller
                 //     $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
                 // }
             }
-            foreach ($agent_list as $agent_code => $agent) {
-                try {
-                    foreach ($month_list as $month => $agents) {
-                        if (in_array($agent_code, $agents)) {
-                            $calc = new ComissionCalculatorController();
-                            $calc->updateThisMonthAllStructure($agent, $month);
-                        }
-                    }
+            // foreach ($agent_list as $agent_code => $agent) {
+            //     try {
+            //         foreach ($month_list as $month => $agents) {
+            //             if (in_array($agent_code, $agents)) {
+            //                 $calc = new ComissionCalculatorController();
+            //                 $calc->updateThisMonthAllStructure($agent, $month);
+            //             }
+            //         }
 
-                    $success[] =  "updated agent" . $agent_code . "\r\n";
-                } catch (Exception $e) {
-                    $errors[] = "failed updating agent" . $agent_code . " FAILED:" . $e->getMessage() . "\r\n";
-                }
-            }
+            //         $success[] =  "updated agent" . $agent_code . "\r\n";
+            //     } catch (Exception $e) {
+            //         $errors[] = "failed updating agent" . $agent_code . " FAILED:" . $e->getMessage() . "\r\n";
+            //     }
+            // }
 
 
             // dd($final); exit;

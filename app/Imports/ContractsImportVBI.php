@@ -73,16 +73,17 @@ class ContractsImportVBI implements ToCollection
                 $data[$partner_contract_code]['products'][$product_code] = [
                     'premium' => 0,
                     'premium_term' => 0,
-                    'confirmation' => $GCN,
+                    // 'confirmation' => null,
                     'premium_factor_rank' => null,
                     'transactions' => []
                 ];
             }
-            $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
-                'premium_received' => $premium,
-                'confirmation' => $GCN,
-                'trans_date' => $submit_date
-            ];
+            if(!count($data[$partner_contract_code]['products'][$product_code]['transactions'])) {
+                $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
+                    'premium_received' => $premium,
+                    'trans_date' => $submit_date
+                ];
+            } else $data[$partner_contract_code]['products'][$product_code]['transactions'][0]['premium_received'] += $premium;
             $data[$partner_contract_code]['products'][$product_code]['premium'] += $premium;
             $data[$partner_contract_code]['products'][$product_code]['premium_term'] += $premium;
         }

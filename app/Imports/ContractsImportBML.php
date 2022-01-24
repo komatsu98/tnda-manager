@@ -42,7 +42,7 @@ class ContractsImportBML implements ToCollection
             $premium_term = $premium_received; // mặc định số phí nhận được là đủ
             $term_code = $this->getTermCodeFromText($row[18]); // year
             $contract_year = $row[19];
-            $calc_status = $row[25] == "Đã chi trả thưởng bán hàng cá nhân" ? 1 : 0;
+            $calc_status = isset($row[25]) && $row[25] == "Đã chi trả thưởng bán hàng cá nhân" ? 1 : 0;
 
             if (!isset($data[$partner_contract_code])) {
                 $data[$partner_contract_code] = [
@@ -78,17 +78,19 @@ class ContractsImportBML implements ToCollection
                 $data[$partner_contract_code]['products'][$product_code] = [
                     'premium' => $premium,
                     'premium_term' => $premium_term,
-                    'confirmation' => null,
+                    // 'confirmation' => null,
                     'premium_factor_rank' => null,
                     'transactions' => []
                 ];
                 if($product_code == 'WUL1') $data[$partner_contract_code]['perc']['main'] += $premium;
                 else $data[$partner_contract_code]['perc']['sub'] += $premium;
             }
-            $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
-                'premium_received' => $premium_received,
-                'trans_date' => $submit_date,
-            ];
+            if(!count($data[$partner_contract_code]['products'][$product_code]['transactions'])) {
+                $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
+                    'premium_received' => $premium,
+                    'trans_date' => $submit_date
+                ];
+            } else $data[$partner_contract_code]['products'][$product_code]['transactions'][0]['premium_received'] += $premium;
             
 
         }

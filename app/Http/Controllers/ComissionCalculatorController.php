@@ -65,12 +65,37 @@ class ComissionCalculatorController extends Controller
         //     $this->updateThisMonthAllStructure($agent, $month = '2021-12-01');
         // }
         // }
-        $codes = [2, 4, 22, 29, 30, 31, 32, 38, 40, 42, 43, 44, 48, 49, 50, 51, 52, 55, 59, 61, 64, 69, 77, 85, 88, 91, 99, 104, 106, 108, 109, 110, 113, 114, 115, 116, 118, 129, 134, 141, 142, 144, 147, 150, 159, 164, 184, 185, 187, 188, 190, 198, 202, 224, 242, 244, 258];
-        $agents = User::whereIn('agent_code', $codes)->get();
-        foreach ($agents as $agent) {
-            $this->updateThisMonthAllStructure($agent, $month = '2021-10-01');
-            $this->updateThisMonthAllStructure($agent, $month = '2021-11-01');
-            $this->updateThisMonthAllStructure($agent, $month = '2021-12-01');
+        $new_transactions = Transaction::where([['created_at', '>', Carbon::now()->subDay(1)->format('Y-m-d')]])->get();
+        $to_update = [];
+        
+        foreach($new_transactions as $transaction) {
+            if(!isset($to_update[$transaction->agent_code])) {
+                $to_update[$transaction->agent_code] = [];
+            }
+            $contract = $transaction->contract_product->contract()->select('release_date', 'ack_date', 'partner_code')->first();
+            $month_release = Carbon::createFromFormat('Y-m-d', $contract->release_date)->startOfMonth()->format('Y-m-d');
+            $month_valid_ack = null;
+            if(in_array($contract->partner_code, ['BML', 'FWD']) && $contract->ack_date) $month_valid_ack = Carbon::createFromFormat('Y-m-d', $contract->ack_date)->addDay(21);
+            if($month_valid_ack && $month_valid_ack < Carbon::now()) $month_valid_ack = $month_valid_ack->startOfMonth()->format('Y-m-d');
+            else $month_valid_ack = null;
+            if($month_release && !in_array($month_release, $to_update[$transaction->agent_code])) {
+                $to_update[$transaction->agent_code][] = $month_release;
+            }
+            if($month_valid_ack && !in_array($month_valid_ack, $to_update[$transaction->agent_code])) {
+                $to_update[$transaction->agent_code][] = $month_valid_ack;
+            }
+        }
+        // dd($to_update);exit;
+        // $codes = [2, 4, 22, 29, 30, 31, 32, 38, 40, 42, 43, 44, 48, 49, 50, 51, 52, 55, 59, 61, 64, 69, 77, 85, 88, 91, 99, 104, 106, 108, 109, 110, 113, 114, 115, 116, 118, 129, 134, 141, 142, 144, 147, 150, 159, 164, 184, 185, 187, 188, 190, 198, 202, 224, 242, 244, 258];        
+        foreach ($to_update as $agent_code => $months) {
+            $agent = User::where(['agent_code' => $agent_code])->first();
+            if(!$agent) {
+                echo "skip agent " . $agent_code . "\n";
+                continue;
+            }
+            foreach($months as $month) {
+                $this->updateThisMonthAllStructure($agent, $month);
+            }
         }
         echo "done";
     }
@@ -403,8 +428,8 @@ class ComissionCalculatorController extends Controller
         $APEs = ContractProduct::whereHas('contract', function ($q) use ($agent, $from, $to, $valid_ack_date, $last_month_valid_ack, $require_21days) {
             $q->where([
                 ['agent_code', '=', $agent->agent_code],
-                ['submit_date', '>=', $from],
-                ['submit_date', '<=', $to]
+                ['release_date', '>=', $from],
+                ['release_date', '<=', $to]
             ])->where(function ($q1) use ($valid_ack_date, $last_month_valid_ack, $require_21days) {
                 $q1->whereIn('partner_code', ['BV', 'VBI'])
                     ->orWhere(function ($q2) use ($valid_ack_date, $last_month_valid_ack, $require_21days) {
@@ -1157,7 +1182,7 @@ class ComissionCalculatorController extends Controller
             $reward['agent_code'] = $agent->agent_code;
             $old_reward = $agent->monthlyIncomes()->where(['month' => $month, 'valid_month' => $valid_month])->first();
             if ($old_reward) $old_reward->update($reward);
-            else MonthlyMetric::create($reward);
+            else MonthlyIncome::create($reward);
         }
 
         // merge
