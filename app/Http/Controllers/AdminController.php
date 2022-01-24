@@ -585,7 +585,7 @@ class AdminController extends Controller
             // echo "<pre>";
 
             foreach ($import->data as $partner_contract_code => $dt) {
-                try {
+                // try {
                     $customer_data = $dt['customer'];
                     $contract_data = $dt['contract'];
                     $is_nt = in_array($contract_data['partner_code'], ['FWD', 'BML']); //  có phải là hđ nhân thọ hay không 
@@ -619,7 +619,7 @@ class AdminController extends Controller
                             'contract_id' => $contract->id,
                             'product_code' => $product_code
                         ])->first();
-
+                        $exists = false;
                         if (!$contract_product) {
                             $contract_product = ContractProduct::create([
                                 'contract_id' => $contract->id,
@@ -629,66 +629,92 @@ class AdminController extends Controller
                                 'premium_term' => $product_data['premium_term'],
                                 'term_code' => $contract_data['term_code'],
                             ]);
-                        }
+                        } else $exists = true;
 
-                        foreach ($product_data['transactions'] as $transaction_data) {
-                            $transaction_data['contract_product_id'] = $contract_product->id;
-                            $transaction_data['contract_id'] = $contract->id;
-                            $transaction_data['agent_code'] = $agent_code;
-                            $transaction_data['product_code'] = $product_code;
-                            $final[] = $transaction_data;
-                            $transaction = Transaction::create($transaction_data);
-                            // print_r($transaction);continue;
-                            $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
-                            if (!isset($month_list[$month])) $month_list[$month] = [];
-                            if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
+                        $sum_exists_transactions = $contract_product->transactions()->selectRaw('sum(premium_received) as premium_received')->first();
+                        if($sum_exists_transactions) $sum_exists_transactions = $sum_exists_transactions->premium_received;
+                        $new_sum_transactions = array_reduce(array_map(function ($a) {
+                            return $a['premium_received'];
+                        }, $product_data['transactions']), function ($a, $b) {
+                            return $a + $b;
+                        });
+                        if ($new_sum_transactions > $sum_exists_transactions) {
+                            $product_data['transactions'][0]['premium_received'] = $new_sum_transactions - $sum_exists_transactions;
+                            foreach ($product_data['transactions'] as $transaction_data) {
+                                $transaction_data['contract_product_id'] = $contract_product->id;
+                                $transaction_data['contract_id'] = $contract->id;
+                                $transaction_data['agent_code'] = $agent_code;
+                                $transaction_data['product_code'] = $product_code;
+                                $final[] = $transaction_data;
+                                $transaction = Transaction::create($transaction_data);
+                                $success[] =  "New transaction id " . $transaction->id . "\r\n";
+                                // print_r($transaction);continue;
+                                $month = Carbon::createFromFormat('Y-m-d', $transaction_data['trans_date'])->startOfMonth()->format('Y-m-d');
+                                if (!isset($month_list[$month])) $month_list[$month] = [];
+                                if (!in_array($agent_code, $month_list[$month])) $month_list[$month][] = $agent_code;
 
-                            // Tạo comission để tính vào FYC trong trường hợp k phải là hợp đồng nhân thọ bán bởi cấp quản lý và điều hành
-                            // echo $agent->designation_code; exit;
-                            if ($is_nt && $agent->designation_code != 'AG') {
-                                $errors[] = "không tạo comission cho hợp đồng " . $partner_contract_code;
-                                continue;
+                                // Tạo comission để tính vào FYC trong trường hợp k phải là hợp đồng nhân thọ bán bởi cấp quản lý và điều hành
+                                // echo $agent->designation_code; exit;
+                                if ($is_nt && $agent->designation_code != 'AG') {
+                                    $errors[] = "không tạo comission cho hợp đồng " . $partner_contract_code;
+                                    continue;
+                                }
+                                $data_calc = [
+                                    'product_code' => $product_code,
+                                    'contract_year' => $contract->contract_year,
+                                    'premium' => $transaction_data['premium_received'],
+                                    'is_bonus' => $has_bonus,
+                                    'factor_rank' => $product_data['premium_factor_rank'],
+                                    'APE' => $product_data['premium'],
+                                    'customer_type' => $customer_data['type'],
+                                    'product_list' => $product_list,
+                                    'main_code' => $dt['perc']['main_code']
+                                ];
+                                $comission_data = [
+                                    'transaction_id' => $transaction->id,
+                                    'contract_id' => $contract->id,
+                                    'agent_code' => $agent_code,
+                                    'amount' => Util::calc_comission($request->partner_code, $data_calc),
+                                    'received_date' => $transaction_data['trans_date']
+                                ];
+                                $comission = Comission::create($comission_data);
                             }
-                            $data_calc = [
-                                'product_code' => $product_code,
-                                'contract_year' => $contract->contract_year,
-                                'premium' => $transaction_data['premium_received'],
-                                'is_bonus' => $has_bonus,
-                                'factor_rank' => $product_data['premium_factor_rank'],
-                                'APE' => $product_data['premium'],
-                                'customer_type' => $customer_data['type'],
-                                'product_list' => $product_list,
-                                'main_code' => $dt['perc']['main_code']
-                            ];
-                            $comission_data = [
-                                'transaction_id' => $transaction->id,
-                                'contract_id' => $contract->id,
-                                'agent_code' => $agent_code,
-                                'amount' => Util::calc_comission($request->partner_code, $data_calc),
-                                'received_date' => $transaction_data['trans_date']
-                            ];
-                            $comission = Comission::create($comission_data);
+                            $contract_product->premium_received = $contract_product->transactions()
+                                ->selectRaw("sum(premium_received) as premium_received")
+                                ->first()
+                                ->premium_received;
+
+                            $contract_product->renewal_premium_received = $contract_product->transactions()
+                                ->where(['is_renewal' => true])
+                                ->selectRaw("sum(premium_received) as premium_received")
+                                ->first()
+                                ->premium_received;
+
+                            if (!$contract_product->renewal_premium_received) $contract_product->renewal_premium_received = 0;
+                            $contract_product->comission = 0;
+                            foreach ($contract_product->transactions as $transaction) {
+                                $comission = $transaction->comission;
+                                if (!$comission) continue;
+                                $com = $comission->amount;
+                                if ($com) $contract_product->comission += $com;
+                            }
+                            if ($contract->partner_code == 'VBI') {
+                                $contract_product->premium = $contract_product->premium_received;
+                                $contract_product->premium_term = $contract_product->premium_received;
+                            }
+                            $contract_product->save();
+                        } else if ($product_data['premium'] != $contract_product->premium || $product_data['premium_term'] != $contract_product->premium_term) {
+                            $contract_product->update([
+                                'premium' => $product_data['premium'],
+                                'premium_term' => $product_data['premium_term']
+                            ]);
+                            $success[] =  "Contract product updated " . $contract_product->id . "\r\n";;
                         }
-                        $contract_product->premium_received = $contract_product->transactions()->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
-                        $contract_product->renewal_premium_received = $contract_product->transactions()->where(['is_renewal' => true])->selectRaw("sum(premium_received) as premium_received")->first()->premium_received;
-                        if (!$contract_product->renewal_premium_received) $contract_product->renewal_premium_received = 0;
-                        $contract_product->comission = 0;
-                        foreach ($contract_product->transactions as $transaction) {
-                            $comission = $transaction->comission;
-                            if (!$comission) continue;
-                            $com = $comission->amount;
-                            if ($com) $contract_product->comission += $com;
-                        }
-                        if ($contract->partner_code == 'VBI') {
-                            $contract_product->premium = $contract_product->premium_received;
-                            $contract_product->premium_term = $contract_product->premium_received;
-                        }
-                        $contract_product->save();
                     }
                     $success[] =  $partner_contract_code . "\r\n";
-                } catch (Exception $e) {
-                    $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
-                }
+                // } catch (Exception $e) {
+                //     $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
+                // }
             }
             foreach ($agent_list as $agent_code => $agent) {
                 try {
@@ -1300,7 +1326,6 @@ class AdminController extends Controller
                 ),
             ),
         );
-
         $styleBold = array(
             'font' => [
                 'bold' => true,
@@ -1317,9 +1342,8 @@ class AdminController extends Controller
         $date_report = date('d-m-Y');
         $sheet->setCellValue("B2", $date_report);
 
-        $agents = User::where(['designation_code' => 'AG'])
-            ->select('agent_code', 'fullname', 'supervisor_code', 'IFA_supervisor_name', 'alloc_code_date', 'reference_code', 'IFA_ref_name', 'designation_code')
-            // ->limit(2)
+        $agents = User::select('agent_code', 'fullname', 'supervisor_code', 'IFA_supervisor_name', 'alloc_code_date', 'reference_code', 'IFA_ref_name', 'designation_code')
+            // ->limit(10)
             ->get();
         $com = new ComissionCalculatorController();
         foreach ($agents as $agent) {
@@ -1335,10 +1359,11 @@ class AdminController extends Controller
 
             ];
             for ($m = 0; $m < 12; $m++) {
+                $month = Carbon::now()->subMonth($month_back - $m)->startOfMonth()->format('Y-m-d');
                 $metrics[$m] = [
-                    'FYP' => $com->getFYP($agent, $month_back - $m, 1),
-                    'FYC' => $com->getFYC($agent, $month_back - $m, 1),
-                    'APE' => $com->getAPE($agent, $month_back - $m, 1),
+                    'FYP' => $com->calcThisMonthFYP($agent, $month, null, null, false),
+                    'FYC' => $com->calcThisMonthFYC($agent, $month, false),
+                    'APE' => $com->calcThisMonthAPE($agent, $month, null, null, false),
                     'CC' => $com->getCC($agent, $month_back - $m, 1)
                 ];
                 $metrics['total']['FYP'] += $metrics[$m]['FYP'];
@@ -1353,7 +1378,7 @@ class AdminController extends Controller
         $max_col = 0;
         foreach ($agents as $agent) {
             $super_info = $agent->super_info;
-            $sheet->setCellValue("C" . $i,isset($super_info['TD']) ? "TNDA" . $super_info['TD']['agent_code'] : '');
+            $sheet->setCellValue("C" . $i, isset($super_info['TD']) ? "TNDA" . $super_info['TD']['agent_code'] : '');
             $sheet->setCellValue("D" . $i, isset($super_info['TD']) ? $super_info['TD']['fullname'] : $agent->IFA_TD_name);
             $sheet->setCellValue("E" . $i, isset($super_info['SRD']) ? $super_info['SRD']['fullname'] : '');
             $sheet->setCellValue("F" . $i, isset($super_info['RD']) ? $super_info['RD']['fullname'] : '');
@@ -1395,30 +1420,41 @@ class AdminController extends Controller
             // ->limit(10)
             ->get();
         $com = new ComissionCalculatorController();
+        // echo "<pre>";
         foreach ($agents as $agent) {
+            // echo "\n" . $agent->agent_code;
             $super_list = Util::get_all_super_info($agent);
             $agent->super_info = $super_list;
             $metrics = [
                 'total' => [
-                    'FYP' => 0,
-                    'FYC' => 0,
-                    'APE' => 0,
-                    // 'CC' => 0,
-                    // 'U' => 0,
+                    'FYP_dr' => 0,
+                    'FYP_tm' => 0,
+                    'FYC_dr' => 0,
+                    'FYC_tm' => 0,
+                    'APE_dr' => 0,
+                    'APE_tm' => 0,
                     'AAU' => 0,
                     'HC' => 0,
                     'AHC' => 0
                 ]
-
             ];
             $previous_total_HC = 0;
             $previous_total_AHC = 0;
             $previous_total_AAU = 0;
             for ($m = 0; $m < 12; $m++) {
+                $teamAGCodes = $com->getWholeTeamCodes($agent, true);
+                $teamCodes = $com->getWholeTeamCodes($agent);
+                // if (!$m) {
+                //     echo "\nAG: " . implode(",", $teamAGCodes) . "\n";
+                //     echo "\nAll: " . implode(",", $teamCodes) . "\n";
+                // }
                 $metrics[$m] = [
-                    'FYP' => $com->getFYP($agent, $month_back - $m, 1),
-                    'FYC' => $com->getFYC($agent, $month_back - $m, 1),
-                    'APE' => $com->getAPE($agent, $month_back - $m, 1),
+                    'FYP_dr' => $com->getTotalFYPAllByCodes($teamAGCodes, $month_back - $m, 1),
+                    'FYP_tm' => $com->getTotalFYPAllByCodes($teamCodes, $month_back - $m, 1),
+                    'FYC_dr' => $com->getTotalFYCAllByCodes($teamAGCodes, $month_back - $m, 1),
+                    'FYC_tm' => $com->getTotalFYCAllByCodes($teamCodes, $month_back - $m, 1),
+                    'APE_dr' => $com->getTotalAPEAllByCodes($teamAGCodes, $month_back - $m, 1),
+                    'APE_tm' => $com->getTotalAPEAllByCodes($teamCodes, $month_back - $m, 1),
                     'AAU' => $com->getAAU($agent, $month_back - $m) - $previous_total_AAU,
                     'HC' => $com->getHC($agent, $month_back - $m, 1) - $previous_total_HC,
                     'AHC' => $com->getAHC($agent, $month_back - $m, 1) - $previous_total_AHC,
@@ -1426,16 +1462,20 @@ class AdminController extends Controller
                 $previous_total_AAU += $metrics[$m]['AAU'];
                 $previous_total_HC += $metrics[$m]['HC'];
                 $previous_total_AHC += $metrics[$m]['AHC'];
-                $metrics['total']['FYP'] += $metrics[$m]['FYP'];
-                $metrics['total']['FYC'] += $metrics[$m]['FYC'];
-                $metrics['total']['APE'] += $metrics[$m]['APE'];
+                $metrics['total']['FYP_dr'] += $metrics[$m]['FYP_dr'];
+                $metrics['total']['FYP_tm'] += $metrics[$m]['FYP_tm'];
+                $metrics['total']['FYC_dr'] += $metrics[$m]['FYC_dr'];
+                $metrics['total']['FYC_tm'] += $metrics[$m]['FYC_tm'];
+                $metrics['total']['APE_dr'] += $metrics[$m]['APE_dr'];
+                $metrics['total']['APE_dr'] += $metrics[$m]['APE_dr'];
                 $metrics['total']['AAU'] = $metrics[$m]['AAU'] + $previous_total_AAU;
                 $metrics['total']['HC'] = $metrics[$m]['HC'] + $previous_total_HC;
                 $metrics['total']['AHC'] = $metrics[$m]['AHC'] + $previous_total_AHC;
             }
             $agent->metric = $metrics;
         }
-
+        // dd($agents[8]);
+        // exit;
         $i = 6;
         $max_col = 0;
         foreach ($agents as $agent) {
@@ -1454,18 +1494,21 @@ class AdminController extends Controller
             $sheet->setCellValue("M" . $i, $agent->alloc_code_date);
             $sheet->setCellValue("N" . $i, $agent->designation_code);
 
-            $col = 15;
+            $col = 14;
             for ($m = 0; $m <= 12; $m++) {
                 if ($m < 12) $metric = $agent->metric[$m];
                 else $metric = $agent->metric['total'];
 
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col) . $i, $metric['FYP']);
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $i, $metric['APE']);
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 2) . $i, $metric['FYC']);
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 3) . $i, $metric['AAU']);
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 4) . $i, $metric['AHC']);
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 5) . $i, $metric['HC'] - $metric['AHC']);
-                $col += 6;
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col) . $i, $metric['FYP_dr']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $i, $metric['FYP_tm']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 2) . $i, $metric['APE_dr']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 3) . $i, $metric['APE_tm']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 4) . $i, $metric['FYC_dr']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 5) . $i, $metric['FYC_tm']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 6) . $i, $metric['AAU']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 7) . $i, $metric['AHC']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 8) . $i, $metric['HC'] - $metric['AHC']);
+                $col += 9;
                 if ($col > $max_col) $max_col = $col;
             }
             $i++;
@@ -1475,13 +1518,13 @@ class AdminController extends Controller
 
         $spreadsheet->setActiveSheetIndex(0);
 
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
-        //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
-        header('Content-Disposition: attachment;filename="metric_export_' . $year . '.xlsx"'); //Tell the browser to output the browser name
-        header('Cache-Control: max-age=0'); //Disable caching
+        // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
+        // //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
+        // header('Content-Disposition: attachment;filename="metric_export_' . $year . '.xlsx"'); //Tell the browser to output the browser name
+        // header('Cache-Control: max-age=0'); //Disable caching
         $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
-        // $writer->save('report_template/metric_export.xlsx');
+        // $writer->save('php://output');
+        $writer->save('report_template/metric_export.xlsx');
         $spreadsheet->disconnectWorksheets();
         unset($spreadsheet);
         exit;
