@@ -33,7 +33,7 @@ class ContractsImportBV implements ToCollection
             $term_code = $this->getTermCodeFromText($row[11]);
             $premium = $row[12];
             $premium_received = $row[13];
-            $premim_term = $premium_received; // mặc định số phí nhận được là đủ
+            $premium_term = $premium_received; // mặc định số phí nhận được là đủ
             $submit_date = Util::parseDateExcel($row[15], 'm/d/Y', 'Y-m-d');
             $status_code = $this->getStatusCodeFromText($row[16]);
             $ack_date = Util::parseDateExcel($row[17], 'm/d/Y', 'Y-m-d');
@@ -84,12 +84,12 @@ class ContractsImportBV implements ToCollection
             }
             if(!count($data[$partner_contract_code]['products'][$product_code]['transactions'])) {
                 $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
-                    'premium_received' => $premium,
+                    'premium_received' => $premium_received,
                     'trans_date' => $submit_date
                 ];
-            } else $data[$partner_contract_code]['products'][$product_code]['transactions'][0]['premium_received'] += $premium;
+            } else $data[$partner_contract_code]['products'][$product_code]['transactions'][0]['premium_received'] += $premium_received;
             $data[$partner_contract_code]['products'][$product_code]['premium'] += $premium;
-            $data[$partner_contract_code]['products'][$product_code]['premium_term'] += $premium;
+            $data[$partner_contract_code]['products'][$product_code]['premium_term'] += $premium_term;
         }
         $this->data = $data;
     }

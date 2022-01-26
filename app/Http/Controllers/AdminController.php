@@ -585,7 +585,7 @@ class AdminController extends Controller
             // echo "<pre>";
 
             foreach ($import->data as $partner_contract_code => $dt) {
-                // try {
+                try {
                     $customer_data = $dt['customer'];
                     $contract_data = $dt['contract'];
                     $is_nt = in_array($contract_data['partner_code'], ['FWD', 'BML']); //  có phải là hđ nhân thọ hay không 
@@ -731,9 +731,9 @@ class AdminController extends Controller
                         }
                     }
                     $success[] =  $partner_contract_code . "\r\n";
-                // } catch (Exception $e) {
-                //     $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
-                // }
+                } catch (Exception $e) {
+                    $errors[] = $partner_contract_code . " FAILED:" . $e->getMessage() . "\r\n";
+                }
             }
             // foreach ($agent_list as $agent_code => $agent) {
             //     try {
@@ -1333,7 +1333,7 @@ class AdminController extends Controller
 
     public function exportMetric(Request $request)
     {
-        $input_file = "report_template/sales_report.xlsx";
+        $input_file = "report_template/metric.xlsx";
 
         $spreadsheet = IOFactory::load($input_file);
         $year = trim($request->year);
@@ -1380,9 +1380,9 @@ class AdminController extends Controller
             for ($m = 0; $m < 12; $m++) {
                 $month = Carbon::now()->subMonth($month_back - $m)->startOfMonth()->format('Y-m-d');
                 $metrics[$m] = [
-                    'FYP' => $com->calcThisMonthFYP($agent, $month, null, null, false),
-                    'FYC' => $com->calcThisMonthFYC($agent, $month, false),
-                    'APE' => $com->calcThisMonthAPE($agent, $month, null, null, false),
+                    'FYP' => $com->getFYP_all($agent, $month_back - $m, 1),
+                    'FYC' => $com->getFYC_all($agent, $month_back - $m, 1),
+                    'APE' => $com->getAPE_all($agent, $month_back - $m, 1),
                     'CC' => $com->getCC($agent, $month_back - $m, 1)
                 ];
                 $metrics['total']['FYP'] += $metrics[$m]['FYP'];
@@ -1463,10 +1463,7 @@ class AdminController extends Controller
             for ($m = 0; $m < 12; $m++) {
                 $teamAGCodes = $com->getWholeTeamCodes($agent, true);
                 $teamCodes = $com->getWholeTeamCodes($agent);
-                // if (!$m) {
-                //     echo "\nAG: " . implode(",", $teamAGCodes) . "\n";
-                //     echo "\nAll: " . implode(",", $teamCodes) . "\n";
-                // }
+               
                 $metrics[$m] = [
                     'FYP_dr' => $com->getTotalFYPAllByCodes($teamAGCodes, $month_back - $m, 1),
                     'FYP_tm' => $com->getTotalFYPAllByCodes($teamCodes, $month_back - $m, 1),
@@ -1537,13 +1534,13 @@ class AdminController extends Controller
 
         $spreadsheet->setActiveSheetIndex(0);
 
-        // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
-        // //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
-        // header('Content-Disposition: attachment;filename="metric_export_' . $year . '.xlsx"'); //Tell the browser to output the browser name
-        // header('Cache-Control: max-age=0'); //Disable caching
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
+        //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
+        header('Content-Disposition: attachment;filename="metric_export_' . $year . '.xlsx"'); //Tell the browser to output the browser name
+        header('Cache-Control: max-age=0'); //Disable caching
         $writer = new Xlsx($spreadsheet);
-        // $writer->save('php://output');
-        $writer->save('report_template/metric_export.xlsx');
+        $writer->save('php://output');
+        // $writer->save('report_template/metric_export.xlsx');
         $spreadsheet->disconnectWorksheets();
         unset($spreadsheet);
         exit;
