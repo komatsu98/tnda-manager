@@ -323,6 +323,8 @@ class ComissionCalculatorController extends Controller
                             ['received_date', '>=', $from],
                             ['received_date', '<=', $to]
                         ]);
+                    } else {
+                        $q1->where(['is_raw' => false]);
                     }
                     $q1 = $q1->whereHas('contract', function ($q2) use ($valid_ack_date, $last_month_valid_ack, $require_21days) {
                         $q2->whereIn('partner_code', ['BML', 'FWD']);

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Comission extends Model
 {
     protected $table = 'comissions';
-    protected $fillable = ['agent_code', 'amount', 'contract_id', 'transaction_id', 'received_date'];
+    protected $fillable = ['agent_code', 'amount', 'contract_id', 'transaction_id', 'received_date', 'is_raw'];
     protected $casts = [
     ];
 

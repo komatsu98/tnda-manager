@@ -674,10 +674,7 @@ class AdminController extends Controller
 
                                 // Tạo comission để tính vào FYC trong trường hợp k phải là hợp đồng nhân thọ bán bởi cấp quản lý và điều hành
                                 // echo $agent->designation_code; exit;
-                                if ($is_nt && $agent->designation_code != 'AG') {
-                                    $errors[] = "không tạo comission cho hợp đồng " . $partner_contract_code;
-                                    continue;
-                                }
+                                
                                 $data_calc = [
                                     'product_code' => $product_code,
                                     'contract_year' => $contract->contract_year,
@@ -696,6 +693,10 @@ class AdminController extends Controller
                                     'amount' => Util::calc_comission($request->partner_code, $data_calc),
                                     'received_date' => $transaction_data['trans_date']
                                 ];
+
+                                if ($is_nt && $agent->designation_code != 'AG') {
+                                    $comission_data['is_raw'] = true;
+                                } else $comission_data['is_raw'] = false;
                                 $comission = Comission::create($comission_data);
                             }
                             $contract_product->premium_received = $contract_product->transactions()
@@ -1378,7 +1379,7 @@ class AdminController extends Controller
 
             ];
             for ($m = 0; $m < 12; $m++) {
-                $month = Carbon::now()->subMonth($month_back - $m)->startOfMonth()->format('Y-m-d');
+                // $month = Carbon::now()->subMonth($month_back - $m)->startOfMonth()->format('Y-m-d');
                 $metrics[$m] = [
                     'FYP' => $com->getFYP_all($agent, $month_back - $m, 1),
                     'FYC' => $com->getFYC_all($agent, $month_back - $m, 1),
@@ -1457,9 +1458,7 @@ class AdminController extends Controller
                     'AHC' => 0
                 ]
             ];
-            $previous_total_HC = 0;
-            $previous_total_AHC = 0;
-            $previous_total_AAU = 0;
+
             for ($m = 0; $m < 12; $m++) {
                 $teamAGCodes = $com->getWholeTeamCodes($agent, true);
                 $teamCodes = $com->getWholeTeamCodes($agent);
@@ -1471,22 +1470,19 @@ class AdminController extends Controller
                     'FYC_tm' => $com->getTotalFYCAllByCodes($teamCodes, $month_back - $m, 1),
                     'APE_dr' => $com->getTotalAPEAllByCodes($teamAGCodes, $month_back - $m, 1),
                     'APE_tm' => $com->getTotalAPEAllByCodes($teamCodes, $month_back - $m, 1),
-                    'AAU' => $com->getAAU($agent, $month_back - $m) - $previous_total_AAU,
-                    'HC' => $com->getHC($agent, $month_back - $m, 1) - $previous_total_HC,
-                    'AHC' => $com->getAHC($agent, $month_back - $m, 1) - $previous_total_AHC,
+                    'AAU' => $com->getAAU($agent, $month_back - $m),
+                    'HC' => $com->getHC($agent, $month_back - $m, 1),
+                    'AHC' => $com->getAHC($agent, $month_back - $m, 1),
                 ];
-                $previous_total_AAU += $metrics[$m]['AAU'];
-                $previous_total_HC += $metrics[$m]['HC'];
-                $previous_total_AHC += $metrics[$m]['AHC'];
                 $metrics['total']['FYP_dr'] += $metrics[$m]['FYP_dr'];
                 $metrics['total']['FYP_tm'] += $metrics[$m]['FYP_tm'];
                 $metrics['total']['FYC_dr'] += $metrics[$m]['FYC_dr'];
                 $metrics['total']['FYC_tm'] += $metrics[$m]['FYC_tm'];
                 $metrics['total']['APE_dr'] += $metrics[$m]['APE_dr'];
                 $metrics['total']['APE_dr'] += $metrics[$m]['APE_dr'];
-                $metrics['total']['AAU'] = $metrics[$m]['AAU'] + $previous_total_AAU;
-                $metrics['total']['HC'] = $metrics[$m]['HC'] + $previous_total_HC;
-                $metrics['total']['AHC'] = $metrics[$m]['AHC'] + $previous_total_AHC;
+                $metrics['total']['AAU'] = $metrics[$m]['AAU'];
+                $metrics['total']['HC'] = $metrics[$m]['HC'];
+                $metrics['total']['AHC'] = $metrics[$m]['AHC'];
             }
             $agent->metric = $metrics;
         }
