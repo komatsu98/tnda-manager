@@ -24,7 +24,7 @@ class ContractsImportBV implements ToCollection
             $agent_code = str_replace(['TNDA'], '', $row[1]);
             $partner_contract_code = $row[3];
             $customer_name = $row[4];
-            $customer_type = $row[5] == 'cá nhân' ? 1 : 2;
+            $customer_type = $row[5] == 'Cá nhân' ? 1 : 2;
             $customer_identity_num = $row[6];
             $customer_phone = $row[7];
             $customer_email = $row[8];

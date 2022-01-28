@@ -1471,9 +1471,10 @@ class AdminController extends Controller
                     'APE_dr' => $com->getTotalAPEAllByCodes($teamAGCodes, $month_back - $m, 1),
                     'APE_tm' => $com->getTotalAPEAllByCodes($teamCodes, $month_back - $m, 1),
                     'AAU' => $com->getAAU($agent, $month_back - $m),
-                    'HC' => $com->getHC($agent, $month_back - $m, 1),
-                    'AHC' => $com->getAHC($agent, $month_back - $m, 1),
+                    'AU' => $com->getAU($agent, $month_back - $m),
+                    'U' => $com->getU($agent, $month_back - $m),
                 ];
+                $metrics[$m]['U2'] = $metrics[$m]['U'] - $metrics[$m]['AU'];
                 $metrics['total']['FYP_dr'] += $metrics[$m]['FYP_dr'];
                 $metrics['total']['FYP_tm'] += $metrics[$m]['FYP_tm'];
                 $metrics['total']['FYC_dr'] += $metrics[$m]['FYC_dr'];
@@ -1481,8 +1482,8 @@ class AdminController extends Controller
                 $metrics['total']['APE_dr'] += $metrics[$m]['APE_dr'];
                 $metrics['total']['APE_dr'] += $metrics[$m]['APE_dr'];
                 $metrics['total']['AAU'] = $metrics[$m]['AAU'];
-                $metrics['total']['HC'] = $metrics[$m]['HC'];
-                $metrics['total']['AHC'] = $metrics[$m]['AHC'];
+                $metrics['total']['AU'] = $metrics[$m]['AU'];
+                $metrics['total']['U2'] = $metrics[$m]['U2'];
             }
             $agent->metric = $metrics;
         }
@@ -1518,8 +1519,8 @@ class AdminController extends Controller
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 4) . $i, $metric['FYC_dr']);
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 5) . $i, $metric['FYC_tm']);
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 6) . $i, $metric['AAU']);
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 7) . $i, $metric['AHC']);
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 8) . $i, $metric['HC'] - $metric['AHC']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 7) . $i, $metric['AU']);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 8) . $i, $metric['U2']);
                 $col += 9;
                 if ($col > $max_col) $max_col = $col;
             }

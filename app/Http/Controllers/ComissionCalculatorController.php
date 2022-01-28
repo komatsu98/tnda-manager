@@ -322,9 +322,7 @@ class ComissionCalculatorController extends Controller
                         $q1 = $q1->where([
                             ['received_date', '>=', $from],
                             ['received_date', '<=', $to]
-                        ]);
-                    } else {
-                        $q1->where(['is_raw' => false]);
+                        ])->where(['is_raw' => false]);
                     }
                     $q1 = $q1->whereHas('contract', function ($q2) use ($valid_ack_date, $last_month_valid_ack, $require_21days) {
                         $q2->whereIn('partner_code', ['BML', 'FWD']);
@@ -1103,7 +1101,7 @@ class ComissionCalculatorController extends Controller
         return $depdr;
     }
 
-    public function getWholeTeamCodes($supervisor, $isAGOnly = false)
+    public function getWholeTeamCodes($supervisor, $isAGOnly = false, $month = null)
     {
         $codes = [];
         if (is_string($supervisor)) $supervisor = User::where(['agent_code' => $supervisor])->first();
@@ -1112,6 +1110,13 @@ class ComissionCalculatorController extends Controller
         if (!count($direct_unders)) {
             return [];
         } else {
+            if (!$month) {
+                $from = Carbon::now()->startOfMonth()->format('Y-m-d');
+                $to = Carbon::now()->endOfMonth()->format('Y-m-d');
+            } else {
+                $from = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
+                $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
+            }
             foreach ($direct_unders as $dr_under) {
                 if (!$isAGOnly || $dr_under->designation_code == 'AG') array_push($codes, $dr_under->agent_code);
                 $codes = array_merge($codes, $this->getWholeTeamCodes($dr_under, $isAGOnly));
