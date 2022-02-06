@@ -259,6 +259,7 @@ class ComissionCalculatorController extends Controller
 
     public function updateThisMonthMetric($agent, $month = null)
     {
+        echo "updating " . $agent->agent_code ."-".$month;
         $metric = $this->calcThisMonthMetric($agent, $month);
         if (!$month) {
             $month = Carbon::now()->startOfMonth()->format('Y-m-d');

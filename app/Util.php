@@ -1486,9 +1486,10 @@ class Util
     public static function parseDateExcel($d = '', $format = 'd/m/Y', $target_format = '')
     {
         $d = trim($d);
-        if (!$d || $d == '') return null;
+        if ($d == "null" || !$d || $d == '') return null;
         $date = Carbon::createFromFormat($format, is_numeric($d) ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($d)->format($format) : $d);
-        if ($target_format != '') $date = $date->format('Y-m-d');
+        if ($target_format == '') $date = $date->format('Y-m-d');
+        else $date = $date->format($target_format);
         return $date;
     }
 
