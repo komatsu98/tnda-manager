@@ -578,8 +578,8 @@ class AdminController extends Controller
             $errors = [];
             $success = [];
             $final = [];
-            // dd($import->data);
-            // exit;
+            dd($import->data);
+            exit;
             $agent_list = [];
             $month_list = [];
             // echo "<pre>";

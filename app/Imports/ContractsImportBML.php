@@ -32,16 +32,16 @@ class ContractsImportBML implements ToCollection
             $customer_address = $row[13];
             $status_code = $row[14];
             $product_code = $row[15];
-            $submit_date = Util::parseDateExcel($row[20], 'd/m/Y', 'Y-m-d');
-            $release_date = Util::parseDateExcel($row[21], 'd/m/Y', 'Y-m-d');
-            $ack_date = Util::parseDateExcel($row[22], 'd/m/Y', 'Y-m-d');
+            $submit_date = Util::parseDateExcel($row[22], 'd/m/Y', 'Y-m-d');
+            $release_date = Util::parseDateExcel($row[23], 'd/m/Y', 'Y-m-d');
+            $ack_date = Util::parseDateExcel($row[24], 'd/m/Y', 'Y-m-d');
             $expire_date = Carbon::createFromFormat('Y-m-d', $release_date)->add('year', 1)->add('day', -1)->format('Y-m-d');
             $maturity_date = $expire_date;
-            $premium_received = $row[16];
-            $premium = $row[17]; // phí bảo hiểm quy năm
+            $premium_received = $row[18];
+            $premium = $row[19]; // phí bảo hiểm quy năm
             $premium_term = $premium_received; // mặc định số phí nhận được là đủ
-            $term_code = $this->getTermCodeFromText($row[18]); // year
-            $contract_year = $row[19];
+            $term_code = $this->getTermCodeFromText($row[20]); // year
+            $contract_year = $row[21];
             $calc_status = isset($row[25]) && $row[25] == "Đã chi trả thưởng bán hàng cá nhân" ? 1 : 0;
 
             if (!isset($data[$partner_contract_code])) {
