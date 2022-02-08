@@ -416,7 +416,7 @@ class AdminController extends Controller
             $contract->partner_text = $list_partners[$partner_index]['name'];
         } else $contract->partner_text = null;
 
-        $contract->term_text = $list_contract_term_code[$contract->term_code];
+        $contract->term_text = $contract->term_code ? $list_contract_term_code[$contract->term_code] : "Không xác định";
         $contract->info_awaiting_text = implode(", ", $info_awaiting_text);
         $agent_name = $contract->agent()->pluck('fullname');
         if (count($agent_name)) $contract->agent_name = $agent_name[0];
@@ -1538,6 +1538,91 @@ class AdminController extends Controller
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         // $writer->save('report_template/metric_export.xlsx');
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+        exit;
+    }
+
+    public function export21DayContract(Request $request)
+    {
+        if(!isset($request->month)) {
+            return back()->with('error', 'Thiếu tháng!');
+        }
+        $month = trim($request->month);
+        $from = $month . '-01';
+        $to = Carbon::createFromFormat('Y-m-d', $from)->endOfMonth()->format('Y-m-d');
+        $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonth(1)->subDay(21);
+        if($to == '2022-01-31') $to = '2022-01-25';
+        $valid_ack_date = Carbon::createFromFormat('Y-m-d', $to)->subDay(21);        
+        if($from == '2022-02-01') $from = '2022-01-26';
+
+        // echo "last_month_valid_ack " . $last_month_valid_ack;
+        // echo " valid_ack_date " . $valid_ack_date;
+        // exit;
+        $input_file = "report_template/contract.xlsx";
+        $spreadsheet = IOFactory::load($input_file);
+        
+        $spreadsheet->setActiveSheetIndex(0);
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue("A2", $from . " - " . $to);
+
+        $contracts = Contract::where(function($q1) use ($from, $to) {
+            $q1->whereIn('partner_code', ['BV', 'VBI'])
+                ->where([
+                    ['release_date', '>=', $from],
+                    ['release_date', '<=', $to]
+                ]);
+        })->orWhere(function ($q1) use ($valid_ack_date, $last_month_valid_ack) {
+            $q1->whereIn('partner_code', ['FWD', 'BML'])
+                ->whereNotNull('ack_date')
+                ->where([['ack_date', '<', $valid_ack_date], ['ack_date', '>', $last_month_valid_ack]]);
+        })->get();
+        foreach($contracts as $contract) {
+            $this->parseContractDetail($contract);
+        }
+        // dd($contracts);exit;
+        
+        $styleArray = array(
+            'borders' => array(
+                'allBorders' => array(
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => array('argb' => '000000'),
+                ),
+            ),
+        );
+
+        $styleBold = array(
+            'font' => [
+                'bold' => true,
+            ]
+        );
+
+        $i = 5;
+        foreach ($contracts as $k => $contract) {
+            $sheet->setCellValue("A" . $i, ($k+1));
+            $sheet->setCellValue("B" . $i, $contract->agent_code);
+            $sheet->setCellValue("C" . $i, $contract->agent_name);
+            $sheet->setCellValue("D" . $i, $contract->partner_code);
+            $sheet->setCellValue("E" . $i, $contract->partner_contract_code);
+            $sheet->setCellValue("F" . $i, $contract->product_text);
+            $sheet->setCellValue("G" . $i, $contract->customer_name);
+            $sheet->setCellValue("H" . $i, $contract->premium_term);
+            $sheet->setCellValue("I" . $i, $contract->premium_received);
+            $sheet->setCellValue("J" . $i, $contract->premium);
+            $sheet->setCellValue("K" . $i, $contract->submit_date);
+            $sheet->setCellValue("L" . $i, $contract->release_date);
+            $sheet->setCellValue("M" . $i, $contract->ack_date);
+            $i++;
+        }
+
+        $sheet->getStyle('A5:M' . ($i))->applyFromArray($styleArray);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); //Tell the browser to output 07Excel file
+        //header(‘Content-Type:application/vnd.ms-excel’);//Tell the browser to output the Excel03 version file
+        header('Content-Disposition: attachment;filename="contract_export_' . $month . '.xlsx"'); //Tell the browser to output the browser name
+        header('Cache-Control: max-age=0'); //Disable caching
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
         $spreadsheet->disconnectWorksheets();
         unset($spreadsheet);
         exit;

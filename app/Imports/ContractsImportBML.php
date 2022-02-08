@@ -89,7 +89,7 @@ class ContractsImportBML implements ToCollection
             if(!count($data[$partner_contract_code]['products'][$product_code]['transactions'])) {
                 $data[$partner_contract_code]['products'][$product_code]['transactions'][] = [
                     'premium_received' => $premium_received,
-                    'trans_date' => $submit_date
+                    'trans_date' => $release_date
                 ];
             } else $data[$partner_contract_code]['products'][$product_code]['transactions'][0]['premium_received'] += $premium_received;
             

@@ -65,9 +65,9 @@ class ComissionCalculatorController extends Controller
         //     $this->updateThisMonthAllStructure($agent, $month = '2021-12-01');
         // }
         // }
-
+        set_time_limit(2048);
         // transaction mới trong ngày
-        $new_transactions = Transaction::where([['created_at', '>', Carbon::now()->subDay(1)->format('Y-m-d')]])->get();
+        $new_transactions = Transaction::where([['created_at', '>', Carbon::now()->subDay(2)->format('Y-m-d')]])->get();
         $to_update = [];
 
         foreach ($new_transactions as $transaction) {
@@ -323,7 +323,9 @@ class ComissionCalculatorController extends Controller
                         $q1 = $q1->where([
                             ['received_date', '>=', $from],
                             ['received_date', '<=', $to]
-                        ])->where(['is_raw' => false]);
+                        ]);
+                    } else {
+                        $q1 = $q1->where(['is_raw' => false]);
                     }
                     $q1 = $q1->whereHas('contract', function ($q2) use ($valid_ack_date, $last_month_valid_ack, $require_21days) {
                         $q2->whereIn('partner_code', ['BML', 'FWD']);

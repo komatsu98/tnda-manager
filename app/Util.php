@@ -1594,7 +1594,7 @@ function calc_BML_comission($product_code, $contract_year, $premium, $is_bonus =
             $comission_perc = 0.15;
             break;
         case 'PA01':
-            $comission_perc = 0.15;
+            $comission_perc = 0.1;
             break;
         case 'HSR1':
             $comission_perc = 0.1;
@@ -1605,7 +1605,7 @@ function calc_BML_comission($product_code, $contract_year, $premium, $is_bonus =
             if ($contract_year == 6) $comission_perc = 0.1;
             if ($contract_year == 7) $comission_perc = 0.15;
             if ($contract_year >= 8 && $contract_year <= 10) $comission_perc = 0.15;
-            if ($contract_year >= 10) $comission_perc = 0.2;
+            if ($contract_year > 10) $comission_perc = 0.2;
             break;
     }
     return $comission_perc * $premium;

@@ -33,6 +33,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/admin/user/{user}/contract', 'AdminController@listUserContracts')->name('admin.user.contracts');
 
     Route::get('/admin/contracts', 'AdminController@listContracts')->name('admin.contracts');
+    Route::get('/admin/contract/export-21day', 'AdminController@export21DayContract')->name('admin.contract.export_21day');
     Route::get('/admin/contract/bulk-create', 'AdminController@createBulkContracts')->name('admin.contract.bulk_create');
     Route::get('/admin/contract/{contract}/edit', 'AdminController@editContract')->name('admin.contract.edit');
     Route::get('/admin/contract/{contract}', 'AdminController@getContract')->name('admin.contract.detail');
