@@ -1231,9 +1231,8 @@ class AgentController extends Controller
             $p['evaluation_date'] = $eval_date;
             $promotions[$i] = $p;
         }
-        // echo '<pre>';print_r($promotions);
         $respStatus = 'success';
-        $data['promotions'] = $promotions;
+        $data['promotions'] = array_values($promotions);
         return ['status' => $respStatus, 'message' => $respMsg, 'data' => $data];
     }
 
