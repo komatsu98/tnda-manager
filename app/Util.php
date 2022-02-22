@@ -31,9 +31,9 @@ class Util
     public static function get_contract_search_type_code()
     {
         $contract_search_type_code = [
-            "S1C" => "HSYCBH nộp trong tháng",
-            "S2C" => "Hợp đồng phát hành trong tháng",
-            "S3C" => "Hồ sơ nộp trong tháng bị từ chối"
+            // "S1C" => "HSYCBH nộp trong tháng",
+            // "S2C" => "Hợp đồng phát hành trong tháng",
+            // "S3C" => "Hồ sơ nộp trong tháng bị từ chối"
         ];
         return $contract_search_type_code;
     }
