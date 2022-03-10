@@ -38,7 +38,7 @@ class ContractsImportBV implements ToCollection
             $submit_date = Util::parseDateExcel($row[15], 'm/d/Y', 'Y-m-d');
             $status_code = $this->getStatusCodeFromText($row[16]);
             $ack_date = Util::parseDateExcel($row[17], 'm/d/Y', 'Y-m-d');
-            $release_date = Util::parseDateExcel($row[18], 'm/d/Y', 'Y-m-d');
+            $release_date = Util::parseDateExcel($row[15], 'm/d/Y', 'Y-m-d'); // same submit date
             $expire_date = Carbon::createFromFormat('Y-m-d', $release_date)->add('year', 1)->add('day', -1)->format('Y-m-d');
             $maturity_date = $expire_date;
             $contract_year = 1;

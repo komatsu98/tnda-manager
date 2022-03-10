@@ -590,7 +590,7 @@ class AdminController extends Controller
                     $contract_data = $dt['contract'];
                     $is_nt = in_array($contract_data['partner_code'], ['FWD', 'BML']); //  có phải là hđ nhân thọ hay không 
                     $products = $dt['products'];
-                    $has_bonus = $dt['perc']['sub'] / max(1, ($dt['perc']['main'] + $dt['perc']['sub'])) > 0.15;
+                    $has_bonus = $dt['perc']['sub'] / max(1, ($dt['perc']['main'] + $dt['perc']['sub'])) >= 0.15;
                     $agent_code = $contract_data['agent_code'];
                     $agent = User::where(['agent_code' => $agent_code])->first();
                     if (!$agent) {

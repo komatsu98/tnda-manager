@@ -25,7 +25,7 @@ class ContractsImportVBI implements ToCollection
             $partner_contract_code = $row[8];
             $GCN = $row[9];
             $submit_date = Util::parseDateExcel($row[10], 'd/m/Y', 'Y-m-d');
-            $release_date = Util::parseDateExcel($row[11], 'd/m/Y', 'Y-m-d');
+            $release_date = Util::parseDateExcel($row[10], 'd/m/Y', 'Y-m-d');
             $expire_date = Util::parseDateExcel($row[12], 'd/m/Y', 'Y-m-d');
             $maturity_date = $expire_date;
             $customer_type = $row[14] == 'Cá nhân' ? 1 : 2;
