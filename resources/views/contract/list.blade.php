@@ -60,8 +60,8 @@
 @push('scripts')
 <script type="text/javascript">
 	$(document).ready(function() {
-		$('#search_icon').click(function() {
-			$('form#search').submit();
+		$('#download_icon').click(function() {
+			$('form#export').submit();
 		})
 	});
 </script>
