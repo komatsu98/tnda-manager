@@ -36,6 +36,15 @@
 				<br>
 				<button class="btn btn-success">Nhập</button>
 			</form>
+			<hr>
+			<div class="row">
+				<div class="col-12">
+					<h3>Danh sách file mẫu</h3>
+					<ul>
+						<li><a href="/upload_templates/user.xlsx">CẤP CODE MỚI</a></li>
+					</ul>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
