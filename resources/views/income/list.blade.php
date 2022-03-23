@@ -6,14 +6,18 @@
 		<div class="col-md-6">
 			<h2>
 				Danh sách Thu nhập
-				<form action="{{ route('admin.income.export')}}" method="get" id="export">
-					<div class="input-group md-form form-sm form-2 pl-0">
-						<input class="form-control my-0 py-1 lime-border" type="text" placeholder="Tháng" aria-label="month" name="month">
-						<div class="input-group-append">
-							<span class="input-group-text lime lighten-2" id="download_icon"><i class="fas fa-download text-grey" aria-hidden="true"></i></span>
+				<h4>
+					<h6>Tải Báo cáo Thu nhập tháng</h6>
+					<form action="{{ route('admin.income.export')}}" method="get" id="export">
+						<div class="input-group md-form form-sm form-2 pl-0">
+							<input class="form-control my-0 py-1 lime-border" type="text" placeholder="Tháng, ví dụ: 2021-12" aria-label="month" name="month">
+							<div class="input-group-append">
+								<span class="input-group-text lime lighten-2" id="download_icon"><i class="fas fa-download text-grey" aria-hidden="true"></i></span>
+							</div>
 						</div>
-					</div>
-				</form>
+					</form>
+				</h4>
+
 			</h2>
 		</div>
 		<div class="col-md-6">

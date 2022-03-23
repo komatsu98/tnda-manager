@@ -13,6 +13,15 @@
             </div>
         </div>
         <br>
+        <div class="col-12">
+            <hr>
+        </div>
+        <div class="col-12">
+            <a class="btn btn-info" href="/api/calc/all">Tính toán tất cả</a>
+            <hr>
+        </div>
+        
+        
         <div class="col-md-12">
             @if (session('success'))
             <div class="alert alert-success" role="alert">
@@ -24,6 +33,7 @@
                 {{ session('error') }}
             </div>
             @endif
+
             <form action="{{ route('admin.calculator.calc') }}" method="POST">
                 @csrf
                 @method('POST')
@@ -42,7 +52,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-default">Submit</button>
+                <button type="submit" class="btn btn-info">Tính toán trường hợp trên</button>
             </form>
         </div>
     </div>
@@ -56,8 +66,8 @@
         $('#agent_code').change(function() {
             $('#agent_name').val('');
             var agent_code = $(this).val().toLowerCase().replace('tnda', '');
-            $.get(`/admin/user/${agent_code}/raw`, function (data) {
-                if(data) {
+            $.get(`/admin/user/${agent_code}/raw`, function(data) {
+                if (data) {
                     $('#agent_name').val(data.fullname)
                 }
             });

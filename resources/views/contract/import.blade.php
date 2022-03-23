@@ -44,11 +44,21 @@
 				<div>
 					<input type="file" name="file" class="form-control">
 				</div>
-
-
 				<br>
 				<button class="btn btn-success">Nhập</button>
 			</form>
+			<hr>
+			<div class="row">
+				<div class="col-12">
+					<h3>Danh sách file mẫu</h3>
+					<ul>
+						<li><a href="/upload_templates/BML.xlsx">BML</a></li>
+						<li><a href="/upload_templates/FWD.xlsx">FWD</a></li>
+						<li><a href="/upload_templates/VBI.xlsx">VBI</a></li>
+						<li><a href="/upload_templates/BV.xlsx">BV</a></li>
+					</ul>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

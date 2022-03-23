@@ -146,6 +146,7 @@ class ComissionCalculatorController extends Controller
             }
         }
         echo "done";
+        return back()->with('success', 'Tính toán thành công!');
     }
 
     public function updateThisMonthAllStructure($agent, $month = null)
