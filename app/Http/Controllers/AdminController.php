@@ -57,7 +57,7 @@ class AdminController extends Controller
     //  */
     public function listUsers()
     {
-        $users = User::orderBy('agent_code', 'asc');
+        $users = User::orderBy('agent_code', 'desc');
         if (request()->has('id')) {
             $id = request('id');
             $users = $users->where('id', '=', $id);
