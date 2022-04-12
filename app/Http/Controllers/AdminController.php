@@ -1237,6 +1237,8 @@ class AdminController extends Controller
 
     public function exportIncome(Request $request)
     {
+        set_time_limit(600);
+        ini_set('memory_limit', '4095M'); // 4 GBs minus 1 MB
         $month = trim($request->month);
         $input_file = "report_template/income.xlsx";
         $spreadsheet = IOFactory::load($input_file);
@@ -1291,7 +1293,7 @@ class AdminController extends Controller
             $sheet->setCellValue("E" . $i, $agent->fullname);
             $sheet->setCellValue("F" . $i, $agent->agent_code);
             $sheet->setCellValue("G" . $i, $agent->designation_code);
-            $sheet->setCellValue("J" . $i, $metric->FYC);
+            $sheet->setCellValue("J" . $i, isset($metric->FYC) ? $metric->FYC : "?");
             $sheet->setCellValue("K" . $i, $income->ag_rwd_hldlth);
             $sheet->setCellValue("L" . $i, $income->ag_hh_bhcn);
             $sheet->setCellValue("M" . $i, $income->ag_rwd_dscnhq);
@@ -1334,6 +1336,9 @@ class AdminController extends Controller
 
     public function exportMetric(Request $request)
     {
+        set_time_limit(600);
+        ini_set('memory_limit', '4095M'); // 4 GBs minus 1 MB
+
         $input_file = "report_template/metric.xlsx";
 
         $spreadsheet = IOFactory::load($input_file);
