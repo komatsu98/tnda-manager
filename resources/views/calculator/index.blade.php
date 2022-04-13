@@ -17,7 +17,7 @@
             <hr>
         </div>
         <div class="col-12">
-            <a class="btn btn-info" href="/api/calc/all">Tính toán tất cả</a>
+            <a class="btn btn-info" href="/api/calc/all?month={{ $month_calc }}">Tính toán tất cả</a>
             <hr>
         </div>
         

@@ -1207,7 +1207,8 @@ class AdminController extends Controller
 
     public function calculator()
     {
-        return view('calculator.index');
+
+        return view('calculator.index', ['month_calc' => Carbon::now()->subMonthsNoOverflow(1)->format('Y-m')]);
     }
 
     public function calc(Request $request)
