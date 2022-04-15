@@ -71,8 +71,9 @@ class ComissionCalculatorController extends Controller
         } else {
             $calc_date = Carbon::now()->format('Y-m-d');
         }
+       
+        
         $to_update = [];
-
         if ($this->checkValidTpay('q', $calc_date)) {
             $new_transactions = Transaction::get();
         } else {
@@ -100,10 +101,10 @@ class ComissionCalculatorController extends Controller
         }
 
         // những hợp đồng cũ đã qua 21 ngày
-        // $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonth(1)->subDay(21);
+        // $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonthsNoOverflow(1)->subDay(21);
         // if($to == '2022-01-31') $to = '2022-01-25';
         // $valid_ack_date = Carbon::createFromFormat('Y-m-d', $to)->subDay(21);
-        $last_calc = Carbon::createFromFormat('Y-m-d', $calc_date)->subMonth(1)->endOfMonth()->format('Y-m-d');
+        $last_calc = Carbon::createFromFormat('Y-m-d', $calc_date)->subMonthsNoOverflow(1)->endOfMonth()->format('Y-m-d');
         if ($last_calc == '2022-01-31') $last_calc = '2022-01-25';
         $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $last_calc)->subDay(21)->format('Y-m-d');
         $valid_ack_date = Carbon::createFromFormat('Y-m-d', $calc_date)->subDay(21)->format('Y-m-d');
@@ -436,7 +437,7 @@ class ComissionCalculatorController extends Controller
             $from = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
         }
-        // $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonth(1)->subDay(21);
+        // $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonthsNoOverflow(1)->subDay(21);
         // if ($to == '2022-01-31') $to = '2022-01-25';
         // $valid_ack_date = Carbon::createFromFormat('Y-m-d', $to)->subDay(21);
         if ($to == '2022-01-31') $to = '2022-01-25';
@@ -504,7 +505,7 @@ class ComissionCalculatorController extends Controller
             $from = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
         }
-        // $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonth(1)->subDay(21);
+        // $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonthsNoOverflow(1)->subDay(21);
         // if ($to == '2022-01-31') $to = '2022-01-25';
         // $valid_ack_date = Carbon::createFromFormat('Y-m-d', $to)->subDay(21);
         if ($to == '2022-01-31') $to = '2022-01-25';
@@ -542,9 +543,9 @@ class ComissionCalculatorController extends Controller
     public function calcIsAA($agent, $month_back = 0, $FYP_month, $CC_month, $month = null)
     {
         if (!$month) {
-            $month_end = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+            $month_end = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
         } else {
-            $month_end = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
+            $month_end = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
         }
 
         $working_month = !$agent->terminate_date || $agent->terminate_date > $month_end;
@@ -558,13 +559,13 @@ class ComissionCalculatorController extends Controller
         if (!$month) {
             $from = Carbon::now()->startOfMonth()->format('Y-m-d');
             $to = Carbon::now()->endOfMonth()->format('Y-m-d');
-            $ack_from = Carbon::now()->subMonths(14)->format('Y-m-d');
-            $to_back_two = Carbon::now()->subMonths(2);
+            $ack_from = Carbon::now()->subMonthsNoOverflow(14)->format('Y-m-d');
+            $to_back_two = Carbon::now()->subMonthsNoOverflow(2);
         } else {
             $from = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth()->format('Y-m-d');
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
-            $ack_from = Carbon::createFromFormat('Y-m-d', $month)->subMonths(14)->format('Y-m-d');
-            $to_back_two = Carbon::createFromFormat('Y-m-d', $month)->subMonths(2);
+            $ack_from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow(14)->format('Y-m-d');
+            $to_back_two = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow(2);
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -597,11 +598,11 @@ class ComissionCalculatorController extends Controller
     public function calcThisMonthRYPr($agent, $month = null)
     {
         if (!$month) {
-            $ack_from = Carbon::now()->subMonths(14)->format('Y-m-d');
-            $to_back_two = Carbon::now()->subMonths(2);
+            $ack_from = Carbon::now()->subMonthsNoOverflow(14)->format('Y-m-d');
+            $to_back_two = Carbon::now()->subMonthsNoOverflow(2);
         } else {
-            $ack_from = Carbon::createFromFormat('Y-m-d', $month)->subMonths(14)->format('Y-m-d');
-            $to_back_two = Carbon::createFromFormat('Y-m-d', $month)->subMonths(2);
+            $ack_from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow(14)->format('Y-m-d');
+            $to_back_two = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow(2);
         }
         $mcontracts = ContractProduct::whereHas('contract', function ($query) use ($agent, $ack_from, $to_back_two) {
             $query->where([
@@ -632,11 +633,11 @@ class ComissionCalculatorController extends Controller
     public function getCC($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -657,11 +658,11 @@ class ComissionCalculatorController extends Controller
     public function getU($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -682,11 +683,11 @@ class ComissionCalculatorController extends Controller
     public function getAHC($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -708,11 +709,11 @@ class ComissionCalculatorController extends Controller
     public function getHC($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -735,11 +736,11 @@ class ComissionCalculatorController extends Controller
     public function getFYP($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -760,11 +761,11 @@ class ComissionCalculatorController extends Controller
     public function getFYP_all($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -785,11 +786,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalFYPAllByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -812,11 +813,11 @@ class ComissionCalculatorController extends Controller
     public function getAPE($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -837,11 +838,11 @@ class ComissionCalculatorController extends Controller
     public function getAPE_all($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
             $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -862,11 +863,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalFYPByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -889,14 +890,14 @@ class ComissionCalculatorController extends Controller
     public function calcTotalFYPByCodes($codes, $month_back = 0, $month_range = 1, $month = null, $list_product = null, $require_21days = true)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
 
-        // $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonth(1)->subDay(21);
+        // $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonthsNoOverflow(1)->subDay(21);
         // if ($to == '2022-01-31') $to = '2022-01-25';
         // $valid_ack_date = Carbon::createFromFormat('Y-m-d', $to)->subDay(21);
         if ($to == '2022-01-31') $to = '2022-01-25';
@@ -949,11 +950,11 @@ class ComissionCalculatorController extends Controller
     public function getFYC($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -975,11 +976,11 @@ class ComissionCalculatorController extends Controller
     public function getFYC_all($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -1001,11 +1002,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalFYCByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -1029,11 +1030,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalFYCAllByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -1057,11 +1058,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalAPEByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -1085,11 +1086,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalAPEAllByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -1112,11 +1113,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalAAByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -1139,11 +1140,11 @@ class ComissionCalculatorController extends Controller
     public function getK2($agent, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -1165,11 +1166,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalK2ByCodes($codes, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
         if ($to == '2022-01-31') $to = '2022-01-25';
         if ($from == '2022-02-01') $from = '2022-01-26';
@@ -1235,9 +1236,9 @@ class ComissionCalculatorController extends Controller
     public function getAU($agent, $month_back = 0, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->startOfMonth()->format('Y-m-d');
         }
 
         $AU = $agent->monthlyMetrics()
@@ -1255,9 +1256,9 @@ class ComissionCalculatorController extends Controller
     public function getAAU($agent, $month_back = 0, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->startOfMonth()->format('Y-m-d');
         }
 
         $AU = $agent->monthlyMetrics()
@@ -1345,11 +1346,11 @@ class ComissionCalculatorController extends Controller
     public function getRewardType($agent, $type, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
 
         $rewards = $agent->monthlyIncomes()
@@ -1368,11 +1369,11 @@ class ComissionCalculatorController extends Controller
     public function getTotalRewardTypeByCodes($codes, $type, $month_back = 0, $month_range = 1, $month = null)
     {
         if (!$month) {
-            $to = Carbon::now()->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::now()->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::now()->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::now()->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         } else {
-            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->endOfMonth()->format('Y-m-d');
-            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths($month_back)->subMonths($month_range - 1)->startOfMonth()->format('Y-m-d');
+            $to = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->endOfMonth()->format('Y-m-d');
+            $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow($month_back)->subMonthsNoOverflow($month_range - 1)->startOfMonth()->format('Y-m-d');
         }
 
         $rewards = MonthlyIncome::whereHas('agent', function ($query) use ($codes) {
@@ -1425,10 +1426,10 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 3:
                                 if (!$month) {
-                                    $backto = Carbon::now()->subMonths(6)->endOfMonth()->format('Y-m-d');
+                                    $backto = Carbon::now()->subMonthsNoOverflow(6)->endOfMonth()->format('Y-m-d');
                                     $startMonth = Carbon::now()->startOfMonth();
                                 } else {
-                                    $backto = Carbon::createFromFormat('Y-m-d', $month)->subMonths(6)->endOfMonth()->format('Y-m-d');
+                                    $backto = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow(6)->endOfMonth()->format('Y-m-d');
                                     $startMonth = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth();
                                 }
                                 $referencee_AA_count = $agent->referencee()->where([
@@ -1503,10 +1504,10 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 4:
                                 if (!$month) {
-                                    $backto = Carbon::now()->subMonths(6)->endOfMonth()->format('Y-m-d');
+                                    $backto = Carbon::now()->subMonthsNoOverflow(6)->endOfMonth()->format('Y-m-d');
                                     $startMonth = Carbon::now()->startOfMonth();
                                 } else {
-                                    $backto = Carbon::createFromFormat('Y-m-d', $month)->subMonths(6)->endOfMonth()->format('Y-m-d');
+                                    $backto = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow(6)->endOfMonth()->format('Y-m-d');
                                     $startMonth = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth();
                                 }
                                 $referencee_AA_count = $agent->referencee()->where([
@@ -1588,10 +1589,10 @@ class ComissionCalculatorController extends Controller
                                 break;
                             case 5:
                                 if (!$month) {
-                                    $backto = Carbon::now()->subMonths(6)->endOfMonth()->format('Y-m-d');
+                                    $backto = Carbon::now()->subMonthsNoOverflow(6)->endOfMonth()->format('Y-m-d');
                                     $startMonth = Carbon::now()->startOfMonth();
                                 } else {
-                                    $backto = Carbon::createFromFormat('Y-m-d', $month)->subMonths(6)->endOfMonth()->format('Y-m-d');
+                                    $backto = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow(6)->endOfMonth()->format('Y-m-d');
                                     $startMonth = Carbon::createFromFormat('Y-m-d', $month)->startOfMonth();
                                 }
                                 $referencee_AA_count = $agent->referencee()->where([
@@ -2343,10 +2344,10 @@ class ComissionCalculatorController extends Controller
                 $drs = $data['dr'];
                 if (!$month) {
                     $to = Carbon::now()->endOfMonth()->format('Y-m-d');
-                    $from = Carbon::now()->subMonths(12)->startOfMonth()->format('Y-m-d');
+                    $from = Carbon::now()->subMonthsNoOverflow(12)->startOfMonth()->format('Y-m-d');
                 } else {
                     $to = Carbon::createFromFormat('Y-m-d', $month)->endOfMonth()->format('Y-m-d');
-                    $from = Carbon::createFromFormat('Y-m-d', $month)->subMonths(12)->startOfMonth()->format('Y-m-d');
+                    $from = Carbon::createFromFormat('Y-m-d', $month)->subMonthsNoOverflow(12)->startOfMonth()->format('Y-m-d');
                 }
 
                 $list_designation = Util::get_designation_code();

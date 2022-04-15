@@ -1207,7 +1207,8 @@ class AdminController extends Controller
 
     public function calculator()
     {
-        return view('calculator.index');
+
+        return view('calculator.index', ['month_calc' => Carbon::now()->subMonthsNoOverflow(1)->format('Y-m')]);
     }
 
     public function calc(Request $request)
@@ -1237,6 +1238,8 @@ class AdminController extends Controller
 
     public function exportIncome(Request $request)
     {
+        set_time_limit(600);
+        ini_set('memory_limit', '4095M'); // 4 GBs minus 1 MB
         $month = trim($request->month);
         $input_file = "report_template/income.xlsx";
         $spreadsheet = IOFactory::load($input_file);
@@ -1291,7 +1294,7 @@ class AdminController extends Controller
             $sheet->setCellValue("E" . $i, $agent->fullname);
             $sheet->setCellValue("F" . $i, $agent->agent_code);
             $sheet->setCellValue("G" . $i, $agent->designation_code);
-            $sheet->setCellValue("J" . $i, $metric->FYC);
+            $sheet->setCellValue("J" . $i, isset($metric->FYC) ? $metric->FYC : "?");
             $sheet->setCellValue("K" . $i, $income->ag_rwd_hldlth);
             $sheet->setCellValue("L" . $i, $income->ag_hh_bhcn);
             $sheet->setCellValue("M" . $i, $income->ag_rwd_dscnhq);
@@ -1334,6 +1337,9 @@ class AdminController extends Controller
 
     public function exportMetric(Request $request)
     {
+        set_time_limit(600);
+        ini_set('memory_limit', '4095M'); // 4 GBs minus 1 MB
+
         $input_file = "report_template/metric.xlsx";
 
         $spreadsheet = IOFactory::load($input_file);
@@ -1379,7 +1385,7 @@ class AdminController extends Controller
 
             ];
             for ($m = 0; $m < 12; $m++) {
-                // $month = Carbon::now()->subMonth($month_back - $m)->startOfMonth()->format('Y-m-d');
+                // $month = Carbon::now()->subMonthsNoOverflow($month_back - $m)->startOfMonth()->format('Y-m-d');
                 $metrics[$m] = [
                     'FYP' => $com->getFYP_all($agent, $month_back - $m, 1),
                     'FYC' => $com->getFYC_all($agent, $month_back - $m, 1),
@@ -1551,7 +1557,7 @@ class AdminController extends Controller
         $month = trim($request->month);
         $from = $month . '-01';
         $to = Carbon::createFromFormat('Y-m-d', $from)->endOfMonth()->format('Y-m-d');
-        $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonth(1)->subDay(21);
+        $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $to)->subMonthsNoOverflow(1)->subDay(21);
         if($to == '2022-01-31') $to = '2022-01-25';
         $valid_ack_date = Carbon::createFromFormat('Y-m-d', $to)->subDay(21);        
         if($from == '2022-02-01') $from = '2022-01-26';
