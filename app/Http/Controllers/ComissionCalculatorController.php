@@ -71,12 +71,16 @@ class ComissionCalculatorController extends Controller
         } else {
             $calc_date = Carbon::now()->format('Y-m-d');
         }
-        // $calc_date = 
-
-        // transaction mới trong ngày
-        $new_transactions = Transaction::where([['created_at', '>', Carbon::now()->subDay(2)->format('Y-m-d')]])->get();
         $to_update = [];
 
+        if ($this->checkValidTpay('q', $calc_date)) {
+            $new_transactions = Transaction::get();
+        } else {
+            // transaction mới trong ngày
+            $new_transactions = Transaction::where([['created_at', '>', Carbon::now()->subDay(2)->format('Y-m-d')]])->get();
+        }
+        // $calc_date = 
+        // dd($new_transactions);
         foreach ($new_transactions as $transaction) {
             if (!isset($to_update[$transaction->agent_code])) {
                 $to_update[$transaction->agent_code] = [];
