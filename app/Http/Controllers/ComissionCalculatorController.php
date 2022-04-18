@@ -74,12 +74,7 @@ class ComissionCalculatorController extends Controller
        
         
         $to_update = [];
-        if ($this->checkValidTpay('q', $calc_date)) {
-            $new_transactions = Transaction::get();
-        } else {
-            // transaction mới trong ngày
-            $new_transactions = Transaction::where([['created_at', '>', Carbon::now()->subDay(2)->format('Y-m-d')]])->get();
-        }
+        $new_transactions = Transaction::where([['created_at', '>', Carbon::now()->subDay(2)->format('Y-m-d')]])->get();
         // $calc_date = 
         // dd($new_transactions);
         foreach ($new_transactions as $transaction) {
@@ -108,11 +103,6 @@ class ComissionCalculatorController extends Controller
         if ($last_calc == '2022-01-31') $last_calc = '2022-01-25';
         $last_month_valid_ack = Carbon::createFromFormat('Y-m-d', $last_calc)->subDay(21)->format('Y-m-d');
         $valid_ack_date = Carbon::createFromFormat('Y-m-d', $calc_date)->subDay(21)->format('Y-m-d');
-        // echo "<pre>";
-        // print_r([
-        //     ['ack_date', '<=', $valid_ack_date],
-        //     ['ack_date', '>=', $last_month_valid_ack]
-        // ]);exit;
 
         $contract_valid_ack_this_month = Contract::where([
             ['ack_date', '<=', $valid_ack_date],
@@ -138,7 +128,28 @@ class ComissionCalculatorController extends Controller
                 $to_update[$contract->agent_code][] = $month_valid_ack;
             }
         }
-        // dd($to_update);exit;
+        
+        if ($this->checkValidTpay('y', $calc_date)) {
+            $new_transactions = Transaction::where([['created_at', '>=', Carbon::createFromFormat('Y-m-d', $calc_date)->startOfYear()->format('Y-m-d')]])->get();
+            foreach ($new_transactions as $transaction) {
+                if (!isset($to_update[$transaction->agent_code])) {
+                    $to_update[$transaction->agent_code] = [];
+                }
+                $month_to_update = Carbon::createFromFormat('Y-m-d', $calc_date)->startOfMonth()->format('Y-m-d');
+                if(!in_array($month_to_update, $to_update[$transaction->agent_code])) $to_update[$transaction->agent_code][] = $month_to_update;
+            }
+        }
+
+        if ($this->checkValidTpay('q', $calc_date)) {
+            $new_transactions = Transaction::where([['created_at', '>=', Carbon::createFromFormat('Y-m-d', $calc_date)->startOfQuarter()->format('Y-m-d')]])->get();
+            foreach ($new_transactions as $transaction) {
+                if (!isset($to_update[$transaction->agent_code])) {
+                    $to_update[$transaction->agent_code] = [];
+                }
+                $month_to_update = Carbon::createFromFormat('Y-m-d', $calc_date)->startOfMonth()->format('Y-m-d');
+                if(!in_array($month_to_update, $to_update[$transaction->agent_code])) $to_update[$transaction->agent_code][] = $month_to_update;
+            }
+        }
         // $codes = [2, 4, 22, 29, 30, 31, 32, 38, 40, 42, 43, 44, 48, 49, 50, 51, 52, 55, 59, 61, 64, 69, 77, 85, 88, 91, 99, 104, 106, 108, 109, 110, 113, 114, 115, 116, 118, 129, 134, 141, 142, 144, 147, 150, 159, 164, 184, 185, 187, 188, 190, 198, 202, 224, 242, 244, 258];        
         foreach ($to_update as $agent_code => $months) {
             $agent = User::where(['agent_code' => $agent_code])->first();
@@ -2190,6 +2201,7 @@ class ComissionCalculatorController extends Controller
                 $fyc_q_check = $this->getFYC($agent, 0, 3, $month);
                 $twork_check = $data['twork'];
                 $k2_check = $data['thisMonthMetric']['K2'];
+
                 if ($fyc_q_check < 20000000) {
                     if ($twork_check < 6)
                         $result = 0.4 * $fyc_q_check;
@@ -2223,6 +2235,8 @@ class ComissionCalculatorController extends Controller
                             $result = 0.5 * $fyc_q_check;
                     }
                 }
+                // print_r([$result, $valid_month]);exit;
+
                 $list_result[] = [$result, $valid_month];
                 break;
             case 'ag_rwd_tndl':
