@@ -114,7 +114,11 @@
                     <div class="col-md-4 form-group">
                         <label for="supervisor_designation_text">Chức vụ người quản lý trực tiếp</label>
                         <input type="text" class="form-control" id="supervisor_designation_text" name="supervisor_designation_text" value="{{ $user->supervisor_designation_text }}" disabled>
-                    </div>           
+                    </div>    
+                    <div class="col-md-3 form-group">
+                        <label for="new_password">Mật khẩu mới</label>
+                        <input type="text" class="form-control" id="new_password" name="new_password" value="">
+                    </div>       
                     <div class="col-md-1 form-group">
                         <label for="active">Active</label>
                         <input type="checkbox" class="form-control" id="active" name="active" @if ($user->active == 1) checked @endif value="{{$user->active}}">

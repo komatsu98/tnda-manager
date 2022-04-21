@@ -282,6 +282,15 @@ class AdminController extends Controller
         }
         // echo "<pre>";
         $input = $request->input();
+        if($input['new_password'] != "") {
+            if(strlen($input['new_password']) < 6) {
+                return back()->with('error', 'Mật khẩu quá ngắn.');
+            }
+            if(strlen($input['new_password']) > 32) {
+                return back()->with('error', 'Mật khẩu quá dài.');
+            }
+            $input['password'] = Hash::make($input['new_password']);
+        }
         $userUpdate = $user->update($input);
         if ($userUpdate) {
             return back()->with('success', 'Cập nhật thông tin thành viên thành công.');
